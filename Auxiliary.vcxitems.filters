@@ -1,0 +1,67 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="$(MSBuildThisFileDirectory)application.hxx" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)backtask.cxx" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)diagnostics.cxx" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)dirotation.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)hamburger.cxx" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)module.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)path.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)string.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)syslog.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)system.cxx" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)time.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)tongue.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)win32.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)syslog\logging.cpp">
+      <Filter>syslog</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)syslog\receiver\vstudio.cpp">
+      <Filter>syslog\receiver</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)syslog\receiver\racket.cpp">
+      <Filter>syslog\receiver</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)tcp.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="$(MSBuildThisFileDirectory)backtask.hxx" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)box.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)credit.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)diagnostics.hxx" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)enum.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)dirotation.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)hamburger.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)module.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)msappx.hxx" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)object.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)path.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)slot.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)string.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)class.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)syslog.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)system.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)time.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)tongue.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)win32.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)syslog\logging.hpp">
+      <Filter>syslog</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)syslog\receiver\vstudio.hpp">
+      <Filter>syslog\receiver</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)syslog\receiver\racket.hpp">
+      <Filter>syslog\receiver</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)tcp.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="syslog">
+      <UniqueIdentifier>{d8c3203b-a753-4893-966e-9f3f2c530828}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="syslog\receiver">
+      <UniqueIdentifier>{3cfbefa3-b6af-4522-9267-d7d381d57dd8}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
