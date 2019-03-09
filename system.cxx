@@ -17,8 +17,10 @@ using namespace Windows::Foundation::Collections;
 using namespace Platform::Collections;
 
 using namespace Windows::Graphics::Display;
-using namespace Windows::System;
 using namespace Windows::Storage;
+
+using namespace Windows::System;
+using namespace Windows::System::Diagnostics;
 
 using namespace Windows::Devices::Power;
 using namespace Windows::Devices::WiFi;
@@ -158,6 +160,11 @@ Platform::String^ WarGrey::SCADA::system_ipv4_address(Platform::String^ defval_i
 	}
 	
 	return ipv4;
+}
+
+/*************************************************************************************************/
+unsigned int WarGrey::SCADA::system_process_id() {
+	return ProcessDiagnosticInfo::GetForCurrentProcess()->ProcessId;
 }
 
 /*************************************************************************************************/
