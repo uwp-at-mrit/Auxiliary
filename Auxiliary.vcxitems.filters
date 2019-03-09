@@ -23,7 +23,15 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)syslog\receiver\racket.cpp">
       <Filter>syslog\receiver</Filter>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)tcp.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)network\stream.cpp">
+      <Filter>network</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)network\netexn.cpp">
+      <Filter>network</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)network\tcp.cpp">
+      <Filter>network</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)backtask.hxx" />
@@ -54,7 +62,16 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)syslog\receiver\racket.hpp">
       <Filter>syslog\receiver</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)tcp.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)taskexn.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)network\stream.hpp">
+      <Filter>network</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)network\netexn.hpp">
+      <Filter>network</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)network\tcp.hpp">
+      <Filter>network</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="syslog">
@@ -62,6 +79,9 @@
     </Filter>
     <Filter Include="syslog\receiver">
       <UniqueIdentifier>{3cfbefa3-b6af-4522-9267-d7d381d57dd8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="network">
+      <UniqueIdentifier>{392465bd-38bf-40ea-98d4-29bd893354b3}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

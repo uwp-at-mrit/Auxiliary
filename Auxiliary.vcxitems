@@ -20,6 +20,9 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)dirotation.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)hamburger.cxx" />
     <ClCompile Include="$(MSBuildThisFileDirectory)module.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)network\netexn.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)network\stream.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)network\tcp.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)path.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)string.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)syslog.cpp" />
@@ -27,7 +30,6 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)syslog\receiver\racket.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)syslog\receiver\vstudio.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)system.cxx" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)tcp.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)time.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)tongue.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)win32.cpp" />
@@ -42,7 +44,9 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)hamburger.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)module.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)msappx.hxx" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)tcp.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)network\netexn.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)network\stream.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)network\tcp.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)object.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)path.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)slot.hpp" />
@@ -53,6 +57,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)syslog\receiver\racket.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)syslog\receiver\vstudio.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)system.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)taskexn.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)time.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)tongue.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)win32.hpp" />
