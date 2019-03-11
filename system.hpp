@@ -27,4 +27,6 @@ namespace WarGrey::SCADA {
 	float system_battery_capacity(float defval_if_no_battery = 1.0F);
 	Platform::String^ system_wifi_ssid(char* signal_strength = nullptr);
 	Platform::String^ system_ipv4_address(Platform::String^ defval_if_no_nic = nullptr);
+
+	unsigned int system_process_id();
 }
