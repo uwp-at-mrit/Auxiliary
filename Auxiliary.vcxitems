@@ -30,6 +30,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)syslog\receiver\racket.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)syslog\receiver\vstudio.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)system.cxx" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)taskexn.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)time.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)tongue.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)win32.cpp" />
