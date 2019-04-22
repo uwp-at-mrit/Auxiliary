@@ -32,7 +32,6 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)network\tcp.cpp">
       <Filter>network</Filter>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)taskexn.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)backtask.hxx" />

@@ -17,7 +17,7 @@ static const wchar_t wzero = (wchar_t)(zero);
 static const wchar_t wnine = (wchar_t)(nine);
 
 static inline size_t integer_length(unsigned long long n) {
-	return (size_t)(floor(log(n) / log(2)) + 1.0);
+	return (size_t)(floor(log(double(n)) / log(2.0)) + 1.0);
 }
 
 static unsigned int newline_position(const wchar_t* src, unsigned int idx0, unsigned int idxn, unsigned int* next_idx) {
