@@ -5,8 +5,8 @@
 #include <Windows.h>
 #include <timezoneapi.h>
 
-#include "time.hpp"
-#include "box.hpp"
+#include "datum/time.hpp"
+#include "datum/box.hpp"
 
 using namespace WarGrey::SCADA;
 

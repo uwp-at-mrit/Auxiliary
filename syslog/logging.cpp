@@ -1,6 +1,7 @@
 #include "logging.hpp"
-#include "string.hpp"
-#include "time.hpp"
+
+#include "datum/string.hpp"
+#include "datum/time.hpp"
 
 using namespace WarGrey::SCADA;
 

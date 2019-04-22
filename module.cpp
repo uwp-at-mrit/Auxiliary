@@ -1,7 +1,7 @@
 #include <map>
 
 #include "module.hpp"
-#include "path.hpp"
+#include "datum/path.hpp"
 
 using namespace WarGrey::SCADA;
 

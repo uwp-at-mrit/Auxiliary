@@ -3,7 +3,8 @@
 #include <list>
 
 #include "syslog.hpp"
-#include "time.hpp"
+
+#include "datum/time.hpp"
 
 namespace WarGrey::SCADA {
 	private enum class TCPMode { Root, User, Debug, _ };

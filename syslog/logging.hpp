@@ -2,7 +2,7 @@
 
 #include <deque>
 
-#include "object.hpp"
+#include "datum/object.hpp"
 
 namespace WarGrey::SCADA {
 	private enum class Log { Debug, Info, Notice, Warning, Error, Critical, Alarm, Panic, _ };

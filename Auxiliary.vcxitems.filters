@@ -7,11 +7,8 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)dirotation.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)hamburger.cxx" />
     <ClCompile Include="$(MSBuildThisFileDirectory)module.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)path.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)string.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)syslog.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)system.cxx" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)time.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)tongue.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)win32.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)syslog\logging.cpp">
@@ -32,25 +29,28 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)network\tcp.cpp">
       <Filter>network</Filter>
     </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)taskexn.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)datum\path.cpp">
+      <Filter>datum</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)datum\string.cpp">
+      <Filter>datum</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)datum\time.cpp">
+      <Filter>datum</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)datum\flonum.cpp">
+      <Filter>datum</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="$(MSBuildThisFileDirectory)backtask.hxx" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)box.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)credit.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)diagnostics.hxx" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)enum.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)dirotation.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)hamburger.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)module.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)msappx.hxx" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)object.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)path.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)slot.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)string.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)class.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)syslog.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)system.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)time.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)tongue.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)win32.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)syslog\logging.hpp">
@@ -72,6 +72,37 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)network\tcp.hpp">
       <Filter>network</Filter>
     </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)datum\path.hpp">
+      <Filter>datum</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)datum\string.hpp">
+      <Filter>datum</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)datum\time.hpp">
+      <Filter>datum</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)datum\flonum.hpp">
+      <Filter>datum</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)backtask.hxx" />
+    <ClInclude Include="F:\DredgeConstruct\Auxiliary\datum\box.hpp">
+      <Filter>datum</Filter>
+    </ClInclude>
+    <ClInclude Include="F:\DredgeConstruct\Auxiliary\datum\class.hpp">
+      <Filter>datum</Filter>
+    </ClInclude>
+    <ClInclude Include="F:\DredgeConstruct\Auxiliary\datum\credit.hpp">
+      <Filter>datum</Filter>
+    </ClInclude>
+    <ClInclude Include="F:\DredgeConstruct\Auxiliary\datum\enum.hpp">
+      <Filter>datum</Filter>
+    </ClInclude>
+    <ClInclude Include="F:\DredgeConstruct\Auxiliary\datum\slot.hpp">
+      <Filter>datum</Filter>
+    </ClInclude>
+    <ClInclude Include="F:\DredgeConstruct\Auxiliary\datum\object.hpp">
+      <Filter>datum</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="syslog">
@@ -82,6 +113,9 @@
     </Filter>
     <Filter Include="network">
       <UniqueIdentifier>{392465bd-38bf-40ea-98d4-29bd893354b3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="datum">
+      <UniqueIdentifier>{7471e8ef-9902-4589-96ea-34b78a7025b9}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

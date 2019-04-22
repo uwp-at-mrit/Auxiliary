@@ -2,9 +2,10 @@
 
 #include "dirotation.hpp"
 
+#include "datum/string.hpp"
+#include "datum/path.hpp"
+
 #include "syslog.hpp"
-#include "string.hpp"
-#include "path.hpp"
 
 using namespace WarGrey::SCADA;
 

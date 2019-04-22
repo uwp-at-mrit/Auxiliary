@@ -1,6 +1,6 @@
-#include "string.hpp"
-#include "time.hpp"
-#include "path.hpp"
+#include "datum/string.hpp"
+#include "datum/time.hpp"
+#include "datum/path.hpp"
 
 using namespace WarGrey::SCADA;
 

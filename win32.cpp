@@ -1,7 +1,7 @@
 #include "win32.hpp"
 
-#include "path.hpp"
-#include "string.hpp"
+#include "datum/path.hpp"
+#include "datum/string.hpp"
 
 using namespace WarGrey::SCADA;
 

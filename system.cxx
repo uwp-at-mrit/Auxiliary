@@ -3,10 +3,11 @@
 #include <collection.h>
 #include <list>
 
+#include "datum/box.hpp"
+#include "datum/time.hpp"
+
 #include "system.hpp"
 #include "syslog.hpp"
-#include "box.hpp"
-#include "time.hpp"
 
 using namespace WarGrey::SCADA;
 

@@ -2,7 +2,7 @@
 
 #include <ppltasks.h>
 
-#include "time.hpp"
+#include "datum/time.hpp"
 
 namespace WarGrey::SCADA {
 	private enum class RotationPeriod { Daily, Hourly, Minutely, Secondly };

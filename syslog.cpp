@@ -1,5 +1,6 @@
 ﻿#include "syslog.hpp"
-#include "string.hpp"
+
+#include "datum/string.hpp"
 
 using namespace WarGrey::SCADA;
 

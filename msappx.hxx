@@ -5,8 +5,9 @@
 #include <queue>
 #include <map>
 
+#include "datum/string.hpp"
+
 #include "syslog.hpp"
-#include "string.hpp"
 
 namespace WarGrey::SCADA {
 	template<class FileType, typename Hint>
