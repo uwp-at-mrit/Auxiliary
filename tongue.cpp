@@ -1,8 +1,9 @@
 #include <map>
 #include <algorithm>
 
+#include "datum/path.hpp"
+
 #include "tongue.hpp"
-#include "path.hpp"
 
 using namespace WarGrey::SCADA;
 
