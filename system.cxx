@@ -1,5 +1,4 @@
 #include <ppltasks.h>
-#include <algorithm>
 #include <collection.h>
 #include <list>
 

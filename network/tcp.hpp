@@ -5,6 +5,7 @@
 #include "syslog.hpp"
 
 #include "datum/time.hpp"
+#include "datum/flonum.hpp"
 
 namespace WarGrey::SCADA {
 	private enum class TCPMode { Root, User, Debug, _ };
@@ -88,7 +89,7 @@ namespace WarGrey::SCADA {
 				(*it)->on_receive_data(this, bytes, span_ms, timestamp);
 			}
 
-			this->last_heartbeat = (long long)(std::round(timestamp));
+			this->last_heartbeat = (long long)(flround(timestamp));
 		}
 
 	public:

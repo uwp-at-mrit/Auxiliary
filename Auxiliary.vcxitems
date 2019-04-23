@@ -16,7 +16,6 @@
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)application.hxx" />
     <ClCompile Include="$(MSBuildThisFileDirectory)backtask.cxx" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)datum\flonum.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)diagnostics.cxx" />
     <ClCompile Include="$(MSBuildThisFileDirectory)dirotation.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)hamburger.cxx" />
@@ -40,6 +39,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)backtask.hxx" />
     <ClInclude Include="$(MSBuildThisFileDirectory)datum\box.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)datum\credit.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)datum\fixnum.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)datum\flonum.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)diagnostics.hxx" />
     <ClInclude Include="$(MSBuildThisFileDirectory)datum\enum.hpp" />

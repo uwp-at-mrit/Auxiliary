@@ -5,6 +5,7 @@
 #include <Windows.h>
 #include <timezoneapi.h>
 
+#include "datum/fixnum.hpp"
 #include "datum/time.hpp"
 #include "datum/box.hpp"
 
@@ -122,7 +123,7 @@ TimeSpan WarGrey::SCADA::make_timespan_from_seconds(long long s) {
 TimeSpan WarGrey::SCADA::make_timespan_from_rate(int rate, unsigned int shift) {
 	TimeSpan ts;
 	
-	ts.Duration = ((rate > 0) ? (l00ns_s / rate) : (-l00ns_s * rate)) / max(shift, 1);
+	ts.Duration = ((rate > 0) ? (l00ns_s / rate) : (-l00ns_s * rate)) / fxmax(shift, 1U);
 	
 	return ts;
 }

@@ -3,6 +3,7 @@
 #include "dirotation.hpp"
 
 #include "datum/string.hpp"
+#include "datum/fixnum.hpp"
 #include "datum/path.hpp"
 
 #include "syslog.hpp"
@@ -31,7 +32,7 @@ private:
 /*************************************************************************************************/
 IRotativeDirectory::IRotativeDirectory(Platform::String^ dirname
 	, Platform::String^ prefix, Platform::String^ suffix, RotationPeriod period, unsigned int count)
-	: period(period), period_count(max(count, 1)), file_prefix(prefix), file_suffix(suffix) {
+	: period(period), period_count(fxmax(count, 1U)), file_prefix(prefix), file_suffix(suffix) {
 	StorageFolder^ appdata = ApplicationData::Current->LocalFolder;
 	Platform::String^ folder = ((dirname == nullptr) ? appdata->Path : appdata->Path + "\\" + dirname);
 	RotationListener^ listener = ref new RotationListener(this);

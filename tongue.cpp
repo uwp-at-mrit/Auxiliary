@@ -1,7 +1,7 @@
 #include <map>
-#include <algorithm>
 
 #include "datum/path.hpp"
+#include "datum/fixnum.hpp"
 
 #include "tongue.hpp"
 
@@ -126,7 +126,7 @@ int ITongue::sibling_index(unsigned int self, int delta, const unsigned int* ind
 	int sibling = -1;
 
 	if (slot >= 0) {
-		size_t sibling_slot = std::max(std::min(slot + delta, int(size - 1)), 0);
+		size_t sibling_slot = fxmax(fxmin(slot + delta, int(size - 1)), 0);
 
 		if (sibling_slot != slot) {
 			sibling = indices[sibling_slot];

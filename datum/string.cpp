@@ -1,6 +1,6 @@
-#include <algorithm>
-
 #include "datum/string.hpp"
+#include "datum/flonum.hpp"
+#include "datum/fixnum.hpp"
 
 using namespace WarGrey::SCADA;
 
@@ -17,7 +17,7 @@ static const wchar_t wzero = (wchar_t)(zero);
 static const wchar_t wnine = (wchar_t)(nine);
 
 static inline size_t integer_length(unsigned long long n) {
-	return (size_t)(floor(log(double(n)) / log(2.0)) + 1.0);
+	return (size_t)(flfloor(fllog(double(n), 2.0)) + 1.0);
 }
 
 static unsigned int newline_position(const wchar_t* src, unsigned int idx0, unsigned int idxn, unsigned int* next_idx) {
@@ -113,7 +113,7 @@ Platform::String^ WarGrey::SCADA::substring(Platform::String^ src, int start, in
 	Platform::String^ substr = nullptr;
 	int max_size = src->Length();
 	const wchar_t* pool = (src->Data() + start);
-	int subsize = ((endplus1 > 0) ? std::min(endplus1, max_size) : src->Length()) - start;
+	int subsize = ((endplus1 > 0) ? fxmin(endplus1, max_size) : src->Length()) - start;
 
 	if (subsize > 0) {
 		substr = ref new Platform::String(pool, subsize);
