@@ -116,6 +116,13 @@ Uri^ WarGrey::SCADA::ms_appx_file(Platform::String^ file, Platform::String^ ext,
 	return ref new Uri("ms-appx:///stone/" + path_ext);
 }
 
+Uri^ WarGrey::SCADA::ms_appdata_file(Platform::String^ file, Platform::String^ ext, Platform::String^ rootdir) {
+	Platform::String^ file_ext = (file_extension_from_path(file) == nullptr) ? (file + ext) : file;
+	Platform::String^ path_ext = ((rootdir == nullptr) ? file_ext : (rootdir + "/" + file_ext));
+
+	return ref new Uri("ms-appdata:///local/" + path_ext);
+}
+
 Platform::String^ WarGrey::SCADA::ms_apptemp_file(Platform::String^ file, Platform::String^ ext) {
 	StorageFolder^ apptemp = ApplicationData::Current->TemporaryFolder;
 	Platform::String^ file_ext = (file_extension_from_path(file) == nullptr) ? (file + ext) : file;

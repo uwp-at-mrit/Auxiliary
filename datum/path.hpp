@@ -16,5 +16,6 @@ namespace WarGrey::SCADA {
 	Platform::String^ file_basename_from_second(long long utc_s, bool locale = true);
 
 	Windows::Foundation::Uri^ ms_appx_file(Platform::String^ file, Platform::String^ ext, Platform::String^ rootdir = "graphlet");
+	Windows::Foundation::Uri^ ms_appdata_file(Platform::String^ file, Platform::String^ ext, Platform::String^ rootdir = "");
 	Platform::String^ ms_apptemp_file(Platform::String^ file, Platform::String^ ext);
 }

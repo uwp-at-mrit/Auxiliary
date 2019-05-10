@@ -103,6 +103,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)datum\fixnum.hpp">
       <Filter>datum</Filter>
     </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)msappdata.hxx" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="syslog">
