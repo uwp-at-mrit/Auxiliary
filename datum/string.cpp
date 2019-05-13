@@ -63,7 +63,7 @@ Platform::String^ WarGrey::SCADA::make_wstring(const char* bytes) {
 	return make_wstring(L"%S", bytes);
 }
 
-Platform::String^ WarGrey::SCADA::make_wstring(std::string bytes) {
+Platform::String^ WarGrey::SCADA::make_wstring(std::string& bytes) {
 	return make_wstring(L"%S", bytes.c_str());
 }
 
