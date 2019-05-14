@@ -13,6 +13,8 @@ namespace WarGrey::SCADA {
 	std::string read_text(std::filebuf& src, bool (*end_of_text)(char) = char_end_of_line);
 	Platform::String^ read_wtext(std::filebuf& src, bool (*end_of_text)(char) = char_end_of_line);
 
+	unsigned long long read_natural(std::filebuf& src);
+	long long read_integer(std::filebuf& src);
 	double read_flonum(std::filebuf& src);
 	float read_single_flonum(std::filebuf& src);
 	void read_skip_space(std::filebuf& src);
