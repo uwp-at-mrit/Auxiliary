@@ -36,7 +36,7 @@ std::string WarGrey::SCADA::read_text(std::filebuf& src, bool (*end_of_text)(cha
 	std::string str;
 	char ch;
 
-	read_skip_space(src);
+	discard_space(src);
 
 	while ((ch = src.sbumpc()) != EOF) {
 		if (end_of_text(ch)) {
@@ -58,7 +58,7 @@ unsigned long long WarGrey::SCADA::read_natural(std::filebuf& src) {
 	unsigned long long n = 0;
 	char ch;
 
-	read_skip_space(src);
+	discard_space(src);
 
 	while ((ch = src.sbumpc()) != EOF) {
 		if ((ch < zero) || (ch > nine)) {
@@ -77,7 +77,7 @@ long long WarGrey::SCADA::read_integer(std::filebuf& src) {
 	long long sign = 1;
 	char ch;
 
-	read_skip_space(src);
+	discard_space(src);
 
 	if (src.sgetc() == minus) {
 		sign = -1;
@@ -103,7 +103,7 @@ double WarGrey::SCADA::read_flonum(std::filebuf& src) {
 	double sign = 1.0;
 	char ch;
 
-	read_skip_space(src);
+	discard_space(src);
 
 	if (src.sgetc() == minus) {
 		sign = -1.0;
@@ -136,7 +136,7 @@ float WarGrey::SCADA::read_single_flonum(std::filebuf& src) {
 	return float(read_flonum(src));
 }
 
-void WarGrey::SCADA::read_skip_space(std::filebuf& src) {
+void WarGrey::SCADA::discard_space(std::filebuf& src) {
 	char ch;
 
 	while ((ch = src.sbumpc()) != EOF) {
@@ -147,7 +147,7 @@ void WarGrey::SCADA::read_skip_space(std::filebuf& src) {
 	}
 }
 
-void WarGrey::SCADA::read_skip_newline(std::filebuf& src) {
+void WarGrey::SCADA::discard_newline(std::filebuf& src) {
 	char ch;
 	
 	while ((ch = src.sbumpc()) != EOF) {
@@ -158,12 +158,12 @@ void WarGrey::SCADA::read_skip_newline(std::filebuf& src) {
 	}
 }
 
-void WarGrey::SCADA::read_skip_this_line(std::filebuf& src) {
+void WarGrey::SCADA::discard_this_line(std::filebuf& src) {
 	char ch;
 
 	while ((ch = src.sbumpc()) != EOF) {
 		if (char_end_of_line(ch)) {
-			read_skip_newline(src);
+			discard_newline(src);
 			break;
 		}
 	}

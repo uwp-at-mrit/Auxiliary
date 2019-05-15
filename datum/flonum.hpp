@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cmath>
+#include <limits>
 
 namespace WarGrey::SCADA {
 	static const float flnan_f = std::nanf("");
@@ -10,6 +11,10 @@ namespace WarGrey::SCADA {
 	static const float pi_f       = 3.1415927f;
 	static const double pi        = 3.141592653589793;
 	static const long double pi_t = 3.1415926535897932385L;
+
+	static const double infinity_f  = std::numeric_limits<float>::infinity();
+	static const double infinity    = std::numeric_limits<double>::infinity();
+	static const double infinity_t  = std::numeric_limits<long double>::infinity();
 
 	bool inline flisnan(float f) { return std::isnan(f); }
 	double inline flisnan(double fl) { return std::isnan(fl); }

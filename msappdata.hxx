@@ -34,7 +34,7 @@ namespace WarGrey::SCADA {
 		}
 
 		virtual Windows::Foundation::IAsyncOperation<FileType^>^ read(Platform::String^ path) {
-			return FileType::LoadAsync(path);
+			return FileType::load_async(path);
 		}
 
 	protected:

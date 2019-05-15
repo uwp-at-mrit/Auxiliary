@@ -17,7 +17,8 @@ namespace WarGrey::SCADA {
 	long long read_integer(std::filebuf& src);
 	double read_flonum(std::filebuf& src);
 	float read_single_flonum(std::filebuf& src);
-	void read_skip_space(std::filebuf& src);
-	void read_skip_newline(std::filebuf& src);
-	void read_skip_this_line(std::filebuf& src);
+
+	void discard_space(std::filebuf& src);
+	void discard_newline(std::filebuf& src);
+	void discard_this_line(std::filebuf& src);
 }
