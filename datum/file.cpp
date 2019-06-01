@@ -29,6 +29,8 @@ int WarGrey::SCADA::peek_char(std::filebuf& src) {
 }
 
 int WarGrey::SCADA::read_char(std::filebuf& src) {
+	discard_space(src);
+
 	return src.sbumpc();
 }
 
