@@ -10,8 +10,6 @@
 namespace WarGrey::SCADA {
 	private enum class TCPMode { Root, User, Debug, _ };
 	
-	class ITCPStatusListener;
-
 	private class ITCPConnection abstract {
 	public:
 		virtual ~ITCPConnection() noexcept;
@@ -46,19 +44,20 @@ namespace WarGrey::SCADA {
 		Platform::Object^ killer;
 	};
 
-	private class ITCPStatusListener {
+	private class ITCPStateListener {
 	public:
 		virtual void on_connectivity_changed(WarGrey::SCADA::ITCPConnection* master, bool connected) {}
 
 	public:
 		virtual void on_send_data(WarGrey::SCADA::ITCPConnection* master, long long bytes, double span_ms, double timestamp_ms) {}
 		virtual void on_receive_data(WarGrey::SCADA::ITCPConnection* master, long long bytes, double span_ms, double timestamp_ms) {}
+		virtual void on_confirm_data(WarGrey::SCADA::ITCPConnection* master, long long bytes, double span_ms, double timestamp_ms) {}
 	};
 
-	template<class TCPStatusListener>
+	template<class TCPStateListener>
 	private class ITCPFeedBackConnection abstract : public WarGrey::SCADA::ITCPConnection {
 	public:
-		void push_status_listener(TCPStatusListener* listener) {
+		void push_status_listener(TCPStateListener* listener) {
 			if (listener != nullptr) {
 				this->listeners.push_back(listener);
 				listener->on_connectivity_changed(this, this->connected());
@@ -92,6 +91,14 @@ namespace WarGrey::SCADA {
 			this->last_heartbeat = (long long)(flround(timestamp));
 		}
 
+		void notify_data_confirmed(long long bytes, double span_ms) {
+			double timestamp = current_inexact_milliseconds();
+
+			for (auto it = this->listeners.begin(); it != this->listeners.end(); it++) {
+				(*it)->on_confirm_data(this, bytes, span_ms, timestamp);
+			}
+		}
+
 	public:
 		void suicide_if_timeout(long long timeout) override {
 			long long now = current_milliseconds();
@@ -108,9 +115,11 @@ namespace WarGrey::SCADA {
 		}
 
 	protected:
-		std::list<TCPStatusListener*> listeners;
+		std::list<TCPStateListener*> listeners;
 
 	private:
 		long long last_heartbeat;
 	};
+
+	typedef WarGrey::SCADA::ITCPFeedBackConnection<WarGrey::SCADA::ITCPStateListener> ITCPStatedConnection;
 }

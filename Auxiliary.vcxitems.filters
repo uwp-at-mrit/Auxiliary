@@ -40,6 +40,9 @@
       <Filter>datum</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)datum\file.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)datum\bytes.cpp">
+      <Filter>datum</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)diagnostics.hxx" />
@@ -106,6 +109,9 @@
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)datum\file.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)msappdata.hxx" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)datum\bytes.hpp">
+      <Filter>datum</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="syslog">

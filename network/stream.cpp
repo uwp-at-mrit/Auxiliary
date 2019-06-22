@@ -83,3 +83,13 @@ DataWriter^ WarGrey::SCADA::make_socket_writer(StreamSocket^ socket) {
 
 	return sktout;
 }
+
+unsigned int WarGrey::SCADA::discard_dirty_bytes(DataReader^ din) {
+	unsigned int rest = din->UnconsumedBufferLength;
+
+	if (rest > 0) {
+		din->ReadBuffer(rest);
+	}
+
+	return rest;
+}

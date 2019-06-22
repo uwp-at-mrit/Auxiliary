@@ -11,6 +11,7 @@ namespace WarGrey::SCADA {
 
 	Windows::Storage::Streams::DataReader^ make_socket_reader(Windows::Networking::Sockets::StreamSocket^ socket);
 	Windows::Storage::Streams::DataWriter^ make_socket_writer(Windows::Networking::Sockets::StreamSocket^ socket);
+	unsigned int discard_dirty_bytes(Windows::Storage::Streams::DataReader^ din);
 
 	private class StreamListener {
 	public:
