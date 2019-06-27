@@ -3,16 +3,9 @@
 #include "datum/file.hpp"
 #include "datum/flonum.hpp"
 #include "datum/string.hpp"
+#include "datum/char.hpp"
 
 using namespace WarGrey::SCADA;
-
-static const char linefeed = 0x0A;
-static const char carriage_return = 0x0D;
-static const char space = 0x20;
-static const char zero = 0x30;
-static const char nine = 0x39;
-static const char minus = 0x2D;
-static const char dot = 0x2E;
 
 /************************************************************************************************/
 bool WarGrey::SCADA::char_end_of_word(char ch) {
@@ -114,7 +107,7 @@ double WarGrey::SCADA::read_flonum(std::filebuf& src) {
 
 	while ((ch = src.sbumpc()) != EOF) {
 		if ((ch < zero) || (ch > nine)) {
-			if (ch != dot) {
+			if ((ch != dot) || (f_acc != 1.0)) {
 				src.sungetc();
 				break;
 			} else {

@@ -39,8 +39,10 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)datum\time.cpp">
       <Filter>datum</Filter>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)datum\file.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)datum\bytes.cpp">
+      <Filter>datum</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)datum\file.cpp">
       <Filter>datum</Filter>
     </ClCompile>
   </ItemGroup>
@@ -107,9 +109,14 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)datum\fixnum.hpp">
       <Filter>datum</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)datum\file.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)msappdata.hxx" />
     <ClInclude Include="$(MSBuildThisFileDirectory)datum\bytes.hpp">
+      <Filter>datum</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)datum\file.hpp">
+      <Filter>datum</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)datum\char.hpp">
       <Filter>datum</Filter>
     </ClInclude>
   </ItemGroup>

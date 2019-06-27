@@ -1,22 +1,25 @@
 #pragma once
 
 namespace WarGrey::SCADA {
-#define READ_BYTES(mbin, dest, count) \
+#define READ_BYTES(mbin, dest_exp, count) \
     do { \
+        uint8* dest = (dest_exp); \
         for (uint16 i = 0; i < count; i++) { \
             dest[i] = mbin->ReadByte(); \
         } \
     } while(0)
 
-#define READ_WORDS(mbin, dest, count) \
+#define READ_WORDS(mbin, dest_exp, count) \
     do { \
+        uint16* dest = (dest_exp); \
         for (uint16 i = 0; i < count; i++) { \
             dest[i] = mbin->ReadUInt16(); \
         } \
     } while(0)
 
-#define WRITE_BYTES(mbout, src, count) \
+#define WRITE_BYTES(mbout, src_exp, count) \
     do { \
+        uint8* src = (src_exp); \
         for (uint16 i = 0; i < count; i++) { \
             mbout->WriteByte(src[i]); \
         } \
@@ -88,4 +91,7 @@ namespace WarGrey::SCADA {
 	void bigendian_flword_set(uint8* dest, size_t idx, float x, float scale = 1.0F);
 
 	void read_bigendian_floats(uint8* src, size_t address, size_t quantity, float* dest);
+
+	/************************************************************************************************/
+	char hexadecimal_ref(const uint8* src, size_t idx);
 }

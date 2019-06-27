@@ -75,6 +75,14 @@ DataReader^ WarGrey::SCADA::make_socket_reader(StreamSocket^ socket) {
 	return sktin;
 }
 
+DataReader^ WarGrey::SCADA::make_socket_available_reader(StreamSocket^ socket) {
+	DataReader^ sktin = make_socket_reader(socket);
+
+	sktin->InputStreamOptions = InputStreamOptions::Partial;
+
+	return sktin;
+}
+
 DataWriter^ WarGrey::SCADA::make_socket_writer(StreamSocket^ socket) {
 	DataWriter^ sktout = ref new DataWriter(socket->OutputStream);
 

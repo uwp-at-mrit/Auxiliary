@@ -1,21 +1,11 @@
 #include "datum/string.hpp"
 #include "datum/flonum.hpp"
 #include "datum/fixnum.hpp"
+#include "datum/char.hpp"
 
 using namespace WarGrey::SCADA;
 
-static const char linefeed = 0x0A;
-static const char carriage_return = 0x0D;
-static const char space = 0x20;
-static const char zero = 0x30;
-static const char nine = 0x39;
-
-static const wchar_t wlinefeed = (wchar_t)(linefeed);
-static const wchar_t wcarriage_return = (wchar_t)(carriage_return);
-static const wchar_t wspace = (wchar_t)(space);
-static const wchar_t wzero = (wchar_t)(zero);
-static const wchar_t wnine = (wchar_t)(nine);
-
+/*************************************************************************************************/
 static inline size_t integer_length(unsigned long long n) {
 	return (size_t)(flfloor(fllog(double(n), 2.0)) + 1.0);
 }
@@ -184,8 +174,8 @@ std::list<Platform::String^> WarGrey::SCADA::string_lines(Platform::String^ src,
 }
 
 /************************************************************************************************/
-long long WarGrey::SCADA::scan_integer(const unsigned char* src, size_t* pos, size_t total, bool skip_trailing_space) {
-	long long value = 0;
+unsigned long long WarGrey::SCADA::scan_natural(const unsigned char* src, size_t* pos, size_t total, bool skip_trailing_space) {
+	unsigned long long value = 0;
 
 	while ((*pos) < total) {
 		char c = src[(*pos)];
@@ -203,6 +193,76 @@ long long WarGrey::SCADA::scan_integer(const unsigned char* src, size_t* pos, si
 	}
 
 	return value;
+}
+
+long long WarGrey::SCADA::scan_integer(const unsigned char* src, size_t* pos, size_t total, bool skip_trailing_space) {
+	int sign = 1;
+	long long value = 0;
+
+	if (src[(*pos)] == minus) {
+		sign = -1;
+		(*pos) += 1;
+	}
+
+	while ((*pos) < total) {
+		char c = src[(*pos)];
+
+		if ((c < zero) || (c > nine)) {
+			break;
+		}
+
+		value = value * 10 + (c - zero);
+		(*pos) += 1;
+	}
+
+	if (skip_trailing_space) {
+		scan_skip_space(src, pos, total);
+	}
+
+	return value * sign;
+}
+
+double WarGrey::SCADA::scan_flonum(const unsigned char* src, size_t* pos, size_t total, bool skip_trailing_space) {
+	double value = 0.0;
+	double i_acc = 10.0;
+	double f_acc = 1.0;
+	double sign = 1.0;
+
+	if ((*pos) < total) {
+		if (src[(*pos)] == minus) {
+			sign = -1.0;
+			(*pos) += 1;
+		}
+	}
+
+	while ((*pos) < total) {
+		char ch = src[(*pos)];
+
+		(*pos) += 1;
+
+		if ((ch < zero) || (ch > nine)) {
+			if ((ch == dot) && (f_acc == 1.0)) {
+				i_acc = 1.0;
+				f_acc = 0.1;
+				continue;
+			} else {
+				(*pos) -= 1;
+				break;
+			}
+		}
+
+		value = value * i_acc + double(ch - zero) * f_acc;
+
+		if (f_acc != 1.0) {
+			f_acc *= 0.1;
+		}
+	}
+
+	if (skip_trailing_space) {
+		scan_skip_space(src, pos, total);
+	}
+
+	return value * sign;
 }
 
 size_t WarGrey::SCADA::scan_skip_space(const unsigned char* src, size_t* pos, size_t total) {

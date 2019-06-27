@@ -79,7 +79,9 @@ std::string retval; { \
 	std::list<Platform::String^> string_lines(Platform::String^ src, bool skip_empty_line = false);
 
 	/************************************************************************************************/
+	unsigned long long scan_natural(const unsigned char* src, size_t* pos, size_t total, bool skip_trailing_space = true);
 	long long scan_integer(const unsigned char* src, size_t* pos, size_t total, bool skip_trailing_space = true);
+	double scan_flonum(const unsigned char* src, size_t* pos, size_t total, bool skip_trailing_space = true);
 	size_t scan_skip_space(const unsigned char* src, size_t* pos, size_t total);
 	size_t scan_skip_newline(const unsigned char* src, size_t* pos, size_t total);
 	size_t scan_skip_this_line(const unsigned char* src, size_t* pos, size_t total);

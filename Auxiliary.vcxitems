@@ -41,6 +41,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)backtask.hxx" />
     <ClInclude Include="$(MSBuildThisFileDirectory)datum\box.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)datum\bytes.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)datum\char.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)datum\credit.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)datum\file.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)datum\fixnum.hpp" />

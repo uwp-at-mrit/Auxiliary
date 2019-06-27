@@ -177,3 +177,20 @@ void WarGrey::SCADA::read_bigendian_floats(uint8* src, size_t address, size_t qu
 		dest[i] = bigendian_float_ref(src, address + i * sizeof(float));
 	}
 }
+
+/*************************************************************************************************/
+char WarGrey::SCADA::hexadecimal_ref(const uint8* src, size_t idx) {
+	unsigned char ch = src[idx];
+
+	if ((ch >= '0') && (ch <= '9')) {
+		ch = ch - '0';
+	} else if ((ch >= 'a') && (ch <= 'f')) {
+		ch = ch - 'a' + 10;
+	} else if ((ch >= 'A') && (ch <= 'F')) {
+		ch = ch - 'A' + 10;
+	} else {
+		ch = -1;
+	}
+
+	return ch;
+}
