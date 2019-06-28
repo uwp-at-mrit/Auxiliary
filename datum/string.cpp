@@ -223,7 +223,7 @@ long long WarGrey::SCADA::scan_integer(const unsigned char* src, size_t* pos, si
 }
 
 double WarGrey::SCADA::scan_flonum(const unsigned char* src, size_t* pos, size_t total, bool skip_trailing_space) {
-	double value = 0.0;
+	double value = flnan;
 	double i_acc = 10.0;
 	double f_acc = 1.0;
 	double sign = 1.0;
@@ -249,6 +249,10 @@ double WarGrey::SCADA::scan_flonum(const unsigned char* src, size_t* pos, size_t
 				(*pos) -= 1;
 				break;
 			}
+		}
+
+		if (std::isnan(value)) {
+			value = 0.0;
 		}
 
 		value = value * i_acc + double(ch - zero) * f_acc;

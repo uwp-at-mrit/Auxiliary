@@ -92,7 +92,7 @@ long long WarGrey::SCADA::read_integer(std::filebuf& src) {
 }
 
 double WarGrey::SCADA::read_flonum(std::filebuf& src) {
-	double flonum = 0.0;
+	double flonum = flnan;
 	double i_acc = 10.0;
 	double f_acc = 1.0;
 	double sign = 1.0;
@@ -115,6 +115,10 @@ double WarGrey::SCADA::read_flonum(std::filebuf& src) {
 				f_acc = 0.1;
 				continue;
 			}
+		}
+
+		if (std::isnan(flonum)) {
+			flonum = 0.0;
 		}
 
 		flonum = flonum * i_acc + double(ch - zero) * f_acc;
