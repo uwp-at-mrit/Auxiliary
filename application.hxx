@@ -124,6 +124,8 @@ namespace WarGrey::SCADA {
 					error->Propagate();
 				} catch (Platform::Exception^ e) {
 					syslog(Log::Panic, "Unhandled Error: " + e->Message);
+				} catch (std::exception& e) {
+					syslog(Log::Panic, L"Unhandled Error: %S", e.what());
 				}
 			}
 		}
