@@ -146,17 +146,32 @@ Platform::String^ WarGrey::SCADA::system_wifi_ssid(char* signal) {
 	return ssid;
 }
 
-Platform::String^ WarGrey::SCADA::system_ipv4_address(Platform::String^ defval_if_no_nic) {
-	auto names = NetworkInformation::GetHostNames();
+Platform::String^ WarGrey::SCADA::system_ipv4_address(Platform::String^ defval_if_no_nic, Platform::String^ subnet_prefix) {
 	Platform::String^ ipv4 = defval_if_no_nic;
-	
-	for (unsigned int i = 0; i < names->Size; ++i) {
-		auto host = names->GetAt(i);
 
-		if (host->Type == HostNameType::Ipv4) {
-			ipv4 = host->RawName;
-			break;
+	try {
+		auto names = NetworkInformation::GetHostNames(); // DbgPrint says "invalid parameter passed to C runtime"
+
+		for (unsigned int i = 0; i < names->Size; ++i) {
+			auto host = names->GetAt(i);
+
+			if (host->Type == HostNameType::Ipv4) {
+				if (subnet_prefix == nullptr) {
+					ipv4 = host->RawName;
+					break;
+				} else {
+					Platform::String^ target = host->RawName;
+					
+					if (subnet_prefix->Equals(ref new Platform::String(target->Data(), subnet_prefix->Length()))) {
+						ipv4 = target;
+						break;
+					}
+				}
+			}
 		}
+	} catch (Platform::Exception^ e) {
+		// Stupid Microsoft
+		// See: https://github.com/ms-iot/samples/commit/c0da021a312a631c8a26771a0d203e0de80fc597
 	}
 	
 	return ipv4;
@@ -189,7 +204,14 @@ internal:
 			listener->on_brightness_changed(system_screen_brightness());
 			listener->on_wifi_signal_strength_changed(ssid, wifi_signal_strength);
 			listener->on_available_storage_changed(0L, 0L);
-			listener->on_ipv4_address_changed(system_ipv4_address());
+			listener->on_ipv4_address_changed(system_ipv4_address(nullptr, this->subnet_prefix));
+		}
+	}
+
+	void set_subnet_prefix(Platform::String^ prefix) {
+		if (!this->subnet_prefix->Equals(prefix)) {
+			this->subnet_prefix = prefix;
+			this->report_ipv4_changed(nullptr);
 		}
 	}
 
@@ -241,7 +263,7 @@ private:
 	}
 
 	void report_ipv4_changed(Platform::Object^ whocares) {
-		Platform::String^ ipv4 = system_ipv4_address();
+		Platform::String^ ipv4 = system_ipv4_address(nullptr, this->subnet_prefix);
 
 		for (auto listener : this->listeners) {
 			listener->on_ipv4_address_changed(ipv4);
@@ -303,10 +325,15 @@ private:
 
 private:
 	Platform::String^ last_wifi_ssid = nullptr;
+	Platform::String^ subnet_prefix = nullptr;
 	char last_wifi_strength = -1;
 	long long last_freespace = -1L;
 };
 
 void WarGrey::SCADA::register_system_status_listener(ISystemStatusListener* listener) {
 	SystemState::get_status_info_provider()->add_status_listener(listener);
+}
+
+void WarGrey::SCADA::system_set_subnet_prefix(Platform::String^ prefix) {
+	SystemState::get_status_info_provider()->set_subnet_prefix(prefix);
 }
