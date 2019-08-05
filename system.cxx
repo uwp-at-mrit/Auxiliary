@@ -170,7 +170,7 @@ Platform::String^ WarGrey::SCADA::system_ipv4_address(Platform::String^ defval_i
 			}
 		}
 	} catch (Platform::Exception^ e) {
-		// Do nothing, Stupid Microsoft.
+		// Do nothing, Stupid Microsoft
 		// See: https://github.com/ms-iot/samples/commit/c0da021a312a631c8a26771a0d203e0de80fc597
 	}
 	
