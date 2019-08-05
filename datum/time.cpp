@@ -91,6 +91,14 @@ double WarGrey::SCADA::current_inexact_seconds() {
 }
 
 /**************************************************************************************************/
+int WarGrey::SCADA::current_year() {
+	long long year;
+
+	split_date_utc(current_seconds(), true, &year, nullptr, nullptr);
+	
+	return int(year);
+}
+
 long long WarGrey::SCADA::current_seconds() {
 	return current_hectonanoseconds() / l00ns_s;
 }

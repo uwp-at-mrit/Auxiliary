@@ -26,7 +26,8 @@ namespace WarGrey::SCADA {
 	unsigned long long system_physical_memory_usage(unsigned long long* virtual_usage = nullptr, Windows::System::AppMemoryUsageLevel* level = nullptr);
 	float system_battery_capacity(float defval_if_no_battery = 1.0F);
 	Platform::String^ system_wifi_ssid(char* signal_strength = nullptr);
-	Platform::String^ system_ipv4_address(Platform::String^ defval_if_no_nic = nullptr);
+	Platform::String^ system_ipv4_address(Platform::String^ defval_if_no_nic = nullptr, Platform::String^ subnet_prefix = nullptr);
+	void system_set_subnet_prefix(Platform::String^ subnet_prefix);
 
 	unsigned int system_process_id();
 }
