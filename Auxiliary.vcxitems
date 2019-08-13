@@ -27,6 +27,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)network\tcp.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)datum\path.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)datum\string.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)settings.cxx" />
     <ClCompile Include="$(MSBuildThisFileDirectory)syslog.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)syslog\logging.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)syslog\receiver\racket.cpp" />
@@ -61,6 +62,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)datum\slot.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)datum\string.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)datum\class.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)settings.hxx" />
     <ClInclude Include="$(MSBuildThisFileDirectory)syslog.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)syslog\logging.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)syslog\receiver\racket.hpp" />
