@@ -45,7 +45,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)datum\file.cpp">
       <Filter>datum</Filter>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)settings.cxx" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)preference.cxx" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)diagnostics.hxx" />
@@ -120,7 +120,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)datum\char.hpp">
       <Filter>datum</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)settings.hxx" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)preference.hxx" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="syslog">

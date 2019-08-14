@@ -1,4 +1,4 @@
-#include "settings.hxx"
+#include "preference.hxx"
 
 using namespace WarGrey::SCADA;
 
