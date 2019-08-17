@@ -87,35 +87,47 @@ namespace WarGrey::SCADA {
 			auto token = this->shared_task.get_token();
 			auto get_file = Concurrency::create_task(Windows::Storage::StorageFile::GetFileFromApplicationUriAsync(ms_appdata), token);
 
-			get_file.then([=](Concurrency::task<Windows::Storage::StorageFile^> file) {
+			get_file.then([=](Concurrency::task<Windows::Storage::StorageFile^> sfile) {
+				Windows::Storage::StorageFile^ file = sfile.get(); // Stupid Microsoft: `sfile.get()` seems lost itself if the file does not exist.
+
 				this->log_message(Log::Debug,
-					make_wstring(L"found the %s: %s",
+					make_wstring(L"loading the %s: %s",
 						file_type->Data(), ms_appdata->ToString()->Data()));
 
-				return Concurrency::create_task(this->read(file.get()->Path), token);
+				return Concurrency::create_task(this->read(file->Path), token);
 			}).then([=](Concurrency::task<FileType^> doc) {
 				IMsAppdata<FileType, Hint>::critical_sections[uuid].lock();
+				
 				try {
 					FileType^ ftobject = doc.get();
-					std::queue<IMsAppdata<FileType, Hint>*> q = IMsAppdata<FileType, Hint>::queues[uuid];
 
-					IMsAppdata<FileType, Hint>::filesystem[uuid] = ftobject;
+					if (ftobject != nullptr) {
+						std::queue<IMsAppdata<FileType, Hint>*> q = IMsAppdata<FileType, Hint>::queues[uuid];
 
-					while (!q.empty()) {
-						auto self = q.front();
-						
-						self->on_appdata(ms_appdata, ftobject, hint);
-						self->on_appdata_notify(ms_appdata, ftobject, hint);
-						
-						IMsAppdata<FileType, Hint>::refcounts[uuid] += 1;
-						q.pop();
+						IMsAppdata<FileType, Hint>::filesystem[uuid] = ftobject;
+
+						this->log_message(Log::Debug,
+							make_wstring(L"loaded the %s: %s",
+								file_type->Data(), ms_appdata->ToString()->Data()));
+
+						while (!q.empty()) {
+							auto self = q.front();
+
+							self->on_appdata(ms_appdata, ftobject, hint);
+							self->on_appdata_notify(ms_appdata, ftobject, hint);
+
+							IMsAppdata<FileType, Hint>::refcounts[uuid] += 1;
+							q.pop();
+						}
+
+						this->log_message(Log::Debug,
+							make_wstring(L"loaded the %s: %s with reference count %d",
+								file_type->Data(), ms_appdata->ToString()->Data(),
+								IMsAppdata<FileType, Hint>::refcounts[uuid]));
+						IMsAppdata<FileType, Hint>::queues.erase(uuid);
+					} else {
+						this->on_appdata_not_found(ms_appdata, hint);
 					}
-
-					this->log_message(Log::Debug,
-						make_wstring(L"loaded the %s: %s with reference count %d",
-							file_type->Data(), ms_appdata->ToString()->Data(),
-							IMsAppdata<FileType, Hint>::refcounts[uuid]));
-					IMsAppdata<FileType, Hint>::queues.erase(uuid);
 				} catch (Platform::Exception^ e) {
 					IMsAppdata<FileType, Hint>::clear(uuid);
 
@@ -138,6 +150,7 @@ namespace WarGrey::SCADA {
 					this->log_message(WarGrey::SCADA::Log::Debug,
 						make_wstring(L"unexcepted exception: %s", e.what()));
 				}
+
 				IMsAppdata<FileType, Hint>::critical_sections[uuid].unlock();
 			});
 		}

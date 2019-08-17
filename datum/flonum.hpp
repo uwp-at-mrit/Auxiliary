@@ -4,6 +4,9 @@
 #include <limits>
 
 namespace WarGrey::SCADA {
+#define flin(open, v, close) ((open <= v) && (v <= close))
+#define flout(open, v, close) ((v < open) || (v > close))
+
 	static const float flnan_f = std::nanf("");
 	static const double flnan = std::nanf("");
 	static const long double flnan_t = std::nanf("");

@@ -99,6 +99,7 @@ namespace WarGrey::SCADA {
 				return Concurrency::create_task(this->read(stream.get()), token);
 			}).then([=](Concurrency::task<FileType^> doc) {
 				IMsAppx<FileType, Hint>::critical_sections[uuid].lock();
+				
 				try {
 					FileType^ ftobject = doc.get();
 					std::queue<IMsAppx<FileType, Hint>*> q = IMsAppx<FileType, Hint>::queues[uuid];
@@ -142,6 +143,7 @@ namespace WarGrey::SCADA {
 					this->log_message(WarGrey::SCADA::Log::Debug,
 						make_wstring(L"unexcepted exception: %s", e.what()));
 				}
+
 				IMsAppx<FileType, Hint>::critical_sections[uuid].unlock();
 			});
 		}

@@ -3,6 +3,9 @@
 #include <cmath>
 
 namespace WarGrey::SCADA {
+#define fxin(open, v, close) ((open <= v) && (v <= close))
+#define fxout(open, v, close) ((v < open) || (v > close))
+
 	int inline fxabs(int fx) { return std::abs(fx); }
 	long long inline fxabs(long long fx) { return std::abs(fx); }
 

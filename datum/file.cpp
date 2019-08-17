@@ -1,4 +1,5 @@
 #include <string>
+#include <winerror.h>
 
 #include "datum/file.hpp"
 #include "datum/flonum.hpp"
