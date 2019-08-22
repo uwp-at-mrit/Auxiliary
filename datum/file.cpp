@@ -1,5 +1,6 @@
 #include <string>
 #include <winerror.h>
+#include <Windows.h>
 
 #include "datum/file.hpp"
 #include "datum/flonum.hpp"
@@ -48,6 +49,50 @@ std::string WarGrey::SCADA::read_text(std::filebuf& src, bool (*end_of_text)(cha
 
 Platform::String^ WarGrey::SCADA::read_wtext(std::filebuf& src, bool (*end_of_text)(char)) {
 	return make_wstring(read_text(src, end_of_text));
+}
+
+Platform::String^ WarGrey::SCADA::read_wgb18030(std::filebuf& src, bool (*end_of_text)(char)) {
+	Platform::String^ wstr = nullptr;
+	std::string str;
+	bool gb18030 = false;
+	char ch;
+
+	discard_space(src);
+
+	while ((ch = src.sbumpc()) != EOF) {
+		if (end_of_text(ch)) {
+			src.sungetc();
+			break;
+		}
+
+		if ((!gb18030) && (!((0 <= ch) && (ch < 0x80)))) { // ch is actually unsigned int
+			gb18030 = true;
+		}
+
+		str.push_back(ch);
+	}
+
+	if (gb18030) { // https://docs.microsoft.com/en-us/windows/win32/intl/code-page-identifiers
+		wchar_t wpool[1024]; // DIG only allows 50 chars.
+		size_t msize = str.length();
+		int wsize = MultiByteToWideChar(54936, 0, str.c_str(), int(msize), wpool, int(sizeof(wpool) / sizeof(wchar_t)));
+
+		if (wsize > 0) {
+			wstr = ref new Platform::String(wpool, (unsigned int)wsize);
+		} else {
+			switch (GetLastError()) {
+			case ERROR_INSUFFICIENT_BUFFER: wstr = "insufficient buffer"; break;
+			case ERROR_INVALID_FLAGS: wstr = "invalid flags"; break;
+			case ERROR_INVALID_PARAMETER: wstr = "invalid parameters"; break;
+			case ERROR_NO_UNICODE_TRANSLATION: wstr = "no unicode translation"; break;
+			default: wstr = "unknown error occured"; break;
+			}
+		}
+	} else {
+		wstr = make_wstring(str);
+	}
+
+	return wstr;
 }
 
 unsigned long long WarGrey::SCADA::read_natural(std::filebuf& src) {
