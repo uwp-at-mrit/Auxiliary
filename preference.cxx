@@ -28,7 +28,7 @@ void WarGrey::SCADA::put_preference(Platform::String^ name, Platform::Object^ va
 	ApplicationDataContainer^ zone = ((pref == nullptr) ? ApplicationData::Current->LocalSettings : pref);
 
 	if (value != nullptr) {
-		zone->Values->Insert(name, value);
+		zone->Values->Insert(name, value); // insert or replace
 	} else if (zone->Values->HasKey(name)) {
 		zone->Values->Remove(name);
 	}
