@@ -52,7 +52,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)dirotation.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)hamburger.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)module.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)msappx.hxx" />
     <ClInclude Include="$(MSBuildThisFileDirectory)syslog.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)system.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)tongue.hpp" />
@@ -110,7 +109,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)datum\fixnum.hpp">
       <Filter>datum</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)msappdata.hxx" />
     <ClInclude Include="$(MSBuildThisFileDirectory)datum\bytes.hpp">
       <Filter>datum</Filter>
     </ClInclude>
@@ -121,6 +119,15 @@
       <Filter>datum</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)preference.hxx" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)filesystem\msappdata.hxx">
+      <Filter>filesystem</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)filesystem\msappx.hxx">
+      <Filter>filesystem</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)filesystem\msappdatalogue.hxx">
+      <Filter>filesystem</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="syslog">
@@ -134,6 +141,9 @@
     </Filter>
     <Filter Include="datum">
       <UniqueIdentifier>{7471e8ef-9902-4589-96ea-34b78a7025b9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="filesystem">
+      <UniqueIdentifier>{a7aa9310-c98d-4688-998e-977f0cb89aeb}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

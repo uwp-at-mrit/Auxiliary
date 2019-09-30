@@ -4,6 +4,28 @@
 #include <limits>
 
 namespace WarGrey::SCADA {
+	private struct double2 {
+	public:
+		double2(double x = 0.0, double y = 0.0)
+			: x(x), y(y) {}
+
+	public:
+		double x;
+		double y;
+	};
+
+	private struct double3 {
+	public:
+		double3(double x = 0.0, double y = 0.0, double z = 0.0)
+			: x(x), y(y), z(z) {}
+
+	public:
+		double x;
+		double y;
+		double z;
+	};
+
+	/************************************************************************************************/
 #define flin(open, v, close) ((open <= v) && (v <= close))
 #define flout(open, v, close) ((v < open) || (v > close))
 

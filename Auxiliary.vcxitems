@@ -50,10 +50,11 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)diagnostics.hxx" />
     <ClInclude Include="$(MSBuildThisFileDirectory)datum\enum.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)dirotation.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)filesystem\msappdata.hxx" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)filesystem\msappdatalogue.hxx" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)filesystem\msappx.hxx" />
     <ClInclude Include="$(MSBuildThisFileDirectory)hamburger.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)module.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)msappdata.hxx" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)msappx.hxx" />
     <ClInclude Include="$(MSBuildThisFileDirectory)network\netexn.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)network\stream.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)network\tcp.hpp" />
