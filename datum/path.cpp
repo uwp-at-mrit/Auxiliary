@@ -24,7 +24,7 @@ static int last_slash_position(const wchar_t* raw, int size, int fallback = -1) 
 static int last_dot_position(const wchar_t* raw, int size, int fallback = -1) {
 	int index = fallback;
 
-	for (int idx = size - 1; idx > 0; idx--) { // NOTE: do not count the leading "." for dot files
+	for (int idx = size - 1; idx > 0; idx--) { // NOTE: do not count on the leading "." for dot files
 		if (raw[idx] == L'.') {
 			index = idx;
 			break;
@@ -35,6 +35,21 @@ static int last_dot_position(const wchar_t* raw, int size, int fallback = -1) {
 }
 
 /*************************************************************************************************/
+int WarGrey::SCADA::path_next_slash_position(Platform::String^ path, int start, int fallback) {
+	const wchar_t* raw = path->Data();
+	int size = path->Length();
+	int index = fallback;
+
+	for (int idx = start; idx < size; idx++) {
+		if ((raw[idx] == L'/') || (raw[idx] == L'\\')) {
+			index = idx;
+			break;
+		}
+	}
+
+	return index;
+}
+
 Platform::String^ WarGrey::SCADA::path_only(Uri^ uri) {
 	return path_only(uri->Path);
 }

@@ -1,6 +1,8 @@
 #pragma once
 
 namespace WarGrey::SCADA {
+	int path_next_slash_position(Platform::String^ path, int start = 0, int fallback = -1);
+
 	Platform::String^ path_only(Windows::Foundation::Uri^ uri);
 	Platform::String^ path_only(Platform::String^ path);
 
