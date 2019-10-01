@@ -18,6 +18,10 @@ bool WarGrey::SCADA::char_end_of_line(char ch) {
 	return (ch == linefeed) || (ch == carriage_return);
 }
 
+bool WarGrey::SCADA::char_end_of_field(char ch) {
+	return ch == comma;
+}
+
 /************************************************************************************************/
 int WarGrey::SCADA::peek_char(std::filebuf& src) {
 	return src.sgetc();

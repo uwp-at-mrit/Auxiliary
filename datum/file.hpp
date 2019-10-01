@@ -6,6 +6,7 @@
 namespace WarGrey::SCADA {
 	bool char_end_of_word(char ch);
 	bool char_end_of_line(char ch);
+	bool char_end_of_field(char ch);
 
 	int peek_char(std::filebuf& src);
 	int read_char(std::filebuf& src);

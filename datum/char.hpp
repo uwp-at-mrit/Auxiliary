@@ -6,6 +6,7 @@ namespace WarGrey::SCADA {
 	static const char space = 0x20;
 	static const char zero = 0x30;
 	static const char nine = 0x39;
+	static const char comma = 0x2C;
 	static const char minus = 0x2D;
 	static const char dot = 0x2E;
 
@@ -14,6 +15,7 @@ namespace WarGrey::SCADA {
 	static const wchar_t wspace = (wchar_t)(space);
 	static const wchar_t wzero = (wchar_t)(zero);
 	static const wchar_t wnine = (wchar_t)(nine);
+	static const wchar_t wcomma = (wchar_t)(comma);
 	static const wchar_t wminus = (wchar_t)(minus);
 	static const wchar_t wdot = (wchar_t)(dot);
 }
