@@ -1,9 +1,6 @@
 #pragma once
 
 #include <ppltasks.h>
-#include <mutex>
-#include <queue>
-#include <map>
 
 #include "datum/string.hpp"
 #include "datum/path.hpp"
