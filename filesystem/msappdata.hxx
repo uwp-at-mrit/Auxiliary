@@ -38,7 +38,7 @@ namespace WarGrey::SCADA {
 		}
 
 	protected:
-		void load(Windows::Foundation::Uri^ ms_appdata, Hint hint, Platform::String^ file_type = "matrix data") {
+		void load(Windows::Foundation::Uri^ ms_appdata, Hint hint, Platform::String^ file_type = "configuration data") {
 			auto uuid = ms_appdata->ToString()->GetHashCode();
 
 			IMsAppdata<FileType, Hint>::critical_sections[uuid].lock();

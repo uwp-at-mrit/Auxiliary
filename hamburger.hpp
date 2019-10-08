@@ -8,6 +8,9 @@ namespace WarGrey::SCADA {
 		virtual void fill_padding(Windows::UI::Xaml::Thickness& padding);
 
 	public:
+		virtual void construct(Microsoft::Graphics::Canvas::UI::CanvasCreateResourcesReason reason) {}
+
+	public:
 		virtual void on_showing() {}
 		virtual void on_shown() {}
 		virtual bool can_hide() { return true; }
