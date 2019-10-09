@@ -2,15 +2,15 @@
 
 #include <ppltasks.h>
 #include <mutex>
-#include <queue>
 #include <map>
 
 #include "datum/string.hpp"
+#include "datum/path.hpp"
 
 #include "syslog.hpp"
 
 namespace WarGrey::SCADA {
-	template<class FileType, typename Hint>
+	template<class FileType>
 	private class IMsAppdata abstract {
 	public:
 		virtual ~IMsAppdata() noexcept {
@@ -18,11 +18,11 @@ namespace WarGrey::SCADA {
 		}
 
 	protected:
-		virtual void on_appdata(Windows::Foundation::Uri^ ms_appdata, FileType^ ftobject, Hint hint) = 0;
+		virtual void on_appdata(Windows::Foundation::Uri^ ms_appdata, FileType^ ftobject) = 0;
 
-		virtual void on_appdata_notify(Windows::Foundation::Uri^ ms_appdata, FileType^ ftobject, Hint hint) {}
+		virtual void on_appdata_notify(Windows::Foundation::Uri^ ms_appdata, FileType^ ftobject) {}
 		
-		virtual void on_appdata_not_found(Windows::Foundation::Uri^ ms_appdata, Hint hint) {
+		virtual void on_appdata_not_found(Windows::Foundation::Uri^ ms_appdata) {
 			this->log_message(WarGrey::SCADA::Log::Error,
 				make_wstring(L"failed to load %s: file does not exist",
 					ms_appdata->ToString()->Data()));
@@ -34,106 +34,134 @@ namespace WarGrey::SCADA {
 		}
 
 		virtual Windows::Foundation::IAsyncOperation<FileType^>^ read(Platform::String^ path) {
-			return FileType::load_async(path);
+			return Concurrency::create_async([=] {
+				return FileType::load(path);
+			});
+		}
+
+		virtual Windows::Foundation::IAsyncOperation<bool>^ write(FileType^ ftobject, Platform::String^ path) {
+			return Concurrency::create_async([=] {
+				return FileType::save(ftobject, path);
+			});
 		}
 
 	protected:
-		void load(Windows::Foundation::Uri^ ms_appdata, Hint hint, Platform::String^ file_type = "configuration data") {
+		void load(Windows::Foundation::Uri^ ms_appdata, Platform::String^ file_type = "configuration data") {
 			auto uuid = ms_appdata->ToString()->GetHashCode();
 
-			IMsAppdata<FileType, Hint>::critical_sections[uuid].lock();
-			auto reference = IMsAppdata<FileType, Hint>::refcounts.find(uuid);
+			IMsAppdata<FileType>::critical_sections[uuid].lock();
+			auto item = IMsAppdata<FileType>::databases.find(uuid);
 
-			if (reference == IMsAppdata<FileType, Hint>::refcounts.end()) {
-				IMsAppdata<FileType, Hint>::refcounts[uuid] = 0;
-				IMsAppdata<FileType, Hint>::queues[uuid].push(this);
-				this->load_async(uuid, ms_appdata, hint, file_type);
-			} else if (reference->second > 0) {
-				reference->second += 1;
-				this->on_appdata(ms_appdata, IMsAppdata<FileType, Hint>::filesystem[uuid], hint);
+			if (item == IMsAppdata<FileType>::databases.end()) {
+				IMsAppdata<FileType>::databases.insert(std::pair<int, bool>(uuid, false));
+				IMsAppdata<FileType>::lists[uuid].insert(std::pair<IMsAppdata<FileType>*, bool>(this, true));
+				this->load_async(uuid, ms_appdata, file_type);
+			} else if (item->second == true) {
+				this->on_appdata(ms_appdata, IMsAppdata<FileType>::filesystem[uuid]);
 
-				this->log_message(Log::Debug, 
+				this->log_message(WarGrey::SCADA::Log::Debug, 
 					make_wstring(L"reused the %s: %s with reference count %d",
 						file_type->Data(), ms_appdata->ToString()->Data(),
-						IMsAppdata<FileType, Hint>::refcounts[uuid]));
+						IMsAppdata<FileType>::lists[uuid].size()));
 			} else {
-				IMsAppdata<FileType, Hint>::queues[uuid].push(this);
-				this->log_message(Log::Debug,
+				IMsAppdata<FileType>::lists[uuid].insert(std::pair<IMsAppdata<FileType>*, bool>(this, true));
+				this->log_message(WarGrey::SCADA::Log::Debug,
 					make_wstring(L"waiting for the %s: %s",
 						file_type->Data(), ms_appdata->ToString()->Data()));
 			}
-			IMsAppdata<FileType, Hint>::critical_sections[uuid].unlock();
+			IMsAppdata<FileType>::critical_sections[uuid].unlock();
+		}
+
+		void store(Windows::Foundation::Uri^ ms_appdata, FileType^ ftobject, Platform::String^ file_type = "configuration data") {
+			auto uuid = ms_appdata->ToString()->GetHashCode();
+
+			IMsAppdata<FileType>::critical_sections[uuid].lock();
+			auto item = IMsAppdata<FileType>::databases.find(uuid);
+
+			this->store_async(Windows::Storage::ApplicationData::Current->LocalFolder,
+				ms_appdata->Path, ftobject, file_type, 7 /* skip "/local/" */);
+
+			if (item == IMsAppdata<FileType>::databases.end()) {
+				IMsAppdata<FileType>::databases.insert(std::pair<int, bool>(uuid, true));
+				IMsAppdata<FileType>::lists[uuid].insert(std::pair<IMsAppdata<FileType>*, bool>(this, true));
+				IMsAppdata<FileType>::filesystem.insert(std::pair<int, FileType^>(uuid, ftobject));
+			}
+			
+			{ // do refreshing
+				IMsAppdata<FileType>::filesystem[uuid]->refresh(ftobject);
+				this->broadcast(ms_appdata, uuid, ftobject);
+				this->log_message(WarGrey::SCADA::Log::Debug,
+					make_wstring(L"refreshed the %s: %s with reference count %d",
+						file_type->Data(), ms_appdata->ToString()->Data(),
+						IMsAppdata<FileType>::lists[uuid].size()));
+			}
+
+			IMsAppdata<FileType>::critical_sections[uuid].unlock();
 		}
 
 		void unload(Windows::Foundation::Uri^ ms_appdata) {
 			auto uuid = ms_appdata->ToString()->GetHashCode();
 
-			IMsAppdata<FileType, Hint>::critical_sections[uuid].lock();
-			auto reference = IMsAppdata<FileType, Hint>::refcounts.find(uuid);
+			IMsAppdata<FileType>::critical_sections[uuid].lock();
+			auto ls = IMsAppdata<FileType>::lists.find(uuid);
+			auto self = ls.find(this);
 
-			if (reference != IMsAppdata<FileType, Hint>::refcounts.end()) {
-				if (reference->second <= 1) {
-					IMsAppdata<FileType, Hint>::refcounts.erase(uuid);
-					IMsAppdata<FileType, Hint>::filesystem.erase(uuid);
-				} else {
-					reference->second -= 1;
-				}
+			if (self != IMsAppdata<FileType>::ls.end()) {
+				ls.erase(self);
 			}
-			IMsAppdata<FileType, Hint>::critical_sections[uuid].unlock();
+
+			if (ls.size() < 1) {
+				IMsAppdata<FileType>::databases.erase(uuid);
+				IMsAppdata<FileType>::filesystem.erase(uuid);
+				IMsAppdata<FileType>::lists.erase(uuid);
+			}
+
+			IMsAppdata<FileType>::critical_sections[uuid].unlock();
 		}
 
 	private:
-		void load_async(int uuid, Windows::Foundation::Uri^ ms_appdata, Hint hint, Platform::String^ file_type) {
+		void load_async(int uuid, Windows::Foundation::Uri^ ms_appdata, Platform::String^ file_type) {
 			auto token = this->shared_task.get_token();
 			auto get_file = Concurrency::create_task(Windows::Storage::StorageFile::GetFileFromApplicationUriAsync(ms_appdata), token);
 
 			get_file.then([=](Concurrency::task<Windows::Storage::StorageFile^> sfile) {
 				Windows::Storage::StorageFile^ file = sfile.get(); // Stupid Microsoft: `sfile.get()` seems lost itself if the file does not exist.
 
-				this->log_message(Log::Debug,
+				this->log_message(WarGrey::SCADA::Log::Debug,
 					make_wstring(L"loading the %s: %s",
 						file_type->Data(), ms_appdata->ToString()->Data()));
 
 				return Concurrency::create_task(this->read(file->Path), token);
 			}).then([=](Concurrency::task<FileType^> doc) {
-				IMsAppdata<FileType, Hint>::critical_sections[uuid].lock();
+				IMsAppdata<FileType>::critical_sections[uuid].lock();
 				
 				try {
 					FileType^ ftobject = doc.get();
 
 					if (ftobject != nullptr) {
-						std::queue<IMsAppdata<FileType, Hint>*> q = IMsAppdata<FileType, Hint>::queues[uuid];
+						IMsAppdata<FileType>::filesystem[uuid] = ftobject;
+						IMsAppdata<FileType>::databases[uuid] = true;
 
-						IMsAppdata<FileType, Hint>::filesystem[uuid] = ftobject;
-
-						this->log_message(Log::Debug,
+						this->log_message(WarGrey::SCADA::Log::Debug,
 							make_wstring(L"loaded the %s: %s",
 								file_type->Data(), ms_appdata->ToString()->Data()));
 
-						while (!q.empty()) {
-							auto self = q.front();
+						this->broadcast(ms_appdata, uuid, ftobject);
 
-							self->on_appdata(ms_appdata, ftobject, hint);
-							self->on_appdata_notify(ms_appdata, ftobject, hint);
-
-							IMsAppdata<FileType, Hint>::refcounts[uuid] += 1;
-							q.pop();
-						}
-
-						this->log_message(Log::Debug,
+						this->log_message(WarGrey::SCADA::Log::Debug,
 							make_wstring(L"loaded the %s: %s with reference count %d",
 								file_type->Data(), ms_appdata->ToString()->Data(),
-								IMsAppdata<FileType, Hint>::refcounts[uuid]));
-						IMsAppdata<FileType, Hint>::queues.erase(uuid);
+								IMsAppdata<FileType>::lists[uuid].size()));
 					} else {
-						this->on_appdata_not_found(ms_appdata, hint);
+						this->on_appdata_not_found(ms_appdata);
+						IMsAppdata<FileType>::clear(uuid);
 					}
 				} catch (Platform::Exception^ e) {
-					IMsAppdata<FileType, Hint>::clear(uuid);
+					IMsAppdata<FileType>::clear(uuid);
 
 					switch (e->HResult) {
 					case HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND): {
-						this->on_appdata_not_found(ms_appdata, hint);
+						this->on_appdata_not_found(ms_appdata);
 					}; break;
 					default: {
 						this->log_message(WarGrey::SCADA::Log::Error,
@@ -142,43 +170,96 @@ namespace WarGrey::SCADA {
 					}
 					}
 				} catch (Concurrency::task_canceled&) {
-					IMsAppdata<FileType, Hint>::clear(uuid);
+					IMsAppdata<FileType>::clear(uuid);
 					this->log_message(WarGrey::SCADA::Log::Debug,
 						make_wstring(L"cancelled loading %s", ms_appdata->ToString()->Data()));
 				} catch (std::exception& e) {
-					IMsAppdata<FileType, Hint>::clear(uuid);
+					IMsAppdata<FileType>::clear(uuid);
 					this->log_message(WarGrey::SCADA::Log::Debug,
 						make_wstring(L"unexcepted exception: %s", e.what()));
 				}
 
-				IMsAppdata<FileType, Hint>::critical_sections[uuid].unlock();
+				IMsAppdata<FileType>::critical_sections[uuid].unlock();
 			});
+		}
+
+		void store_async(Windows::Storage::StorageFolder^ rootdir, Platform::String^ ms_appdata, FileType^ ftobject, Platform::String^ file_type, int search_start = 0) {
+			int slash_pos = path_next_slash_position(ms_appdata, search_start);
+			Platform::String^ subdir = substring(ms_appdata, search_start, slash_pos);
+			unsigned int subsize = subdir->Length();
+			unsigned int next_search_pos = search_start + subdir->Length() + 1;
+
+			if (next_search_pos < ms_appdata->Length()) {
+				if ((subsize == 0) || (subdir->Equals("."))) { // TODO: deal with '..'
+					this->store_async(rootdir, ms_appdata, ftobject, file_type, next_search_pos);
+				} else {
+					auto token = this->shared_task.get_token();
+					auto cd = Concurrency::create_task(rootdir->CreateFolderAsync(subdir, Windows::Storage::CreationCollisionOption::OpenIfExists), token);
+
+					cd.then([=](Concurrency::task<Windows::Storage::StorageFolder^> sdir) {
+						this->store_async(sdir.get(), ms_appdata, ftobject, file_type, next_search_pos);
+					}).then([=](Concurrency::task<void> maybe_exn) {
+						try {
+							maybe_exn.get();
+						} catch (Platform::Exception^ e) {
+							this->log_message(WarGrey::SCADA::Log::Error, make_wstring(L"failed to save %s: %s", ms_appdata->Data(), e->Message->Data()));
+						} catch (Concurrency::task_canceled&) {
+							this->log_message(WarGrey::SCADA::Log::Debug, make_wstring(L"cancelled saving %s", ms_appdata->Data()));
+						} catch (std::exception& e) {
+							this->log_message(WarGrey::SCADA::Log::Debug, make_wstring(L"store: unexcepted exception: %s", e.what()));
+						}
+					});
+				}
+			} else {
+				auto token = this->shared_task.get_token();
+
+				Concurrency::create_task(this->write(ftobject, rootdir->Path + "\\" + subdir), token).then([=](Concurrency::task<bool> saved) {
+					try {
+						if (saved.get()) {
+							this->log_message(WarGrey::SCADA::Log::Debug, make_wstring(L"saved the %s: %s", file_type->Data(), ms_appdata->Data()));
+						}
+					} catch (Platform::Exception^ e) {
+						this->log_message(WarGrey::SCADA::Log::Error, make_wstring(L"failed to save %s: %s", ms_appdata->Data(), e->Message->Data()));
+					} catch (Concurrency::task_canceled&) {
+						this->log_message(WarGrey::SCADA::Log::Debug, make_wstring(L"cancelled saving %s", ms_appdata->Data()));
+					} catch (std::exception& e) {
+						this->log_message(WarGrey::SCADA::Log::Debug, make_wstring(L"unexcepted exception: %s", e.what()));
+					}
+				});
+			}
 		}
 
 	private:
 		static void clear(int uuid) {
-			std::queue<IMsAppdata<FileType, Hint>*> q = IMsAppdata<FileType, Hint>::queues[uuid];
+			auto q = IMsAppdata<FileType>::lists[uuid];
 
-			while (!q.empty()) {
-				q.pop();
+			q.clear();
+			IMsAppdata<FileType>::lists.erase(uuid);
+			IMsAppdata<FileType>::databases.erase(uuid);
+		}
+
+	private:
+		void broadcast(Windows::Foundation::Uri^ ms_appdata, int uuid, FileType^ ftobject) {
+			auto q = IMsAppdata<FileType>::lists[uuid];
+
+			for (auto self = q.begin(); self != q.end(); self++) {
+				self->first->on_appdata(ms_appdata, ftobject);
+				self->first->on_appdata_notify(ms_appdata, ftobject);
 			}
-
-			IMsAppdata<FileType, Hint>::refcounts.erase(uuid);
-			IMsAppdata<FileType, Hint>::queues.erase(uuid);
 		}
 
 	private:
 		Concurrency::cancellation_token_source shared_task;
 		
 	private:
-		static std::map<int, size_t> refcounts;
 		static std::map<int, FileType^> filesystem;
-		static std::map<int, std::queue<IMsAppdata<FileType, Hint>*>> queues;
+		static std::map<int, bool> databases;
+		static std::map<int, std::map<IMsAppdata<FileType>*, bool>> lists;
 		static std::map<int, std::mutex> critical_sections;
 	};
 
-	template<class FileType, typename Hint> std::map<int, size_t> IMsAppdata<FileType, Hint>::refcounts;
-	template<class FileType, typename Hint> std::map<int, FileType^> IMsAppdata<FileType, Hint>::filesystem;
-	template<class FileType, typename Hint> std::map<int, std::queue<IMsAppdata<FileType, Hint>*>> IMsAppdata<FileType, Hint>::queues;
-	template<class FileType, typename Hint> std::map<int, std::mutex> IMsAppdata<FileType, Hint>::critical_sections;
+	template<class FileType> std::map<int, FileType^> IMsAppdata<FileType>::filesystem;
+	template<class FileType> std::map<int, bool> IMsAppdata<FileType>::databases;
+	template<class FileType> std::map<int, std::map<IMsAppdata<FileType>*, bool>> IMsAppdata<FileType>::lists;
+	template<class FileType> std::map<int, std::mutex> IMsAppdata<FileType>::critical_sections;
 }

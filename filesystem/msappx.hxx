@@ -52,13 +52,13 @@ namespace WarGrey::SCADA {
 				reference->second += 1;
 				this->on_appx(ms_appx, IMsAppx<FileType, Hint>::filesystem[uuid], hint);
 
-				this->log_message(Log::Debug, 
+				this->log_message(WarGrey::SCADA::Log::Debug, 
 					make_wstring(L"reused the %s: %s with reference count %d",
 						file_type->Data(), ms_appx->ToString()->Data(),
 						IMsAppx<FileType, Hint>::refcounts[uuid]));
 			} else {
 				IMsAppx<FileType, Hint>::queues[uuid].push(this);
-				this->log_message(Log::Debug,
+				this->log_message(WarGrey::SCADA::Log::Debug,
 					make_wstring(L"waiting for the %s: %s",
 						file_type->Data(), ms_appx->ToString()->Data()));
 			}
@@ -92,7 +92,7 @@ namespace WarGrey::SCADA {
 					Windows::Storage::StorageOpenOptions::AllowOnlyReaders),
 					token);
 			}).then([=](Concurrency::task<Windows::Storage::Streams::IRandomAccessStream^> stream) {
-				this->log_message(Log::Debug,
+				this->log_message(WarGrey::SCADA::Log::Debug,
 					make_wstring(L"found the %s: %s",
 						file_type->Data(), ms_appx->ToString()->Data()));
 
@@ -116,10 +116,11 @@ namespace WarGrey::SCADA {
 						q.pop();
 					}
 
-					this->log_message(Log::Debug,
+					this->log_message(WarGrey::SCADA::Log::Debug,
 						make_wstring(L"loaded the %s: %s with reference count %d",
 							file_type->Data(), ms_appx->ToString()->Data(),
 							IMsAppx<FileType, Hint>::refcounts[uuid]));
+
 					IMsAppx<FileType, Hint>::queues.erase(uuid);
 				} catch (Platform::Exception^ e) {
 					IMsAppx<FileType, Hint>::clear(uuid);

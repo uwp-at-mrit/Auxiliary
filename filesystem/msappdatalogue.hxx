@@ -32,7 +32,9 @@ namespace WarGrey::SCADA {
 		}
 
 		virtual Windows::Foundation::IAsyncOperation<FileType^>^ read(Platform::String^ path, TypeName type) {
-			return FileType::load_async(path, type);
+			return Concurrency::create_async([=] {
+				return FileType::load(path, type);
+			});
 		}
 
 	protected:
