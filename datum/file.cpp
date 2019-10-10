@@ -3,7 +3,6 @@
 #include <Windows.h>
 
 #include "datum/file.hpp"
-#include "datum/flonum.hpp"
 #include "datum/string.hpp"
 #include "datum/char.hpp"
 
@@ -216,4 +215,21 @@ void WarGrey::SCADA::discard_this_line(std::filebuf& src) {
 			break;
 		}
 	}
+}
+
+/*************************************************************************************************/
+std::wostream& WarGrey::SCADA::write_wtext(std::wostream& stream, Platform::String^ text) {
+	return stream.write(text->Data(), text->Length());
+}
+
+std::wostream& WarGrey::SCADA::write_position(std::wostream& stream, double2 position, Platform::String^ sep) {
+	stream.write(sep->Data(), sep->Length()) << position.x;
+	
+	return stream.write(sep->Data(), sep->Length()) << position.y;
+}
+
+std::wostream& WarGrey::SCADA::write_newline(std::wostream& stream) {
+	// NOTE: `std::endl` does not put newline for `std::ios::binary`
+
+	return stream << "\n\r" << std::endl;
 }
