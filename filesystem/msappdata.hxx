@@ -52,19 +52,19 @@ namespace WarGrey::SCADA {
 			IMsAppdata<FileType>::critical_sections[uuid].lock();
 			auto item = IMsAppdata<FileType>::databases.find(uuid);
 
+			IMsAppdata<FileType>::lists[uuid].insert(std::pair<IMsAppdata<FileType>*, bool>(this, true));
+
 			if (item == IMsAppdata<FileType>::databases.end()) {
 				IMsAppdata<FileType>::databases.insert(std::pair<int, bool>(uuid, false));
-				IMsAppdata<FileType>::lists[uuid].insert(std::pair<IMsAppdata<FileType>*, bool>(this, true));
 				this->load_async(uuid, ms_appdata, file_type);
 			} else if (item->second == true) {
-				this->on_appdata(ms_appdata, IMsAppdata<FileType>::filesystem[uuid]);
+				this->do_notify(ms_appdata, IMsAppdata<FileType>::filesystem[uuid]);
 
 				this->log_message(WarGrey::SCADA::Log::Debug, 
 					make_wstring(L"reused the %s: %s with reference count %d",
 						file_type->Data(), ms_appdata->ToString()->Data(),
 						IMsAppdata<FileType>::lists[uuid].size()));
 			} else {
-				IMsAppdata<FileType>::lists[uuid].insert(std::pair<IMsAppdata<FileType>*, bool>(this, true));
 				this->log_message(WarGrey::SCADA::Log::Debug,
 					make_wstring(L"waiting for the %s: %s",
 						file_type->Data(), ms_appdata->ToString()->Data()));
@@ -243,9 +243,13 @@ namespace WarGrey::SCADA {
 			auto q = IMsAppdata<FileType>::lists[uuid];
 
 			for (auto self = q.begin(); self != q.end(); self++) {
-				self->first->on_appdata(ms_appdata, ftobject);
-				self->first->on_appdata_notify(ms_appdata, ftobject);
+				self->first->do_notify(ms_appdata, ftobject);
 			}
+		}
+
+		void do_notify(Windows::Foundation::Uri^ ms_appdata, FileType^ ftobject) {
+			this->on_appdata(ms_appdata, ftobject);
+			this->on_appdata_notify(ms_appdata, ftobject);
 		}
 
 	private:

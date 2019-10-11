@@ -50,7 +50,7 @@ namespace WarGrey::SCADA {
 				this->load_async(uuid, ms_appx, hint, file_type);
 			} else if (reference->second > 0) {
 				reference->second += 1;
-				this->on_appx(ms_appx, IMsAppx<FileType, Hint>::filesystem[uuid], hint);
+				this->do_notify(ms_appx, IMsAppx<FileType, Hint>::filesystem[uuid], hint);
 
 				this->log_message(WarGrey::SCADA::Log::Debug, 
 					make_wstring(L"reused the %s: %s with reference count %d",
@@ -109,9 +109,7 @@ namespace WarGrey::SCADA {
 					while (!q.empty()) {
 						auto self = q.front();
 						
-						self->on_appx(ms_appx, ftobject, hint);
-						self->on_appx_notify(ms_appx, ftobject, hint);
-						
+						self->do_notify(ms_appx, ftobject, hint);
 						IMsAppx<FileType, Hint>::refcounts[uuid] += 1;
 						q.pop();
 					}
@@ -159,6 +157,12 @@ namespace WarGrey::SCADA {
 
 			IMsAppx<FileType, Hint>::refcounts.erase(uuid);
 			IMsAppx<FileType, Hint>::queues.erase(uuid);
+		}
+
+	private:
+		void do_notify(Windows::Foundation::Uri^ ms_appx, FileType^ ftobject, Hint hint) {
+			this->on_appx(ms_appx, ftobject, hint);
+			this->on_appx_notify(ms_appx, ftobject, hint);
 		}
 
 	private:
