@@ -103,17 +103,22 @@ namespace WarGrey::SCADA {
 			auto uuid = ms_appdata->ToString()->GetHashCode();
 
 			IMsAppdata<FileType>::critical_sections[uuid].lock();
-			auto ls = IMsAppdata<FileType>::lists.find(uuid);
-			auto self = ls.find(this);
 
-			if (self != IMsAppdata<FileType>::ls.end()) {
-				ls.erase(self);
-			}
+			auto item = IMsAppdata<FileType>::lists.find(uuid);
+			
+			if (item != IMsAppdata<FileType>::lists.end()) {
+				auto ls = item->second;
+				auto self = ls.find(this);
 
-			if (ls.size() < 1) {
-				IMsAppdata<FileType>::databases.erase(uuid);
-				IMsAppdata<FileType>::filesystem.erase(uuid);
-				IMsAppdata<FileType>::lists.erase(uuid);
+				if (self != ls.end()) {
+					ls.erase(self);
+				}
+
+				if (ls.size() < 1) {
+					IMsAppdata<FileType>::databases.erase(uuid);
+					IMsAppdata<FileType>::filesystem.erase(uuid);
+					IMsAppdata<FileType>::lists.erase(uuid);
+				}
 			}
 
 			IMsAppdata<FileType>::critical_sections[uuid].unlock();
