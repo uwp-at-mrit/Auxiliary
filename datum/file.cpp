@@ -8,6 +8,25 @@
 
 using namespace WarGrey::SCADA;
 
+/*************************************************************************************************/
+bool WarGrey::SCADA::open_input_binary(std::filebuf& src, Platform::String^ in_port) {
+	src.open(in_port->Data(), std::ios::in | std::ios::binary);
+
+	return src.is_open();
+}
+
+bool WarGrey::SCADA::open_output_binary(std::wofstream& src, Platform::String^ out_port, unsigned int flprecision) {
+	src.open(out_port->Data(), std::ios::out | std::ios::binary);
+
+	src.setf(std::ios_base::fixed | std::ios_base::showpoint);
+
+	if (flprecision > 0) {
+		src.precision(flprecision);
+	}
+
+	return src.is_open();
+}
+
 /************************************************************************************************/
 bool WarGrey::SCADA::char_end_of_word(char ch) {
 	return ch == space;
@@ -122,9 +141,12 @@ long long WarGrey::SCADA::read_integer(std::filebuf& src) {
 	char ch;
 
 	discard_space(src);
-
-	if (src.sgetc() == minus) {
+	
+	ch = src.sgetc();
+	if (ch == minus) {
 		sign = -1;
+		src.snextc();
+	} else if (ch == plus) {
 		src.snextc();
 	}
 
@@ -145,24 +167,36 @@ double WarGrey::SCADA::read_flonum(std::filebuf& src) {
 	double i_acc = 10.0;
 	double f_acc = 1.0;
 	double sign = 1.0;
+	long long int e = 1;
 	char ch;
 
 	discard_space(src);
 
-	if (src.sgetc() == minus) {
+	ch = src.sgetc();
+	if (ch == minus) {
 		sign = -1.0;
+		src.snextc();
+	} else if (ch == plus) {
 		src.snextc();
 	}
 
 	while ((ch = src.sbumpc()) != EOF) {
 		if ((ch < zero) || (ch > nine)) {
-			if ((ch != dot) || (f_acc != 1.0)) {
-				src.sungetc();
+			if (ch == dot) {
+				if (f_acc == 1.0) {
+					i_acc = 1.0;
+					f_acc = 0.1;
+					continue;
+				} else {
+					src.sungetc();
+					break;
+				}
+			} else if ((ch == exponent) || (ch == Exponent)) {
+				e = read_integer(src);
 				break;
 			} else {
-				i_acc = 1.0;
-				f_acc = 0.1;
-				continue;
+				src.sungetc();
+				break;
 			}
 		}
 
@@ -177,7 +211,7 @@ double WarGrey::SCADA::read_flonum(std::filebuf& src) {
 		}
 	}
 
-	return flonum * sign;
+	return flonum * sign * ((e == 1) ? 1.0 : flexpt(10.0, double(e)));
 }
 
 float WarGrey::SCADA::read_single_flonum(std::filebuf& src) {

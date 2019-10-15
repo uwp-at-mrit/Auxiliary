@@ -199,9 +199,13 @@ long long WarGrey::SCADA::scan_integer(const unsigned char* src, size_t* pos, si
 	int sign = 1;
 	long long value = 0;
 
-	if (src[(*pos)] == minus) {
-		sign = -1;
-		(*pos) += 1;
+	if ((*pos) < total) {
+		if (src[(*pos)] == minus) {
+			sign = -1;
+			(*pos) += 1;
+		} else if (src[(*pos)] == plus) {
+			(*pos) += 1;
+		}
 	}
 
 	while ((*pos) < total) {
@@ -232,6 +236,8 @@ double WarGrey::SCADA::scan_flonum(const unsigned char* src, size_t* pos, size_t
 		if (src[(*pos)] == minus) {
 			sign = -1.0;
 			(*pos) += 1;
+		} else if (src[(*pos)] == plus) {
+			(*pos) += 1;
 		}
 	}
 
@@ -241,6 +247,7 @@ double WarGrey::SCADA::scan_flonum(const unsigned char* src, size_t* pos, size_t
 		(*pos) += 1;
 
 		if ((ch < zero) || (ch > nine)) {
+			// TODO: deal with scientific notation
 			if ((ch == dot) && (f_acc == 1.0)) {
 				i_acc = 1.0;
 				f_acc = 0.1;

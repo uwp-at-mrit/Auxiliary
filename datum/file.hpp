@@ -6,6 +6,9 @@
 #include "datum/flonum.hpp"
 
 namespace WarGrey::SCADA {
+	bool open_input_binary(std::filebuf& src, Platform::String^ in_port);
+	bool open_output_binary(std::wofstream& src, Platform::String^ out_port, unsigned int flprecision = 0);
+
 	bool char_end_of_word(char ch);
 	bool char_end_of_line(char ch);
 	bool char_end_of_field(char ch);
