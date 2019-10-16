@@ -119,15 +119,9 @@
       <Filter>datum</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)preference.hxx" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)filesystem\msappdata.hxx">
-      <Filter>filesystem</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)filesystem\msappx.hxx">
-      <Filter>filesystem</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)filesystem\msappdatalogue.hxx">
-      <Filter>filesystem</Filter>
-    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)filesystem\msappdata.hxx" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)filesystem\msappdatalogue.hxx" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)filesystem\msappx.hxx" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="syslog">
