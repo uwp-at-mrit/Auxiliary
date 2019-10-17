@@ -6,6 +6,27 @@
 #include "system.hpp"
 #include "backtask.hxx"
 
+/** WARNING
+ * If the Visual Studio is used to work with this code, please follow steps below first:
+ *  1). Press "Ctrl + Alt + E" to open the "Exception Settings" panel.
+ *  2). Clear all "Break When Thrown" checkboxes.
+ *
+ * By doing this, Visual Studio will never drive the process into DEBUG mode when an exception thrown.
+ * The original purpose of this function is good, however, the debugger hooks all exceptions indiscriminately
+ * even if the exception has already had a handler installed. Sometimes it causes chaos and hence wasting time.
+ *
+ * For instances that should be reasonably treated as normal cases:
+ *  1). An auto-generated file does not exist when runing the application for first time;
+ *  2). The network connection is lost;
+ *  3). An asynchronous task is cancelled.
+ *
+ * Disable this function does not make you harder.
+ *
+ * WARNING
+ * Visual Studio may reset these settings when some mysterious events occur in the future.
+ * Then, please complain to Microsoft about its stupidness.
+ */
+
 namespace WarGrey::SCADA {
 	template<class UniversalWindowsScreen>
 	private ref class UniversalWindowsApplication sealed : public Windows::UI::Xaml::Application {
