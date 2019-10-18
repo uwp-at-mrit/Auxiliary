@@ -5,7 +5,6 @@ namespace WarGrey::SCADA {
 	static const char carriage_return = 0x0D;
 	static const char space = 0x20;
 	static const char zero = 0x30;
-	static const char one = 0x30;
 	static const char nine = 0x39;
 	static const char exponent = 0x45;
 	static const char Exponent = 0x65;
@@ -18,7 +17,6 @@ namespace WarGrey::SCADA {
 	static const wchar_t wcarriage_return = (wchar_t)(carriage_return);
 	static const wchar_t wspace = (wchar_t)(space);
 	static const wchar_t wzero = (wchar_t)(zero);
-	static const wchar_t wone = (wchar_t)(one);
 	static const wchar_t wnine = (wchar_t)(nine);
 	static const wchar_t wexponent = (wchar_t)exponent;
 	static const wchar_t wExponent = (wchar_t)Exponent;

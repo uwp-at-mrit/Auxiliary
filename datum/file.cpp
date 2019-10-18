@@ -41,18 +41,22 @@ bool WarGrey::SCADA::char_end_of_field(char ch) {
 }
 
 /************************************************************************************************/
-int WarGrey::SCADA::peek_char(std::filebuf& src) {
+char WarGrey::SCADA::peek_char(std::filebuf& src) {
 	return src.sgetc();
 }
 
-int WarGrey::SCADA::read_char(std::filebuf& src) {
+char WarGrey::SCADA::read_char(std::filebuf& src) {
 	discard_space(src);
 
 	return src.sbumpc();
 }
 
 bool WarGrey::SCADA::read_bool(std::filebuf& src) {
-	return (read_char(src) == one);
+	char ch = read_char(src);
+
+	// TODO: Weird, should it be compared with `zero`?
+
+	return (ch != 0);
 }
 
 std::string WarGrey::SCADA::read_text(std::filebuf& src, bool (*end_of_text)(char)) {

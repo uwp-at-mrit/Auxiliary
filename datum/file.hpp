@@ -13,8 +13,8 @@ namespace WarGrey::SCADA {
 	bool char_end_of_line(char ch);
 	bool char_end_of_field(char ch);
 
-	int peek_char(std::filebuf& src);
-	int read_char(std::filebuf& src);
+	char peek_char(std::filebuf& src);
+	char read_char(std::filebuf& src);
 	
 	std::string read_text(std::filebuf& src, bool (*end_of_text)(char) = char_end_of_line);
 	Platform::String^ read_wtext(std::filebuf& src, bool (*end_of_text)(char) = char_end_of_line);
@@ -36,7 +36,7 @@ namespace WarGrey::SCADA {
 	std::wostream& write_newline(std::wostream& stream);
 
 	template<typename E>
-	std::wostream& write_wtext(std::wostream& stream, E id, bool append_newline = true) {
+	std::wostream& write_wtext(std::wostream& stream, E id, bool append_newline = false) {
 		write_wtext(stream, id.ToString());
 
 		if (append_newline) {
