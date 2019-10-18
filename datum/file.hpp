@@ -20,6 +20,7 @@ namespace WarGrey::SCADA {
 	Platform::String^ read_wtext(std::filebuf& src, bool (*end_of_text)(char) = char_end_of_line);
 	Platform::String^ read_wgb18030(std::filebuf& src, bool (*end_of_text)(char) = char_end_of_line);
 
+	bool read_bool(std::filebuf& src);
 	unsigned long long read_natural(std::filebuf& src);
 	long long read_integer(std::filebuf& src);
 	double read_flonum(std::filebuf& src);
@@ -29,12 +30,19 @@ namespace WarGrey::SCADA {
 	void discard_newline(std::filebuf& src);
 	void discard_this_line(std::filebuf& src);
 
+	std::wostream& write_bool(std::wostream& stream, bool b);
 	std::wostream& write_wtext(std::wostream& stream, Platform::String^ text);
 	std::wostream& write_position(std::wostream& stream, WarGrey::SCADA::double2 pos, Platform::String^ sep = " ");
 	std::wostream& write_newline(std::wostream& stream);
 
 	template<typename E>
-	std::wostream& write_wtext(std::wostream& stream, E id) {
-		return write_wtext(stream, id.ToString());
+	std::wostream& write_wtext(std::wostream& stream, E id, bool append_newline = true) {
+		write_wtext(stream, id.ToString());
+
+		if (append_newline) {
+			write_newline(stream);
+		}
+
+		return stream;
 	}
 }

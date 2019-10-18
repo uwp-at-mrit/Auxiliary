@@ -51,6 +51,10 @@ int WarGrey::SCADA::read_char(std::filebuf& src) {
 	return src.sbumpc();
 }
 
+bool WarGrey::SCADA::read_bool(std::filebuf& src) {
+	return (read_char(src) == one);
+}
+
 std::string WarGrey::SCADA::read_text(std::filebuf& src, bool (*end_of_text)(char)) {
 	std::string str;
 	char ch;
@@ -252,6 +256,10 @@ void WarGrey::SCADA::discard_this_line(std::filebuf& src) {
 }
 
 /*************************************************************************************************/
+std::wostream& WarGrey::SCADA::write_bool(std::wostream& stream, bool b) {
+	return stream << (b ? 1 : 0);
+}
+
 std::wostream& WarGrey::SCADA::write_wtext(std::wostream& stream, Platform::String^ text) {
 	return stream.write(text->Data(), text->Length());
 }
