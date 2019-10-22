@@ -146,10 +146,6 @@ float WarGrey::SCADA::bigendian_float_ref(const uint8* src, size_t idx) {
 
 	memcpy((void*)&dest, (void*)flbytes, 4);
 
-	if (flisnan(dest)) {
-		dest = 0.0F;
-	}
-
 	return dest;
 }
 

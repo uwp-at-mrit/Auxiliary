@@ -42,9 +42,17 @@ namespace WarGrey::SCADA {
 	static const long double infinity_t  = std::numeric_limits<long double>::infinity();
 
 	bool inline flisnan(float f) { return std::isnan(f); }
-	double inline flisnan(double fl) { return std::isnan(fl); }
-	long double inline flisnan(long double fl) { return std::isnan(fl); }
+	bool inline flisnan(double fl) { return std::isnan(fl); }
+	bool inline flisnan(long double fl) { return std::isnan(fl); }
+
+	float inline flsafe(float v, float fallback = 0.0F) { return (flisnan(v) ? fallback : v); }
+	double inline flsafe(double v, double fallback = 0.0) { return (flisnan(v) ? fallback : v); }
+	long double inline flsafe(long double v, long double fallback = 0.0L) { return (flisnan(v) ? fallback : v); }
 	
+	// for non-flonums
+	template<typename T> T inline flsafe(T v, T fallback) { return v; }
+	template<typename T> bool inline flisnan(T fl) { return false; }
+
 	float inline flabs(float f) { return std::fabsf(f); }
 	double inline flabs(double fl) { return std::abs(fl); }
 	long double inline flabs(long double fl) { return std::abs(fl); }
