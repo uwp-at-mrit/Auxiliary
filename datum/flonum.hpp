@@ -37,8 +37,8 @@ namespace WarGrey::SCADA {
 	static const double pi        = 3.141592653589793;
 	static const long double pi_t = 3.1415926535897932385L;
 
-	static const float infinity_f  = std::numeric_limits<float>::infinity();
-	static const double infinity    = std::numeric_limits<double>::infinity();
+	static const float infinity_f        = std::numeric_limits<float>::infinity();
+	static const double infinity         = std::numeric_limits<double>::infinity();
 	static const long double infinity_t  = std::numeric_limits<long double>::infinity();
 
 	bool inline flisnan(float f) { return std::isnan(f); }
@@ -52,6 +52,18 @@ namespace WarGrey::SCADA {
 	// for non-flonums
 	template<typename T> T inline flsafe(T v, T fallback) { return v; }
 	template<typename T> bool inline flisnan(T fl) { return false; }
+
+	template<typename T> T inline flsafe(T v, T min, T max) {
+		if (v < min) {
+			v = min;
+		} else if (v > max) {
+			v = max;
+		} else if (flisnan(v)) {
+			v = max;
+		}
+
+		return v;
+	}
 
 	float inline flabs(float f) { return std::fabsf(f); }
 	double inline flabs(double fl) { return std::abs(fl); }
