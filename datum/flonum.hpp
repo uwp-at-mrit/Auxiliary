@@ -69,6 +69,10 @@ namespace WarGrey::SCADA {
 	double inline flabs(double fl) { return std::abs(fl); }
 	long double inline flabs(long double fl) { return std::abs(fl); }
 
+	float inline flsign(float f) { return std::copysignf(1.0f, f); }
+	double inline flsign(double fl) { return std::copysign(1.0, fl); }
+	long double inline flsign(long double fl) { return std::copysignl(1.0l, fl); }
+
 	float inline fllog(float f) { return std::logf(f); }
 	double inline fllog(double fl) { return std::log(fl); }
 	long double inline fllog(long double fl) { return std::logl(fl); }
