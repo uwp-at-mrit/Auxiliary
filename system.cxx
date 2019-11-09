@@ -148,9 +148,11 @@ Platform::String^ WarGrey::SCADA::system_wifi_ssid(char* signal) {
 
 Platform::String^ WarGrey::SCADA::system_ipv4_address(Platform::String^ defval_if_no_nic, Platform::String^ subnet_prefix) {
 	Platform::String^ ipv4 = defval_if_no_nic;
+	Platform::String^ first_one = nullptr;
 
 	try {
 		auto names = NetworkInformation::GetHostNames(); // DbgPrint says "invalid parameter passed to C runtime"
+		bool matched = false;
 
 		for (unsigned int i = 0; i < names->Size; ++i) {
 			auto host = names->GetAt(i);
@@ -158,16 +160,26 @@ Platform::String^ WarGrey::SCADA::system_ipv4_address(Platform::String^ defval_i
 			if (host->Type == HostNameType::Ipv4) {
 				if (subnet_prefix == nullptr) {
 					ipv4 = host->RawName;
+					matched = true;
 					break;
 				} else {
 					Platform::String^ target = host->RawName;
+
+					if (first_one == nullptr) {
+						first_one = target;
+					}
 					
 					if (subnet_prefix->Equals(ref new Platform::String(target->Data(), subnet_prefix->Length()))) {
 						ipv4 = target;
+						matched = true;
 						break;
 					}
 				}
 			}
+		}
+
+		if ((!matched) && (first_one != nullptr)) {
+			ipv4 = first_one;
 		}
 	} catch (Platform::Exception^ e) {
 		// Do nothing, Stupid Microsoft
