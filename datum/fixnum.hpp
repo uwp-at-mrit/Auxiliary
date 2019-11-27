@@ -33,4 +33,6 @@ namespace WarGrey::SCADA {
 
 	long long inline fxceiling(long long fx, float precision) { return (long long)(std::ceilf(float(fx) * precision)); }
 	long long inline fxceiling(long long fx, double precision) { return (long long)(std::ceil(double(fx) * precision)); }
+
+	static inline size_t integer_length(unsigned long long n) { size_t s = 0;  while (n) { n >>= 1; s++; } return s; }
 }

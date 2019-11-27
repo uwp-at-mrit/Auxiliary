@@ -6,10 +6,6 @@
 using namespace WarGrey::SCADA;
 
 /*************************************************************************************************/
-static inline size_t integer_length(unsigned long long n) {
-	return (size_t)(flfloor(fllog(double(n), 2.0)) + 1.0);
-}
-
 static unsigned int newline_position(const wchar_t* src, unsigned int idx0, unsigned int idxn, unsigned int* next_idx) {
 	unsigned int line_size = 0;
 	unsigned int eol_size = 0;

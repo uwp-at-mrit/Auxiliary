@@ -58,6 +58,9 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)crypto\blowfish\bf_test.cpp">
       <Filter>crypto\blowfish</Filter>
     </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)datum\natural.cpp">
+      <Filter>datum</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)diagnostics.hxx" />
@@ -157,6 +160,9 @@
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)crypto\blowfish\bf_test.hpp">
       <Filter>crypto\blowfish</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)datum\natural.hpp">
+      <Filter>datum</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

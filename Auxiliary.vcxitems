@@ -22,6 +22,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)crypto\blowfish\s_box.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)datum\bytes.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)datum\file.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)datum\natural.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)diagnostics.cxx" />
     <ClCompile Include="$(MSBuildThisFileDirectory)dirotation.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)hamburger.cxx" />
@@ -57,6 +58,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)datum\file.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)datum\fixnum.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)datum\flonum.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)datum\natural.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)diagnostics.hxx" />
     <ClInclude Include="$(MSBuildThisFileDirectory)datum\enum.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)dirotation.hpp" />

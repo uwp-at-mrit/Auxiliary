@@ -4,8 +4,6 @@
 
 using namespace WarGrey::SCADA;
 
-using namespace Windows::Storage::Streams;
-
 /*************************************************************************************************/
 int WarGrey::SCADA::read_bits(uint8 *src, uint16 address, uint16 quantity, uint8 *dest) {
     uint8 shift = 0;
