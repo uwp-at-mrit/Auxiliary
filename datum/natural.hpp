@@ -20,6 +20,7 @@ namespace WarGrey::SCADA {
 
 	public:
 		~Natural() noexcept;
+		Natural();
 		Natural(unsigned int n);
 		Natural(unsigned long long n);
 		Natural(const char nbytes[], size_t nstart, size_t nend);

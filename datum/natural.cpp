@@ -27,17 +27,18 @@ Natural::~Natural() {
 	}
 }
 
+Natural::Natural() : payload(0L) { /* do nothing, for static constructors */ }
 Natural::Natural(unsigned int n) : Natural((unsigned long long)n) {}
 Natural::Natural(std::string& nstr, size_t nstart, size_t nend) : Natural(nstr.c_str(), nstart, ((nend <= nstart) ? nstr.size() : nend)) {}
 Natural::Natural(std::wstring& nstr, size_t nstart, size_t nend) : Natural(nstr.c_str(), nstart, ((nend <= nstart) ? nstr.size() : nend)) {}
 Natural::Natural(Platform::String^ nstr, size_t nstart, size_t nend) : Natural(nstr->Data(), nstart, ((nend <= nstart) ? nstr->Length() : nend)) {}
 
 Natural* Natural::from_hexstring(std::string& nstr, size_t nstart, size_t nend) {
-	return Natural::from_hexstring(nstr.c_str, nstart, ((nend <= nstart) ? nstr.size() : nend));
+	return Natural::from_hexstring(nstr.c_str(), nstart, ((nend <= nstart) ? nstr.size() : nend));
 }
 
 Natural* Natural::from_hexstring(std::wstring& nstr, size_t nstart, size_t nend) {
-	return Natural::from_hexstring(nstr.c_str, nstart, ((nend <= nstart) ? nstr.size() : nend));
+	return Natural::from_hexstring(nstr.c_str(), nstart, ((nend <= nstart) ? nstr.size() : nend));
 }
 
 Natural* Natural::from_hexstring(Platform::String^ nstr, size_t nstart, size_t nend) {
@@ -45,11 +46,25 @@ Natural* Natural::from_hexstring(Platform::String^ nstr, size_t nstart, size_t n
 }
 
 Natural* Natural::from_hexstring(const char nbytes[], size_t nstart, size_t nend) {
-	return nullptr;
+	Natural* N = new Natural();
+	
+	//this->capacity = nend - nstart;
+
+	//if (this->capacity > 0) {
+	//}
+
+	return N;
 }
 
 Natural* Natural::from_hexstring(const wchar_t nbytes[], size_t nstart, size_t nend) {
-	return nullptr;
+	Natural* N = new Natural();
+	
+	//this->capacity = nend - nstart;
+
+	//if (this->capacity > 0) {
+	//}
+		
+	return N;
 }
 
 Natural::Natural(unsigned long long n) : capacity(sizeof(unsigned long long)), payload(0) {
