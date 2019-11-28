@@ -142,7 +142,7 @@ size_t Natural::integer_length() {
 }
 
 std::string Natural::to_hexstring() {
-	std::string hex(fxmax(this->payload, 1ULL) * 2, '0');
+	std::string hex(fxmax((unsigned int)this->payload, 1U) * 2, '0');
 	size_t payload_idx = this->capacity - this->payload;
 	size_t msb_idx = 0U;
 
