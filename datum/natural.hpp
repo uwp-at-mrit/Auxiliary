@@ -43,6 +43,16 @@ namespace WarGrey::SCADA {
 		}
 
 	public:
+		Natural(const WarGrey::SCADA::Natural& n);
+		Natural(WarGrey::SCADA::Natural&& n);
+
+		WarGrey::SCADA::Natural& operator=(const WarGrey::SCADA::Natural& n);
+		WarGrey::SCADA::Natural& operator=(WarGrey::SCADA::Natural&& n);
+
+		WarGrey::SCADA::Natural& operator++();
+		WarGrey::SCADA::Natural operator++(int postfix);
+
+	public:
 		size_t length();
 		size_t integer_length();
 
@@ -58,6 +68,9 @@ namespace WarGrey::SCADA {
 		void from_base10(const uint16 nchars[], size_t nstart, size_t nend);
 		void from_base8(const uint8 nbytes[], size_t nstart, size_t nend);
 		void from_base8(const uint16 nchars[], size_t nstart, size_t nend);
+
+	private:
+		void on_moved();
 
 	private:
 		uint8* natural;

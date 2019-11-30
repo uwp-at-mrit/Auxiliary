@@ -130,6 +130,77 @@ std::string Natural::to_hexstring() {
 }
 
 /*************************************************************************************************/
+Natural::Natural(const Natural& n) : natural(nullptr), capacity(n.payload), payload(n.payload) {
+	if (this->payload > 0) {
+		size_t payload_idx = n.capacity - n.payload;
+
+		this->natural = new uint8[this->capacity];
+		memcpy(this->natural, n.natural + payload_idx, this->payload);
+	}
+}
+
+Natural::Natural(Natural&& n) : natural(n.natural), capacity(n.capacity), payload(n.payload) {
+	n.on_moved();
+}
+
+Natural& Natural::operator=(const Natural& n) {
+	if (n.payload <= this->capacity) {
+		this->payload = n.payload;
+	} else {
+		if (this->natural != nullptr) {
+			delete[] this->natural;
+		}
+
+		this->payload = n.payload;
+		this->capacity = this->payload;
+		this->natural = new uint8[this->capacity];
+	}
+
+	if (this->payload > 0) {
+		size_t payload_idx = this->capacity - this->payload;
+		size_t n_idx = n.capacity - this->payload;
+
+		memcpy(this->natural + payload_idx, n.natural + n_idx, this->payload);
+	}
+
+	return (*this);
+}
+
+Natural& Natural::operator=(Natural&& n) {
+	if (this != &n) {
+		if (this->natural != nullptr) {
+			delete[] this->natural;
+		}
+
+		this->natural = n.natural;
+		this->capacity = n.capacity;
+		this->payload = n.payload;
+
+		n.on_moved();
+	}
+
+	return (*this);
+}
+
+Natural& Natural::operator++() {
+	return (*this);
+}
+
+Natural Natural::operator++(int postfix) {
+	Natural snapshot(*this);
+
+	this->operator++();
+
+	return snapshot;
+}
+
+void Natural::on_moved() {
+	this->capacity = 0U;
+	this->payload = 0U;
+	this->natural = nullptr;
+}
+
+/*************************************************************************************************/
 void Natural::from_memory(const uint8 nbytes[], size_t nstart, size_t nend) {
 	if (nend > nstart) {
 		this->capacity = nend - nstart;
