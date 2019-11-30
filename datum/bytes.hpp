@@ -93,5 +93,15 @@ namespace WarGrey::SCADA {
 	void read_bigendian_floats(uint8* src, size_t address, size_t quantity, float* dest);
 
 	/************************************************************************************************/
-	char hexadecimal_ref(const uint8* src, size_t idx);
+	uint8 byte_to_hexadecimal(uint8 ch, uint8 fallback_value);
+	uint8 hexadecimal_to_byte(uint8 ch);
+	uint8 byte_to_decimal(uint8 ch, uint8 fallback_value);
+	uint8 decimal_to_byte(uint8 ch);
+	uint8 byte_to_octal(uint8 ch, uint8 fallback_value);
+	uint8 octal_to_byte(uint8 ch);
+
+	uint8 hexadecimal_ref(const uint8* src, size_t idx, uint8 fallback_value);
+	void hexadecimal_set(uint8* src, size_t idx, uint8 hex);
+	uint8 decimal_ref(const uint8* src, size_t idx, uint8 fallback_value);
+	void decimal_set(uint8* src, size_t idx, uint8 dec);
 }

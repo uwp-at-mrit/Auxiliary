@@ -1,23 +1,54 @@
 #include "datum/natural.hpp"
+
+#include "datum/bytes.hpp"
 #include "datum/fixnum.hpp"
 
 using namespace WarGrey::SCADA;
 
-static uint8 byte_to_hexchar(uint8 ch) {
-	if (ch >= 10) {
-		switch (ch) {
-		case 10: ch = 'A'; break;
-		case 11: ch = 'B'; break;
-		case 12: ch = 'C'; break;
-		case 13: ch = 'D'; break;
-		case 14: ch = 'E'; break;
-		case 15: ch = 'F'; break;
-		}
-	} else {
-		ch += '0';
-	}
+template<typename BYTE>
+static int natural_from_base16(uint8* natural, const BYTE n[], size_t nstart, size_t nend, size_t capacity) {
+	size_t slot = capacity - 1;
+	int payload = 0U;
 
-	return ch;
+	do {
+		uint8 lsb = ((nend > nstart) ? byte_to_hexadecimal((uint8)n[--nend], 0U) : 0U);
+		uint8 msb = ((nend > nstart) ? byte_to_hexadecimal((uint8)n[--nend], 0U) : 0U);
+
+		natural[slot--] = (msb << 4U | lsb);
+
+		if (natural[slot + 1] > 0) {
+			payload = capacity - (slot + 1);
+		}
+	} while (nstart < nend);
+
+	return payload;
+}
+
+template<typename BYTE>
+static size_t natural_from_base(uint8 base, uint8* natural, const BYTE n[], int nstart, int nend, size_t capacity) {
+	size_t cursor = capacity - 2;
+	size_t payload = 0U;
+
+	natural[capacity - 1] = 0;
+
+	do {
+		uint16 decimal = byte_to_decimal((uint8)n[nstart++], 0U);
+		
+		for (size_t idx = capacity - 1; idx > cursor; idx--) {
+			uint16 digit = natural[idx] * base + decimal;
+
+			natural[idx] = (uint8)(digit & 0xFFU);
+			decimal = digit >> 8;
+		}
+
+		if (decimal > 0) {
+			payload = capacity - cursor;
+			natural[cursor--] = (uint8)decimal;
+			
+		}
+	} while (nstart < nend);
+
+	return payload;
 }
 
 /*************************************************************************************************/
@@ -27,47 +58,28 @@ Natural::~Natural() {
 	}
 }
 
-Natural::Natural() : payload(0L) { /* do nothing, for static constructors */ }
+Natural::Natural() : Natural(0ULL) {}
 Natural::Natural(unsigned int n) : Natural((unsigned long long)n) {}
-Natural::Natural(std::string& nstr, size_t nstart, size_t nend) : Natural(nstr.c_str(), nstart, ((nend <= nstart) ? nstr.size() : nend)) {}
-Natural::Natural(std::wstring& nstr, size_t nstart, size_t nend) : Natural(nstr.c_str(), nstart, ((nend <= nstart) ? nstr.size() : nend)) {}
-Natural::Natural(Platform::String^ nstr, size_t nstart, size_t nend) : Natural(nstr->Data(), nstart, ((nend <= nstart) ? nstr->Length() : nend)) {}
 
-Natural* Natural::from_hexstring(std::string& nstr, size_t nstart, size_t nend) {
-	return Natural::from_hexstring(nstr.c_str(), nstart, ((nend <= nstart) ? nstr.size() : nend));
-}
+Natural::Natural(std::string& nstr, size_t nstart, size_t nend)
+	: Natural((const uint8*)nstr.c_str(), nstart, ((nend <= nstart) ? nstr.size() : nend)) {}
 
-Natural* Natural::from_hexstring(std::wstring& nstr, size_t nstart, size_t nend) {
-	return Natural::from_hexstring(nstr.c_str(), nstart, ((nend <= nstart) ? nstr.size() : nend));
-}
+Natural::Natural(std::wstring& nstr, size_t nstart, size_t nend)
+	: Natural((const uint16*)nstr.c_str(), nstart, ((nend <= nstart) ? nstr.size() : nend)) {}
 
-Natural* Natural::from_hexstring(Platform::String^ nstr, size_t nstart, size_t nend) {
-	return Natural::from_hexstring(nstr->Data(), nstart, ((nend <= nstart) ? nstr->Length() : nend));
-}
+Natural::Natural(Platform::String^ nstr, size_t nstart, size_t nend)
+	: Natural((const uint16*)nstr->Data(), nstart, ((nend <= nstart) ? nstr->Length() : nend)) {}
 
-Natural* Natural::from_hexstring(const char nbytes[], size_t nstart, size_t nend) {
-	Natural* N = new Natural();
-	
-	//this->capacity = nend - nstart;
+Natural::Natural(uint8 base, std::string& nstr, size_t nstart, size_t nend)
+	: Natural(base, (const uint8*)nstr.c_str(), nstart, ((nend <= nstart) ? nstr.size() : nend)) {}
 
-	//if (this->capacity > 0) {
-	//}
+Natural::Natural(uint8 base, std::wstring& nstr, size_t nstart, size_t nend)
+	: Natural(base, (const uint16*)nstr.c_str(), nstart, ((nend <= nstart) ? nstr.size() : nend)) {}
 
-	return N;
-}
+Natural::Natural(uint8 base, Platform::String^ nstr, size_t nstart, size_t nend)
+	: Natural(base, (const uint16*)nstr->Data(), nstart, ((nend <= nstart) ? nstr->Length() : nend)) {}
 
-Natural* Natural::from_hexstring(const wchar_t nbytes[], size_t nstart, size_t nend) {
-	Natural* N = new Natural();
-	
-	//this->capacity = nend - nstart;
-
-	//if (this->capacity > 0) {
-	//}
-		
-	return N;
-}
-
-Natural::Natural(unsigned long long n) : capacity(sizeof(unsigned long long)), payload(0) {
+Natural::Natural(unsigned long long n) : natural(nullptr), capacity(sizeof(unsigned long long)), payload(0U) {
 	this->natural = new uint8[this->capacity];
 	
 	for (size_t idx = this->capacity; idx > 0; idx--) {
@@ -79,50 +91,6 @@ Natural::Natural(unsigned long long n) : capacity(sizeof(unsigned long long)), p
 		}
 
 		n >>= 8;
-	}
-}
-
-Natural::Natural(const char nbytes[], size_t nstart, size_t nend) : natural(nullptr), payload(0) {
-	this->capacity = nend - nstart;
-
-	if (this->capacity > 0) {
-		this->natural = new uint8[this->capacity];
-
-		for (size_t idx = 0; idx < this->capacity; idx++) {
-			size_t sidx = idx + nstart;
-
-			if (nbytes[sidx] == 0) {
-				this->natural[idx] = 0;
-			} else {
-				this->payload = this->capacity - idx;
-				memcpy(this->natural + idx, nbytes + sidx, nend - sidx);
-				break;
-			}
-		}
-	}
-}
-
-Natural::Natural(const wchar_t nchars[], size_t nstart, size_t nend) : natural(nullptr), payload(0) {
-	this->capacity = (nend - nstart) * 2;
-
-	if (this->capacity > 0) {
-		this->natural = new uint8[this->capacity];
-		size_t idx = 0U;
-
-		for (size_t sidx = nstart; sidx < nend; sidx++) {
-			uint16 ch = (uint16)(nchars[sidx]);
-
-			this->natural[idx++] = (uint8)(ch >> 8);
-			this->natural[idx++] = (uint8)(ch & 0xFFU);
-
-			if (this->payload == 0) {
-				if (ch > 0xFFU) {
-					this->payload = this->capacity - (idx - 2);
-				} else if (ch > 0) {
-					this->payload = this->capacity - (idx - 1);
-				}
-			}
-		}
 	}
 }
 
@@ -151,12 +119,112 @@ std::string Natural::to_hexstring() {
 		
 		if (ubyte <= 0xF) {
 			msb_idx++;
-			hex[msb_idx++] = byte_to_hexchar(ubyte);
+			hex[msb_idx++] = hexadecimal_to_byte(ubyte);
 		} else {
-			hex[msb_idx++] = byte_to_hexchar(ubyte >> 4);
-			hex[msb_idx++] = byte_to_hexchar(ubyte & 0xF);
+			hex[msb_idx++] = hexadecimal_to_byte(ubyte >> 4);
+			hex[msb_idx++] = hexadecimal_to_byte(ubyte & 0xF);
 		}
 	}
 
 	return hex;
+}
+
+/*************************************************************************************************/
+void Natural::from_memory(const uint8 nbytes[], size_t nstart, size_t nend) {
+	if (nend > nstart) {
+		this->capacity = nend - nstart;
+		this->natural = new uint8[this->capacity];
+
+		for (size_t idx = 0; idx < this->capacity; idx++) {
+			size_t sidx = idx + nstart;
+
+			if (nbytes[sidx] == 0) {
+				this->natural[idx] = 0;
+			} else {
+				this->payload = this->capacity - idx;
+				memcpy(this->natural + idx, nbytes + sidx, nend - sidx);
+				break;
+			}
+		}
+	}
+}
+
+void Natural::from_memory(const uint16 nchars[], size_t nstart, size_t nend) {
+	if (nend > nstart) {
+		this->capacity = (nend - nstart) * 2;
+		this->natural = new uint8[this->capacity];
+		size_t idx = 0U;
+
+		for (size_t sidx = nstart; sidx < nend; sidx++) {
+			uint16 ch = (uint16)(nchars[sidx]);
+
+			this->natural[idx++] = (uint8)(ch >> 8);
+			this->natural[idx++] = (uint8)(ch & 0xFFU);
+
+			if (this->payload == 0) {
+				if (ch > 0xFFU) {
+					this->payload = this->capacity - (idx - 2);
+				} else if (ch > 0) {
+					this->payload = this->capacity - (idx - 1);
+				}
+			}
+		}
+	}
+}
+
+void Natural::from_base16(const uint8 nbytes[], size_t nstart, size_t nend) {
+	if (nend > nstart) {
+		size_t span = nend - nstart;
+		
+		this->capacity = span / 2 + (span % 2);
+		this->natural = new uint8[this->capacity];
+		this->payload = natural_from_base16(this->natural, nbytes, nstart, nend, this->capacity);
+	}
+}
+
+void Natural::from_base16(const uint16 nchars[], size_t nstart, size_t nend) {
+	if (nend > nstart) {
+		size_t span = nend - nstart;
+		
+		this->capacity = span / 2 + (span % 2);
+		this->natural = new uint8[this->capacity];
+		this->payload = natural_from_base16(this->natural, nchars, nstart, nend, this->capacity);
+	}
+}
+
+void Natural::from_base10(const uint8 nbytes[], size_t nstart, size_t nend) {
+	if (nend > nstart) {
+		this->capacity = nend - nstart;
+		this->natural = new uint8[this->capacity];
+		this->payload = natural_from_base(10U, this->natural, nbytes, nstart, nend, this->capacity);
+	}
+}
+
+void Natural::from_base10(const uint16 nchars[], size_t nstart, size_t nend) {
+	if (nend > nstart) {
+		this->capacity = nend - nstart;
+		this->natural = new uint8[this->capacity];
+		this->payload = natural_from_base(10U, this->natural, nchars, nstart, nend, this->capacity);
+	}
+}
+
+
+void Natural::from_base8(const uint8 nbytes[], size_t nstart, size_t nend) {
+	if (nend > nstart) {
+		size_t span = nend - nstart;
+		
+		this->capacity = (span / 3 + ((span % 3 == 0) ? 0 : 1)) * 2;
+		this->natural = new uint8[this->capacity];
+		this->payload = natural_from_base(8U, this->natural, nbytes, nstart, nend, this->capacity);
+	}
+}
+
+void Natural::from_base8(const uint16 nchars[], size_t nstart, size_t nend) {
+	if (nend > nstart) {
+		size_t span = nend - nstart;
+		
+		this->capacity = (span / 3 + ((span % 3 == 0) ? 0 : 1)) * 2;
+		this->natural = new uint8[this->capacity];
+		this->payload = natural_from_base(8U, this->natural, nchars, nstart, nend, this->capacity);
+	}
 }

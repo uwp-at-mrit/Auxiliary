@@ -177,9 +177,7 @@ void WarGrey::SCADA::read_bigendian_floats(uint8* src, size_t address, size_t qu
 }
 
 /*************************************************************************************************/
-char WarGrey::SCADA::hexadecimal_ref(const uint8* src, size_t idx) {
-	unsigned char ch = src[idx];
-
+uint8 WarGrey::SCADA::byte_to_hexadecimal(uint8 ch, uint8 fallback_value) {
 	if ((ch >= '0') && (ch <= '9')) {
 		ch = ch - '0';
 	} else if ((ch >= 'a') && (ch <= 'f')) {
@@ -187,8 +185,56 @@ char WarGrey::SCADA::hexadecimal_ref(const uint8* src, size_t idx) {
 	} else if ((ch >= 'A') && (ch <= 'F')) {
 		ch = ch - 'A' + 10;
 	} else {
-		ch = -1;
+		ch = fallback_value;
 	}
 
 	return ch;
+}
+
+uint8 WarGrey::SCADA::byte_to_decimal(uint8 ch, uint8 fallback_value) {
+	if ((ch >= '0') && (ch <= '9')) {
+		ch = ch - '0';
+	} else {
+		ch = fallback_value;
+	}
+
+	return ch;
+}
+
+uint8 WarGrey::SCADA::byte_to_octal(uint8 ch, uint8 fallback_value) {
+	if ((ch >= '0') && (ch <= '7')) {
+		ch = ch - '0';
+	} else {
+		ch = fallback_value;
+	}
+
+	return ch;
+}
+
+uint8 WarGrey::SCADA::hexadecimal_to_byte(uint8 ch) {
+	return ((ch >= 10) ? (ch - 10 + 'A') : (ch + '0'));
+}
+
+uint8 WarGrey::SCADA::decimal_to_byte(uint8 ch) {
+	return (ch + '0');
+}
+
+uint8 WarGrey::SCADA::octal_to_byte(uint8 ch) {
+	return (ch + '0');
+}
+
+uint8 WarGrey::SCADA::hexadecimal_ref(const uint8* src, size_t idx, uint8 fallback_value) {
+	return byte_to_hexadecimal(src[idx], fallback_value);
+}
+
+void WarGrey::SCADA::hexadecimal_set(uint8* dest, size_t idx, uint8 ch) {
+	dest[idx] = hexadecimal_to_byte(ch);
+}
+
+uint8 WarGrey::SCADA::decimal_ref(const uint8* src, size_t idx, uint8 fallback_value) {
+	return byte_to_decimal(src[idx], fallback_value);
+}
+
+void WarGrey::SCADA::decimal_set(uint8* dest, size_t idx, uint8 ch) {
+	dest[idx] = decimal_to_byte(ch);
 }

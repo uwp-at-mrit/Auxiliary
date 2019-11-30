@@ -85,6 +85,7 @@ namespace WarGrey::SCADA {
 			if (e->PrelaunchActivated == false) {
 				screen->construct(package_name, adjusted_workspace_size(self->VisibleBounds, screen));
 				Windows::UI::Xaml::Window::Current->Activate();
+				screen->on_foreground_activated(e->Arguments);
 			}
 		}
 

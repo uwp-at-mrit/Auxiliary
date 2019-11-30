@@ -7,30 +7,40 @@
 namespace WarGrey::SCADA {
 	private class Natural {
 	public:
-		static WarGrey::SCADA::Natural* from_hexstring(const char nbytes[], size_t nstart, size_t nend);
-		static WarGrey::SCADA::Natural* from_hexstring(const wchar_t nbytes[], size_t nstart, size_t nend);
-		static WarGrey::SCADA::Natural* from_hexstring(std::string& nstr, size_t nstart = 0, size_t nend = 0);
-		static WarGrey::SCADA::Natural* from_hexstring(std::wstring& nstr, size_t nstart = 0, size_t nend = 0);
-		static WarGrey::SCADA::Natural* from_hexstring(Platform::String^ nstr, size_t nstart = 0, size_t nend = 0);
-
-		template<typename BYTE, size_t N>
-		static WarGrey::SCADA::Natural* from_hexstring(const BYTE(&n)[N], size_t nstart = 0, size_t nend = N) {
-			return Natural::from_hexstring(n, nstart, nend);
-		}
-
-	public:
 		~Natural() noexcept;
+		
 		Natural();
 		Natural(unsigned int n);
 		Natural(unsigned long long n);
-		Natural(const char nbytes[], size_t nstart, size_t nend);
-		Natural(const wchar_t nbytes[], size_t nstart, size_t nend);
+		
 		Natural(std::string& nstr, size_t nstart = 0, size_t nend = 0);
 		Natural(std::wstring& nstr, size_t nstart = 0, size_t nend = 0);
 		Natural(Platform::String^ nstr, size_t nstart = 0, size_t nend = 0);
+		Natural(uint8 base, std::string& nstr, size_t nstart = 0, size_t nend = 0);
+		Natural(uint8 base, std::wstring& nstr, size_t nstart = 0, size_t nend = 0);
+		Natural(uint8 base, Platform::String^ nstr, size_t nstart = 0, size_t nend = 0);
 
 		template<typename BYTE, size_t N>
-		Natural(const BYTE(&n)[N], size_t nstart = 0, size_t nend = N) : Natural(n, nstart, nend) {}
+		Natural(const BYTE(&ns)[N], size_t nstart = 0, size_t nend = N)
+			: Natural((const BYTE*)ns, nstart, nend) {}
+
+		template<typename BYTE, size_t N>
+		Natural(uint8 base, const BYTE(&ns)[N], size_t nstart = 0, size_t nend = N)
+			: Natural(base, (const BYTE*)ns, nstart, nend) {}
+
+		template<typename BYTE>
+		Natural(const BYTE ns[], size_t nstart, size_t nend)
+			: Natural((uint8)0U, ns, nstart, nend) {}
+
+		template<typename BYTE>
+		Natural(uint8 base, const BYTE ns[], size_t nstart, size_t nend) : natural(nullptr), capacity(0U), payload(0U) {
+			switch (base) {
+			case 16: this->from_base16(ns, nstart, nend); break;
+			case 10: this->from_base10(ns, nstart, nend); break;
+			case 8:  this->from_base8(ns, nstart, nend); break;
+			default: this->from_memory(ns, nstart, nend);
+			}
+		}
 
 	public:
 		size_t length();
@@ -38,6 +48,16 @@ namespace WarGrey::SCADA {
 
 	public:
 		std::string to_hexstring();
+
+	private:
+		void from_memory(const uint8 nbytes[], size_t nstart, size_t nend);
+		void from_memory(const uint16 nchars[], size_t nstart, size_t nend);
+		void from_base16(const uint8 nbytes[], size_t nstart, size_t nend);
+		void from_base16(const uint16 nchars[], size_t nstart, size_t nend);
+		void from_base10(const uint8 nbytes[], size_t nstart, size_t nend);
+		void from_base10(const uint16 nchars[], size_t nstart, size_t nend);
+		void from_base8(const uint8 nbytes[], size_t nstart, size_t nend);
+		void from_base8(const uint16 nchars[], size_t nstart, size_t nend);
 
 	private:
 		uint8* natural;
