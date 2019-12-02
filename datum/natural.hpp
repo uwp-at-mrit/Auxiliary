@@ -53,6 +53,9 @@ namespace WarGrey::SCADA {
 		WarGrey::SCADA::Natural operator++(int postfix);
 
 	public:
+		WarGrey::SCADA::Natural& operator+=(const WarGrey::SCADA::Natural& rhs);
+
+	public:
 		size_t length();
 		size_t integer_length();
 

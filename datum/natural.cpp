@@ -201,6 +201,42 @@ void Natural::on_moved() {
 }
 
 /*************************************************************************************************/
+Natural& Natural::operator+=(const Natural& rhs) {
+	size_t mdigits = fxmax(this->payload, rhs.payload);
+	size_t lcapacity = this->capacity;
+	uint8* lsrc = this->natural;
+	uint8* rsrc = rhs.natural;
+	uint16 carry = 0U;
+
+	if (this->capacity <= mdigits) {
+		this->capacity = mdigits + 1;
+		this->natural = new uint8[this->capacity];
+	}
+
+	for (size_t idx = 1; idx <= mdigits; idx++) {
+		uint16 digit = carry
+			+ ((idx <= this->payload) ? lsrc[lcapacity - idx] : 0U)
+			+ ((idx <= rhs.payload) ? rsrc[rhs.capacity - idx] : 0U);
+
+		if (digit > 0xFF) {
+			this->natural[this->capacity - idx] = (uint8)(digit & 0xFFU);
+			carry = 1U;
+		} else {
+			this->natural[this->capacity - idx] = (uint8)digit;
+			carry = 0U;
+		}
+	}
+
+	this->payload = mdigits + carry;
+
+	if (this->natural != lsrc) {
+		delete [] lsrc;
+	}
+
+	return (*this);
+}
+
+/*************************************************************************************************/
 void Natural::from_memory(const uint8 nbytes[], size_t nstart, size_t nend) {
 	if (nend > nstart) {
 		this->capacity = nend - nstart;
