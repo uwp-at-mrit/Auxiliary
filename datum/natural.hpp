@@ -45,13 +45,15 @@ namespace WarGrey::SCADA {
 		Natural(const WarGrey::SCADA::Natural& n);
 		Natural(WarGrey::SCADA::Natural&& n);
 
+		//auto operator<=>(const WarGrey::SCADA::Natural& chs);
+
 		WarGrey::SCADA::Natural& operator=(const WarGrey::SCADA::Natural& n);
 		WarGrey::SCADA::Natural& operator=(WarGrey::SCADA::Natural&& n);
 
+	public:
 		WarGrey::SCADA::Natural& operator++();
 		WarGrey::SCADA::Natural operator++(int postfix);
 
-	public:
 		WarGrey::SCADA::Natural& operator+=(unsigned long long rhs);
 		WarGrey::SCADA::Natural& operator+=(const WarGrey::SCADA::Natural& rhs);
 		friend WarGrey::SCADA::Natural operator+(WarGrey::SCADA::Natural lhs, const WarGrey::SCADA::Natural& rhs) { lhs += rhs; return lhs; }

@@ -181,7 +181,54 @@ Natural& Natural::operator=(Natural&& n) {
 	return (*this);
 }
 
+void Natural::on_moved() {
+	this->capacity = 0U;
+	this->payload = 0U;
+	this->natural = nullptr;
+}
+
+/*************************************************************************************************/
 Natural& Natural::operator++() {
+	size_t idx = this->capacity - 1U;
+	
+	do {
+		uint8 digit = this->natural[idx];
+
+		if (digit < 0xFF) {
+			this->natural[idx] = digit + 1U;
+			
+			if (this->payload == 0) {
+				this->payload++;
+			}
+
+			break;
+		} else {
+			size_t payload_idx = this->capacity - this->payload;
+			
+			this->natural[idx] = 0x00U;
+
+			if (idx > payload_idx) {
+				idx--;
+			} else {
+				if (idx == 0U) {
+					uint8* n = this->natural;
+
+					this->natural = new uint8[this->capacity + 1];
+					memcpy(this->natural + 1, n, this->capacity);
+					this->capacity++;
+					this->natural[0] = 1;
+					delete[] n;
+				} else if (idx == payload_idx) {
+					this->natural[idx - 1] = 1;
+				}
+
+				this->payload++;
+
+				break;
+			}
+		}
+	} while (1);
+
 	return (*this);
 }
 
@@ -193,13 +240,6 @@ Natural Natural::operator++(int postfix) {
 	return snapshot;
 }
 
-void Natural::on_moved() {
-	this->capacity = 0U;
-	this->payload = 0U;
-	this->natural = nullptr;
-}
-
-/*************************************************************************************************/
 Natural& Natural::operator+=(unsigned long long rhs) {
 	size_t digits = fxmax(this->payload, sizeof(unsigned long long));
 	size_t payload_idx = (this->capacity - 1);
