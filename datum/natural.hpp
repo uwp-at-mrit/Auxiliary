@@ -10,7 +10,6 @@ namespace WarGrey::SCADA {
 		~Natural() noexcept;
 		
 		Natural();
-		Natural(unsigned int n);
 		Natural(unsigned long long n);
 		
 		Natural(std::string& nstr, size_t nstart = 0, size_t nend = 0);
@@ -53,7 +52,10 @@ namespace WarGrey::SCADA {
 		WarGrey::SCADA::Natural operator++(int postfix);
 
 	public:
+		WarGrey::SCADA::Natural& operator+=(unsigned long long rhs);
 		WarGrey::SCADA::Natural& operator+=(const WarGrey::SCADA::Natural& rhs);
+		friend WarGrey::SCADA::Natural operator+(WarGrey::SCADA::Natural lhs, const WarGrey::SCADA::Natural& rhs) { lhs += rhs; return lhs; }
+		friend WarGrey::SCADA::Natural operator+(WarGrey::SCADA::Natural lhs, unsigned long long rhs) { lhs += rhs; return lhs; }
 
 	public:
 		size_t length();

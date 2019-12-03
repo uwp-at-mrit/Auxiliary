@@ -59,7 +59,6 @@ Natural::~Natural() {
 }
 
 Natural::Natural() : Natural(0ULL) {}
-Natural::Natural(unsigned int n) : Natural((unsigned long long)n) {}
 
 Natural::Natural(std::string& nstr, size_t nstart, size_t nend)
 	: Natural((const uint8*)nstr.c_str(), nstart, ((nend <= nstart) ? nstr.size() : nend)) {}
@@ -201,19 +200,55 @@ void Natural::on_moved() {
 }
 
 /*************************************************************************************************/
+Natural& Natural::operator+=(unsigned long long rhs) {
+	size_t digits = fxmax(this->payload, sizeof(unsigned long long));
+	size_t payload_idx = (this->capacity - 1);
+	uint16 carry = 0U;
+
+	if (this->capacity <= digits) {
+		uint8* n = this->natural;
+		size_t zsize = (this->capacity - this->payload);
+
+		this->capacity = digits + 1;
+		this->natural = new uint8[this->capacity];
+		memset(this->natural, '\0', (this->capacity - this->payload));
+		memcpy(this->natural + (this->capacity - this->payload), n + zsize, this->payload);
+		payload_idx = (this->capacity - 1);
+		delete[] n;
+	}
+
+	while (rhs > 0) {
+		uint16 digit = carry + this->natural[payload_idx] + (rhs & 0xFFU);
+
+		if (digit > 0xFF) {
+			this->natural[payload_idx] = (uint8)(digit & 0xFFU);
+			rhs = (rhs >> 8U) + 1U;
+		} else {
+			this->natural[payload_idx] = (uint8)digit;
+			rhs >>= 8U;
+		}
+
+		payload_idx--;
+	}
+
+	this->payload = fxmax(this->payload, (this->capacity - payload_idx));
+	
+	return (*this);
+}
+
 Natural& Natural::operator+=(const Natural& rhs) {
-	size_t mdigits = fxmax(this->payload, rhs.payload);
+	size_t digits = fxmax(this->payload, rhs.payload);
 	size_t lcapacity = this->capacity;
 	uint8* lsrc = this->natural;
 	uint8* rsrc = rhs.natural;
 	uint16 carry = 0U;
 
-	if (this->capacity <= mdigits) {
-		this->capacity = mdigits + 1;
+	if (this->capacity <= digits) {
+		this->capacity = digits + 1;
 		this->natural = new uint8[this->capacity];
 	}
 
-	for (size_t idx = 1; idx <= mdigits; idx++) {
+	for (size_t idx = 1; idx <= digits; idx++) {
 		uint16 digit = carry
 			+ ((idx <= this->payload) ? lsrc[lcapacity - idx] : 0U)
 			+ ((idx <= rhs.payload) ? rsrc[rhs.capacity - idx] : 0U);
@@ -227,7 +262,12 @@ Natural& Natural::operator+=(const Natural& rhs) {
 		}
 	}
 
-	this->payload = mdigits + carry;
+	if (carry == 1) {
+		this->payload = digits + carry;
+		this->natural[this->capacity - this->payload] = 1;
+	} else {
+		this->payload = digits;
+	}
 
 	if (this->natural != lsrc) {
 		delete [] lsrc;
