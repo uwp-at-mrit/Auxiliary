@@ -56,12 +56,19 @@ namespace WarGrey::SCADA {
 
 		WarGrey::SCADA::Natural& operator+=(unsigned long long rhs);
 		WarGrey::SCADA::Natural& operator+=(const WarGrey::SCADA::Natural& rhs);
+		
+		WarGrey::SCADA::Natural& operator*=(unsigned long long rhs);
+		WarGrey::SCADA::Natural& operator*=(const WarGrey::SCADA::Natural& rhs);
+
 		friend WarGrey::SCADA::Natural operator+(WarGrey::SCADA::Natural lhs, const WarGrey::SCADA::Natural& rhs) { lhs += rhs; return lhs; }
 		friend WarGrey::SCADA::Natural operator+(WarGrey::SCADA::Natural lhs, unsigned long long rhs) { lhs += rhs; return lhs; }
+		friend WarGrey::SCADA::Natural operator*(WarGrey::SCADA::Natural lhs, const WarGrey::SCADA::Natural& rhs) { lhs *= rhs; return lhs; }
+		friend WarGrey::SCADA::Natural operator*(WarGrey::SCADA::Natural lhs, unsigned long long rhs) { lhs *= rhs; return lhs; }
 
 	public:
-		size_t length();
-		size_t integer_length();
+		bool is_zero() const;
+		size_t length() const;
+		size_t integer_length() const;
 
 	public:
 		std::string to_hexstring();
@@ -78,6 +85,8 @@ namespace WarGrey::SCADA {
 
 	private:
 		void on_moved();
+		void bzero();
+		void recalloc(size_t size, uint8 initial = '\0');
 
 	private:
 		uint8* natural;
