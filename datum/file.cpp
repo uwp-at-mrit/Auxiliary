@@ -29,7 +29,7 @@ bool WarGrey::SCADA::open_output_binary(std::wofstream& src, Platform::String^ o
 
 /************************************************************************************************/
 bool WarGrey::SCADA::char_end_of_word(char ch) {
-	return ch == space;
+	return ((ch == space) || char_end_of_line(ch));
 }
 
 bool WarGrey::SCADA::char_end_of_line(char ch) {
@@ -37,7 +37,7 @@ bool WarGrey::SCADA::char_end_of_line(char ch) {
 }
 
 bool WarGrey::SCADA::char_end_of_field(char ch) {
-	return ch == comma;
+	return ((ch == comma) || char_end_of_line(ch));
 }
 
 /************************************************************************************************/
