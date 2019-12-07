@@ -8,6 +8,10 @@
 
 using namespace WarGrey::SCADA;
 
+static inline bool char_whitespace(char ch) {
+	return (ch == space);
+}
+
 /*************************************************************************************************/
 bool WarGrey::SCADA::open_input_binary(std::filebuf& src, Platform::String^ in_port) {
 	src.open(in_port->Data(), std::ios::in | std::ios::binary);
@@ -29,7 +33,7 @@ bool WarGrey::SCADA::open_output_binary(std::wofstream& src, Platform::String^ o
 
 /************************************************************************************************/
 bool WarGrey::SCADA::char_end_of_word(char ch) {
-	return ((ch == space) || char_end_of_line(ch));
+	return (char_whitespace(ch) || char_end_of_line(ch));
 }
 
 bool WarGrey::SCADA::char_end_of_line(char ch) {
@@ -230,7 +234,7 @@ void WarGrey::SCADA::discard_space(std::filebuf& src) {
 	char ch;
 
 	while ((ch = src.sbumpc()) != EOF) {
-		if (!char_end_of_word(ch)) {
+		if (!char_whitespace(ch)) {
 			src.sungetc();
 			break;
 		}
