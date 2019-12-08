@@ -6,9 +6,9 @@
 using namespace WarGrey::SCADA;
 
 template<typename BYTE>
-static int natural_from_base16(uint8* natural, const BYTE n[], size_t nstart, size_t nend, size_t capacity) {
+static size_t natural_from_base16(uint8* natural, const BYTE n[], size_t nstart, size_t nend, size_t capacity) {
 	size_t slot = capacity - 1;
-	int payload = 0U;
+	size_t payload = 0U;
 
 	do {
 		uint8 lsb = ((nend > nstart) ? byte_to_hexadecimal((uint8)n[--nend], 0U) : 0U);
@@ -451,7 +451,7 @@ void Natural::from_base10(const uint8 nbytes[], size_t nstart, size_t nend) {
 	if (nend > nstart) {
 		this->capacity = nend - nstart;
 		this->natural = new uint8[this->capacity];
-		this->payload = natural_from_base(10U, this->natural, nbytes, nstart, nend, this->capacity);
+		this->payload = natural_from_base(10U, this->natural, nbytes, int(nstart), int(nend), this->capacity);
 	}
 }
 
@@ -459,7 +459,7 @@ void Natural::from_base10(const uint16 nchars[], size_t nstart, size_t nend) {
 	if (nend > nstart) {
 		this->capacity = nend - nstart;
 		this->natural = new uint8[this->capacity];
-		this->payload = natural_from_base(10U, this->natural, nchars, nstart, nend, this->capacity);
+		this->payload = natural_from_base(10U, this->natural, nchars, int(nstart), int(nend), this->capacity);
 	}
 }
 
@@ -470,7 +470,7 @@ void Natural::from_base8(const uint8 nbytes[], size_t nstart, size_t nend) {
 		
 		this->capacity = (span / 3 + ((span % 3 == 0) ? 0 : 1)) * 2;
 		this->natural = new uint8[this->capacity];
-		this->payload = natural_from_base(8U, this->natural, nbytes, nstart, nend, this->capacity);
+		this->payload = natural_from_base(8U, this->natural, nbytes, int(nstart), int(nend), this->capacity);
 	}
 }
 
@@ -480,7 +480,7 @@ void Natural::from_base8(const uint16 nchars[], size_t nstart, size_t nend) {
 		
 		this->capacity = (span / 3 + ((span % 3 == 0) ? 0 : 1)) * 2;
 		this->natural = new uint8[this->capacity];
-		this->payload = natural_from_base(8U, this->natural, nchars, nstart, nend, this->capacity);
+		this->payload = natural_from_base(8U, this->natural, nchars, int(nstart), int(nend), this->capacity);
 	}
 }
 
