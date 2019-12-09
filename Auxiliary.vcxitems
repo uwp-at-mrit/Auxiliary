@@ -16,10 +16,11 @@
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)application.hxx" />
     <ClCompile Include="$(MSBuildThisFileDirectory)backtask.cxx" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)crypto\blowfish\bf_test.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)crypto\blowfish\cipher.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)crypto\blowfish\core.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)crypto\blowfish\s_box.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)crypto\checksum.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)crypto\enckey.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)datum\bytes.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)datum\file.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)datum\natural.cpp" />
@@ -46,11 +47,12 @@
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)backtask.hxx" />
     <ClInclude Include="$(MSBuildThisFileDirectory)crypto\blowfish.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)crypto\blowfish\bf_test.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)crypto\blowfish\cipher.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)crypto\blowfish\core.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)crypto\blowfish\pi_box.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)crypto\blowfish\s_box.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)crypto\checksum.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)crypto\enckey.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)datum\box.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)datum\bytes.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)datum\char.hpp" />

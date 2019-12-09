@@ -1,6 +1,7 @@
 #include "datum/string.hpp"
 #include "datum/flonum.hpp"
 #include "datum/fixnum.hpp"
+#include "datum/bytes.hpp"
 #include "datum/char.hpp"
 
 using namespace WarGrey::SCADA;
@@ -140,6 +141,28 @@ std::string WarGrey::SCADA::binumber(unsigned long long n, size_t bitsize) {
 	return str;
 }
 
+std::string WarGrey::SCADA::hexnumber(unsigned long long n, size_t digitsize) {
+	static char support[16];
+	size_t isize = integer_length(n);
+	size_t size = ((digitsize < 1) ? ((n == 0) ? 1 : (isize / 4 + ((isize % 4 == 0) ? 0 : 1))) : digitsize);
+	char* pool = ((size > (sizeof(support) / sizeof(char))) ? new char[size] : support);
+
+	for (size_t idx = size; idx > 0; idx --) {
+		unsigned char ch = n & 0xFU;
+
+		hexadecimal_set((unsigned char*)pool, idx - 1, ch);
+		n >>= 4U;
+	}
+
+	std::string str(pool, size);
+
+	if (pool != support) {
+		delete[] pool;
+	}
+
+	return str;
+}
+
 /**************************************************************************************************/
 Platform::String^ WarGrey::SCADA::string_first_line(Platform::String^ src) {
 	const wchar_t* wsrc = src->Data();
@@ -170,10 +193,10 @@ std::list<Platform::String^> WarGrey::SCADA::string_lines(Platform::String^ src,
 }
 
 /************************************************************************************************/
-unsigned long long WarGrey::SCADA::scan_natural(const unsigned char* src, size_t* pos, size_t total, bool skip_trailing_space) {
+unsigned long long WarGrey::SCADA::scan_natural(const unsigned char* src, size_t* pos, size_t end, bool skip_trailing_space) {
 	unsigned long long value = 0;
 
-	while ((*pos) < total) {
+	while ((*pos) < end) {
 		char c = src[(*pos)];
 
 		if ((c < zero) || (c > nine)) {
@@ -185,17 +208,17 @@ unsigned long long WarGrey::SCADA::scan_natural(const unsigned char* src, size_t
 	}
 
 	if (skip_trailing_space) {
-		scan_skip_space(src, pos, total);
+		scan_skip_space(src, pos, end);
 	}
 
 	return value;
 }
 
-long long WarGrey::SCADA::scan_integer(const unsigned char* src, size_t* pos, size_t total, bool skip_trailing_space) {
+long long WarGrey::SCADA::scan_integer(const unsigned char* src, size_t* pos, size_t end, bool skip_trailing_space) {
 	int sign = 1;
 	long long value = 0;
 
-	if ((*pos) < total) {
+	if ((*pos) < end) {
 		if (src[(*pos)] == minus) {
 			sign = -1;
 			(*pos) += 1;
@@ -204,7 +227,7 @@ long long WarGrey::SCADA::scan_integer(const unsigned char* src, size_t* pos, si
 		}
 	}
 
-	while ((*pos) < total) {
+	while ((*pos) < end) {
 		char c = src[(*pos)];
 
 		if ((c < zero) || (c > nine)) {
@@ -216,19 +239,19 @@ long long WarGrey::SCADA::scan_integer(const unsigned char* src, size_t* pos, si
 	}
 
 	if (skip_trailing_space) {
-		scan_skip_space(src, pos, total);
+		scan_skip_space(src, pos, end);
 	}
 
 	return value * sign;
 }
 
-double WarGrey::SCADA::scan_flonum(const unsigned char* src, size_t* pos, size_t total, bool skip_trailing_space) {
+double WarGrey::SCADA::scan_flonum(const unsigned char* src, size_t* pos, size_t end, bool skip_trailing_space) {
 	double value = flnan;
 	double i_acc = 10.0;
 	double f_acc = 1.0;
 	double sign = 1.0;
 
-	if ((*pos) < total) {
+	if ((*pos) < end) {
 		if (src[(*pos)] == minus) {
 			sign = -1.0;
 			(*pos) += 1;
@@ -237,7 +260,7 @@ double WarGrey::SCADA::scan_flonum(const unsigned char* src, size_t* pos, size_t
 		}
 	}
 
-	while ((*pos) < total) {
+	while ((*pos) < end) {
 		char ch = src[(*pos)];
 
 		(*pos) += 1;
@@ -266,16 +289,35 @@ double WarGrey::SCADA::scan_flonum(const unsigned char* src, size_t* pos, size_t
 	}
 
 	if (skip_trailing_space) {
-		scan_skip_space(src, pos, total);
+		scan_skip_space(src, pos, end);
 	}
 
 	return value * sign;
 }
 
-size_t WarGrey::SCADA::scan_skip_space(const unsigned char* src, size_t* pos, size_t total) {
+void WarGrey::SCADA::scan_bytes(const unsigned char* src, size_t* pos, size_t end, unsigned char* bs, size_t bs_start, size_t bs_end, bool terminating) {
+	size_t bsize = bs_end - bs_start;
+	size_t size = fxmin(end - (*pos), bsize);
+
+	if (terminating) {
+		if (size == bsize) {
+			size--;
+		}
+
+		bs[bs_start + size] = '\0';
+	}
+
+	if (size > 0) {
+		memcpy(bs, &src[(*pos)], size);
+	}
+
+	(*pos) += size;
+}
+
+size_t WarGrey::SCADA::scan_skip_space(const unsigned char* src, size_t* pos, size_t end) {
 	size_t idx = (*pos);
 
-	while ((*pos) < total) {
+	while ((*pos) < end) {
 		char c = src[(*pos)];
 
 		if (c != space) {
@@ -288,10 +330,10 @@ size_t WarGrey::SCADA::scan_skip_space(const unsigned char* src, size_t* pos, si
 	return (*pos) - idx;
 }
 
-size_t WarGrey::SCADA::scan_skip_newline(const unsigned char* src, size_t* pos, size_t total) {
+size_t WarGrey::SCADA::scan_skip_newline(const unsigned char* src, size_t* pos, size_t end) {
 	size_t idx = (*pos);
 
-	while ((*pos) < total) {
+	while ((*pos) < end) {
 		char c = src[(*pos)];
 
 		if ((c != linefeed) && (c != carriage_return)) {
@@ -304,14 +346,14 @@ size_t WarGrey::SCADA::scan_skip_newline(const unsigned char* src, size_t* pos, 
 	return (*pos) - idx;
 }
 
-size_t WarGrey::SCADA::scan_skip_this_line(const unsigned char* src, size_t* pos, size_t total) {
+size_t WarGrey::SCADA::scan_skip_this_line(const unsigned char* src, size_t* pos, size_t end) {
 	size_t idx = (*pos);
 
-	while ((*pos) < total) {
+	while ((*pos) < end) {
 		char c = src[(*pos)];
 
 		if ((c == linefeed) || (c == carriage_return)) {
-			scan_skip_newline(src, pos, total);
+			scan_skip_newline(src, pos, end);
 			break;
 		}
 

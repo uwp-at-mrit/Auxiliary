@@ -55,12 +55,34 @@ char WarGrey::SCADA::read_char(std::filebuf& src) {
 	return src.sbumpc();
 }
 
+size_t WarGrey::SCADA::read_bytes(std::filebuf& src, char* bs, size_t start, size_t end, bool terminating) {
+	size_t idx = start;
+	char ch;
+
+	if (terminating) {
+		end--;
+	}
+
+	while ((idx < end) && ((ch = src.sbumpc()) != EOF)) {
+		bs[idx++] = ch;
+	}
+
+	if (terminating) {
+		bs[idx - start] = '\0';
+	}
+
+	return (idx - start);
+}
+
 bool WarGrey::SCADA::read_bool(std::filebuf& src) {
-	char ch = read_char(src);
+	long long n = read_integer(src);
 
-	// TODO: Weird, should it be compared with `zero`?
+	/** WARNING
+	 * Boolean datum in project's files are padded with leading 0s
+	 * Stupid design.
+	 */
 
-	return (ch != 0);
+	return (n > 0);
 }
 
 std::string WarGrey::SCADA::read_text(std::filebuf& src, bool (*end_of_text)(char)) {

@@ -59,7 +59,7 @@ std::string retval; { \
 }
 
 	Platform::String^ substring(Platform::String^ src, int start, int endplus1 = -1);
-    Platform::String^ flstring(double flonum, int precision);
+	Platform::String^ flstring(double flonum, int precision);
 	Platform::String^ fxstring(long long fixnum, int width);
 	Platform::String^ sstring(unsigned long long bytes, int precision);
 
@@ -74,15 +74,22 @@ std::string retval; { \
 	std::string make_nstring(Platform::String^ wstr);
 
 	std::string binumber(unsigned long long n, size_t bitsize = 0);
+	std::string hexnumber(unsigned long long n, size_t digitsize = 0);
 
 	Platform::String^ string_first_line(Platform::String^ src);
 	std::list<Platform::String^> string_lines(Platform::String^ src, bool skip_empty_line = false);
 
 	/************************************************************************************************/
-	unsigned long long scan_natural(const unsigned char* src, size_t* pos, size_t total, bool skip_trailing_space = true);
-	long long scan_integer(const unsigned char* src, size_t* pos, size_t total, bool skip_trailing_space = true);
-	double scan_flonum(const unsigned char* src, size_t* pos, size_t total, bool skip_trailing_space = true);
-	size_t scan_skip_space(const unsigned char* src, size_t* pos, size_t total);
-	size_t scan_skip_newline(const unsigned char* src, size_t* pos, size_t total);
-	size_t scan_skip_this_line(const unsigned char* src, size_t* pos, size_t total);
+	unsigned long long scan_natural(const unsigned char* src, size_t* pos, size_t end, bool skip_trailing_space = true);
+	long long scan_integer(const unsigned char* src, size_t* pos, size_t end, bool skip_trailing_space = true);
+	double scan_flonum(const unsigned char* src, size_t* pos, size_t end, bool skip_trailing_space = true);
+	void scan_bytes(const unsigned char* src, size_t* pos, size_t end, unsigned char* bs, size_t bs_start, size_t bs_end, bool terminating = true);
+	size_t scan_skip_space(const unsigned char* src, size_t* pos, size_t end);
+	size_t scan_skip_newline(const unsigned char* src, size_t* pos, size_t end);
+	size_t scan_skip_this_line(const unsigned char* src, size_t* pos, size_t end);
+
+	template<typename B, size_t N>
+	void scan_bytes(const unsigned char* src, size_t* pos, size_t end, B (&bs)[N], size_t start = 0U, bool terminating = true) {
+		scan_bytes(src, pos, end, (unsigned char*)bs, 0, N, terminating);
+	}
 }

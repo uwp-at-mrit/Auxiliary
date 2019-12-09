@@ -16,6 +16,8 @@ namespace WarGrey::SCADA {
 	char peek_char(std::filebuf& src);
 	char read_char(std::filebuf& src);
 	
+	size_t read_bytes(std::filebuf& src, char* bs, size_t start, size_t end, bool terminating = true);
+
 	std::string read_text(std::filebuf& src, bool (*end_of_text)(char) = char_end_of_line);
 	Platform::String^ read_wtext(std::filebuf& src, bool (*end_of_text)(char) = char_end_of_line);
 	Platform::String^ read_wgb18030(std::filebuf& src, bool (*end_of_text)(char) = char_end_of_line);
@@ -44,5 +46,10 @@ namespace WarGrey::SCADA {
 		}
 
 		return stream;
+	}
+
+	template<typename B, size_t N>
+	size_t read_bytes(std::filebuf& src, B (&bs)[N], size_t start = 0, bool terminating = true) {
+		return read_bytes(src, (char*)bs, start, N, terminating);
 	}
 }

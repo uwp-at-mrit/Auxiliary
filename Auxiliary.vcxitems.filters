@@ -55,11 +55,14 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)crypto\blowfish\s_box.cpp">
       <Filter>crypto\blowfish</Filter>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)crypto\blowfish\bf_test.cpp">
-      <Filter>crypto\blowfish</Filter>
-    </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)datum\natural.cpp">
       <Filter>datum</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)crypto\enckey.cpp">
+      <Filter>crypto</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)crypto\checksum.cpp">
+      <Filter>crypto</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -158,11 +161,14 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)crypto\blowfish\pi_box.hpp">
       <Filter>crypto\blowfish</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)crypto\blowfish\bf_test.hpp">
-      <Filter>crypto\blowfish</Filter>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)datum\natural.hpp">
       <Filter>datum</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)crypto\enckey.hpp">
+      <Filter>crypto</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)crypto\checksum.hpp">
+      <Filter>crypto</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
