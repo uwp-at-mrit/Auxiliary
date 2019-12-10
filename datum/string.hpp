@@ -74,7 +74,7 @@ std::string retval; { \
 	std::string make_nstring(Platform::String^ wstr);
 
 	std::string binumber(unsigned long long n, size_t bitsize = 0);
-	std::string hexnumber(unsigned long long n, size_t digitsize = 0);
+	std::string hexnumber(unsigned long long n, size_t bytecount = 0);
 
 	Platform::String^ string_first_line(Platform::String^ src);
 	std::list<Platform::String^> string_lines(Platform::String^ src, bool skip_empty_line = false);

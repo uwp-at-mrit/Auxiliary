@@ -11,6 +11,10 @@ namespace WarGrey::SCADA {
 		size_t encrypt(const uint8* plaintext, size_t pstart, size_t pend, uint8* ciphertext, size_t cstart, size_t cend);
 		size_t decrypt(const uint8* ciphertext, size_t cstart, size_t cend, uint8* plaintext, size_t pstart, size_t pend);
 
+	public:
+		uint64 encrypt(uint64 plain);
+		uint64 decrypt(uint64 cipher);
+
 	private:
 		WarGrey::SCADA::BFBox box;
 	};

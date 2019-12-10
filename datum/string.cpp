@@ -124,40 +124,24 @@ std::string WarGrey::SCADA::make_nstring(Platform::String^ wstr) {
 }
 
 std::string WarGrey::SCADA::binumber(unsigned long long n, size_t bitsize) {
-	static char support[64];
 	size_t size = ((bitsize < 1) ? ((n == 0) ? 1 : integer_length(n)) : bitsize);
-	char* pool = ((size > (sizeof(support) / sizeof(char))) ? new char[size] : support);
+	std::string str(size, '0');
 
 	for (size_t idx = size; idx > 0; idx--) {
-		pool[idx - 1] = (((n >> (size - idx)) & 0b1) ? '1' : '0');
-	}
-
-	std::string str(pool, size);
-
-	if (pool != support) {
-		delete[] pool;
+		str[idx - 1] = (((n >> (size - idx)) & 0b1) ? '1' : '0');
 	}
 
 	return str;
 }
 
-std::string WarGrey::SCADA::hexnumber(unsigned long long n, size_t digitsize) {
-	static char support[16];
+std::string WarGrey::SCADA::hexnumber(unsigned long long n, size_t bytecount) {
 	size_t isize = integer_length(n);
-	size_t size = ((digitsize < 1) ? ((n == 0) ? 1 : (isize / 4 + ((isize % 4 == 0) ? 0 : 1))) : digitsize);
-	char* pool = ((size > (sizeof(support) / sizeof(char))) ? new char[size] : support);
+	size_t size = ((bytecount < 1) ? ((n == 0) ? 1 : (isize / 8 + ((isize % 8 == 0) ? 0 : 1))) : bytecount) * 2;
+	std::string str(size, '0');
 
 	for (size_t idx = size; idx > 0; idx --) {
-		unsigned char ch = n & 0xFU;
-
-		hexadecimal_set((unsigned char*)pool, idx - 1, ch);
+		str[idx - 1] = hexadecimal_to_byte(n & 0xFU);
 		n >>= 4U;
-	}
-
-	std::string str(pool, size);
-
-	if (pool != support) {
-		delete[] pool;
 	}
 
 	return str;

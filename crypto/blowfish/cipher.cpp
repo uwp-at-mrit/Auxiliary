@@ -53,6 +53,24 @@ using namespace WarGrey::SCADA;
 
 static const size_t bf_block_size = 8;
 
+static uint64 inline bf_long_encrypt(uint64 plain, BFBox* box) {
+	uint32 L = plain >> 32U;
+	uint32 R = plain & 0xFFFFFFFFU;
+
+	bf_encrypt(L, R, box->parray, box->sbox, &L, &R);
+	
+	return ((uint64)(L) << 32U) ^ R;
+}
+
+static uint64 inline bf_long_decrypt(uint64 cipher, BFBox* box) {
+	uint32 L = cipher >> 32U;
+	uint32 R = cipher & 0xFFFFFFFFU;
+
+	bf_decrypt(L, R, box->parray, box->sbox, &L, &R);
+	
+	return ((uint64)(L) << 32U) ^ R;
+}
+
 static size_t inline bf_block_encrypt(const uint8* plainblock, size_t pstart, uint8* cipherblock, size_t cstart, BFBox* box) {
 	uint32 L = bigendian_uint32_ref(plainblock, pstart);
 	uint32 R = bigendian_uint32_ref(plainblock, pstart + 4);
@@ -121,6 +139,14 @@ size_t BlowfishCipher::decrypt(const uint8* ciphertext, size_t cstart, size_t ce
 	}
 
 	return pstart + bf_block_size;
+}
+
+uint64 BlowfishCipher::encrypt(uint64 plain) {
+	return bf_long_encrypt(plain, &this->box);
+}
+
+uint64 BlowfishCipher::decrypt(uint64 cipher) {
+	return bf_long_decrypt(cipher, &this->box);
 }
 
 /*************************************************************************************************/
