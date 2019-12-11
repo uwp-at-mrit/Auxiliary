@@ -2,10 +2,13 @@
 
 #include "crypto/blowfish/s_box.hpp"
 
+#include "datum/bytes.hpp"
+
 namespace WarGrey::SCADA {
 	private class BlowfishCipher {
 	public:
 		BlowfishCipher(const uint8* key, size_t ksize);
+		BlowfishCipher(bytes& key, size_t start = 0, size_t end = 0);
 
 	public:
 		size_t encrypt(const uint8* plaintext, size_t pstart, size_t pend, uint8* ciphertext, size_t cstart, size_t cend);

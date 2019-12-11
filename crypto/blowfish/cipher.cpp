@@ -123,6 +123,9 @@ BlowfishCipher::BlowfishCipher(const uint8* key, size_t ksize) {
 	blowfish_initiate_boxes(key, ksize, &this->box);
 }
 
+BlowfishCipher::BlowfishCipher(bytes& key, size_t start, size_t end)
+	: BlowfishCipher(key.c_str() + start, ((end <= start) ? key.size() : end) - start) {}
+
 size_t BlowfishCipher::encrypt(const uint8* plaintext, size_t pstart, size_t pend, uint8* ciphertext, size_t cstart, size_t cend) {
 	while (pstart < pend) {
 		pstart = bf_block_encrypt(plaintext, pstart, ciphertext, cstart, &this->box);

@@ -1,12 +1,21 @@
 #include "crypto/enckey.hpp"
 #include "crypto/blowfish.hpp"
 
-#include "datum/bytes.hpp"
+#include "datum/string.hpp"
 
 using namespace WarGrey::SCADA;
 
 static uint64 inline make_HW_ID(uint64 l0000, uint64 l000, uint64 l00, uint64 l0, uint64 l) {
 	return (l0000 << 32U) ^ (l000 << 24U) ^ (l00 << 16U) ^ (l0 << 8U) ^ l;
+}
+
+static uint64 inline make_HW_ID(const uint8* id, size_t start) {
+	return make_HW_ID(
+		hexadecimal_ref(id, start, 0U),
+		hexadecimal_ref(id, start + 1, 0U),
+		hexadecimal_ref(id, start + 2, 0U),
+		hexadecimal_ref(id, start + 3, 0U),
+		hexadecimal_ref(id, start + 4, 0U));
 }
 
 template<typename B>
@@ -44,37 +53,21 @@ uint64 WarGrey::SCADA::enc_hexadecimal(uint32 literal_id) {
 }
 
 uint64 WarGrey::SCADA::enc_hexadecimal(const char* literal_id, size_t start) {
-	const uint8* id = (uint8*)literal_id;
-
-	return make_HW_ID(
-		hexadecimal_ref(id, start, 0U),
-		hexadecimal_ref(id, start + 1, 0U),
-		hexadecimal_ref(id, start + 2, 0U),
-		hexadecimal_ref(id, start + 3, 0U),
-		hexadecimal_ref(id, start + 4, 0U));
+	return make_HW_ID((uint8*)literal_id, start);
 }
 
-uint64 WarGrey::SCADA::enc_hexadecimal(const wchar_t* literal_id, size_t start) {
-	return make_HW_ID(
-		byte_to_hexadecimal((unsigned char)(literal_id[start]), 0U),
-		byte_to_hexadecimal((unsigned char)(literal_id[start + 1U]), 0U),
-		byte_to_hexadecimal((unsigned char)(literal_id[start + 2U]), 0U),
-		byte_to_hexadecimal((unsigned char)(literal_id[start + 3U]), 0U),
-		byte_to_hexadecimal((unsigned char)(literal_id[start + 4U]), 0U));
+uint64 WarGrey::SCADA::enc_hexadecimal(bytes& literal_id, size_t start) {
+	return make_HW_ID(literal_id.c_str(), start);
 }
 
 uint64 WarGrey::SCADA::enc_hexadecimal(std::string& literal_id, size_t start) {
 	return enc_hexadecimal(literal_id.c_str(), start);
 }
 
-uint64 WarGrey::SCADA::enc_hexadecimal(Platform::String^ literal_id, size_t start) {
-	return enc_hexadecimal(literal_id->Data(), start);
-}
-
 /**************************************************************************************************/
-std::string WarGrey::SCADA::enc_ascii(uint64 id, size_t digit_count) {
+bytes WarGrey::SCADA::enc_ascii(uint64 id, size_t digit_count) {
 	size_t hexsize = digit_count * 2U;
-	std::string ascii(hexsize, '0');
+	bytes ascii(hexsize, '0');
 
 	for (size_t idx = hexsize; ((idx > 0U) && (id > 0U)); idx -= 2U, id >>= 8U) {
 		uint8 digit = (uint8)(id & 0xFU) + 30U;
@@ -94,16 +87,8 @@ uint64 WarGrey::SCADA::enc_hexadecimal_from_ascii(const char* ascii, size_t digi
 	return ascii_to_hexadecimal(ascii, digit_count, start);
 }
 
-uint64 WarGrey::SCADA::enc_hexadecimal_from_ascii(const wchar_t* ascii, size_t digit_count, size_t start) {
-	return ascii_to_hexadecimal(ascii, digit_count, start);
-}
-
 uint64 WarGrey::SCADA::enc_hexadecimal_from_ascii(std::string& literal_id, size_t digit_count, size_t start) {
 	return enc_hexadecimal_from_ascii(literal_id.c_str(), digit_count, start);
-}
-
-uint64 WarGrey::SCADA::enc_hexadecimal_from_ascii(Platform::String^ literal_id, size_t digit_count, size_t start) {
-	return enc_hexadecimal_from_ascii(literal_id->Data(), digit_count, start);
 }
 
 /**************************************************************************************************/
@@ -111,8 +96,36 @@ uint64 WarGrey::SCADA::enc_hardware_uid6(uint64 HW_ID) {
 	return (HW_ID << 8) ^ (HW_ID >> 32U);
 }
 
-std::string WarGrey::SCADA::enc_hardware_uid_encrypt(uint64 HW_ID, const uint8* M_KEY) {
+bytes WarGrey::SCADA::enc_hardware_uid_encrypt(uint64 HW_ID, const uint8* M_KEY) {
 	BlowfishCipher bf(M_KEY, 5);
 	
 	return hexnumber(bf.encrypt(HW_ID), 16);
+}
+
+/**************************************************************************************************/
+uint64 WarGrey::SCADA::enc_hexadecimal_pad(unsigned long long hex, size_t bsize) {
+	size_t padsize = (8 - bsize) * 2U;
+
+	for (size_t idx = 0U; idx < padsize; idx++) {
+		hex = (hex << 4U) ^ padsize;
+	}
+
+	return hex;
+}
+
+bytes WarGrey::SCADA::enc_pad(bytes bs, size_t start, size_t end0) {
+	size_t end = ((end0 <= start) ? bs.size() : end0);
+	size_t size = (end - start);
+	size_t remainder = size % 8;
+	bytes pad(bs, start, size);
+
+	if (remainder > 0) {
+		unsigned char padding[8];
+		size_t padsize = 8 - remainder;
+
+		memset(padding, padsize + '0', padsize);
+		pad.append(padding, padsize);
+	}
+
+	return pad;
 }

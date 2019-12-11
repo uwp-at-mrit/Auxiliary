@@ -60,6 +60,9 @@ Natural::~Natural() {
 
 Natural::Natural() : Natural(0ULL) {}
 
+Natural::Natural(bytes& nstr, size_t nstart, size_t nend)
+	: Natural(nstr.c_str(), nstart, ((nend <= nstart) ? nstr.size() : nend)) {}
+
 Natural::Natural(std::string& nstr, size_t nstart, size_t nend)
 	: Natural((const uint8*)nstr.c_str(), nstart, ((nend <= nstart) ? nstr.size() : nend)) {}
 
@@ -68,6 +71,9 @@ Natural::Natural(std::wstring& nstr, size_t nstart, size_t nend)
 
 Natural::Natural(Platform::String^ nstr, size_t nstart, size_t nend)
 	: Natural((const uint16*)nstr->Data(), nstart, ((nend <= nstart) ? nstr->Length() : nend)) {}
+
+Natural::Natural(uint8 base, bytes& nstr, size_t nstart, size_t nend)
+	: Natural(base, nstr.c_str(), nstart, ((nend <= nstart) ? nstr.size() : nend)) {}
 
 Natural::Natural(uint8 base, std::string& nstr, size_t nstart, size_t nend)
 	: Natural(base, (const uint8*)nstr.c_str(), nstart, ((nend <= nstart) ? nstr.size() : nend)) {}
@@ -114,8 +120,8 @@ size_t Natural::integer_length() const {
 	return s;
 }
 
-std::string Natural::to_hexstring() {
-	std::string hex(fxmax((unsigned int)this->payload, 1U) * 2, '0');
+bytes Natural::to_hexstring() {
+	bytes hex(fxmax((unsigned int)this->payload, 1U) * 2, '0');
 	size_t payload_idx = this->capacity - this->payload;
 	size_t msb_idx = 0U;
 

@@ -12,6 +12,22 @@ static inline bool char_whitespace(char ch) {
 	return (ch == space);
 }
 
+template<typename C>
+static void read_basic_text(std::basic_string<C>& str, std::filebuf& src, bool (*end_of_text)(char)) {
+	char ch;
+
+	discard_space(src);
+
+	while ((ch = src.sbumpc()) != EOF) {
+		if (end_of_text(ch)) {
+			src.sungetc();
+			break;
+		}
+
+		str.push_back((C)ch);
+	}
+}
+
 /*************************************************************************************************/
 bool WarGrey::SCADA::open_input_binary(std::filebuf& src, Platform::String^ in_port) {
 	src.open(in_port->Data(), std::ios::in | std::ios::binary);
@@ -85,20 +101,18 @@ bool WarGrey::SCADA::read_bool(std::filebuf& src) {
 	return (n > 0);
 }
 
+std::basic_string<unsigned char> WarGrey::SCADA::read_bytes(std::filebuf& src, bool (*end_of_text)(char)) {
+	std::basic_string<unsigned char> str;
+	
+	read_basic_text(str, src, end_of_text);
+
+	return str;
+}
+
 std::string WarGrey::SCADA::read_text(std::filebuf& src, bool (*end_of_text)(char)) {
 	std::string str;
-	char ch;
-
-	discard_space(src);
-
-	while ((ch = src.sbumpc()) != EOF) {
-		if (end_of_text(ch)) {
-			src.sungetc();
-			break;
-		}
-
-		str.push_back(ch);
-	}
+	
+	read_basic_text(str, src, end_of_text);
 
 	return str;
 }

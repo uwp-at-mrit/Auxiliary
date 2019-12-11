@@ -18,6 +18,7 @@ namespace WarGrey::SCADA {
 	
 	size_t read_bytes(std::filebuf& src, char* bs, size_t start, size_t end, bool terminating = true);
 
+	std::basic_string<unsigned char> read_bytes(std::filebuf& src, bool (*end_of_text)(char) = char_end_of_line);
 	std::string read_text(std::filebuf& src, bool (*end_of_text)(char) = char_end_of_line);
 	Platform::String^ read_wtext(std::filebuf& src, bool (*end_of_text)(char) = char_end_of_line);
 	Platform::String^ read_wgb18030(std::filebuf& src, bool (*end_of_text)(char) = char_end_of_line);

@@ -1,8 +1,6 @@
 #pragma once
 
-#pragma once;
-
-#include <string>
+#include "datum/bytes.hpp"
 
 namespace WarGrey::SCADA {
 	private class Natural {
@@ -11,10 +9,12 @@ namespace WarGrey::SCADA {
 		
 		Natural();
 		Natural(unsigned long long n);
-		
+
+		Natural(bytes& nstr, size_t nstart = 0, size_t nend = 0);
 		Natural(std::string& nstr, size_t nstart = 0, size_t nend = 0);
 		Natural(std::wstring& nstr, size_t nstart = 0, size_t nend = 0);
 		Natural(Platform::String^ nstr, size_t nstart = 0, size_t nend = 0);
+		Natural(uint8 base, bytes& nstr, size_t nstart = 0, size_t nend = 0);
 		Natural(uint8 base, std::string& nstr, size_t nstart = 0, size_t nend = 0);
 		Natural(uint8 base, std::wstring& nstr, size_t nstart = 0, size_t nend = 0);
 		Natural(uint8 base, Platform::String^ nstr, size_t nstart = 0, size_t nend = 0);
@@ -71,7 +71,7 @@ namespace WarGrey::SCADA {
 		size_t integer_length() const;
 
 	public:
-		std::string to_hexstring();
+		bytes to_hexstring();
 
 	private:
 		void from_memory(const uint8 nbytes[], size_t nstart, size_t nend);

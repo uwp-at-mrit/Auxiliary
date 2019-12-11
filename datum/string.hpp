@@ -58,6 +58,7 @@ std::string retval; { \
     if (pool != chpool) delete[] pool; \
 }
 
+	/************************************************************************************************/
 	Platform::String^ substring(Platform::String^ src, int start, int endplus1 = -1);
 	Platform::String^ flstring(double flonum, int precision);
 	Platform::String^ fxstring(long long fixnum, int width);
@@ -73,13 +74,13 @@ std::string retval; { \
 	std::string make_nstring(const wchar_t* wbytes);
 	std::string make_nstring(Platform::String^ wstr);
 
-	std::string binumber(unsigned long long n, size_t bitsize = 0);
-	std::string hexnumber(unsigned long long n, size_t bytecount = 0);
-
 	Platform::String^ string_first_line(Platform::String^ src);
 	std::list<Platform::String^> string_lines(Platform::String^ src, bool skip_empty_line = false);
 
 	/************************************************************************************************/
+	std::basic_string<unsigned char> binumber(unsigned long long n, size_t bitsize = 0);
+	std::basic_string<unsigned char> hexnumber(unsigned long long n, size_t bytecount = 0);
+
 	unsigned long long scan_natural(const unsigned char* src, size_t* pos, size_t end, bool skip_trailing_space = true);
 	long long scan_integer(const unsigned char* src, size_t* pos, size_t end, bool skip_trailing_space = true);
 	double scan_flonum(const unsigned char* src, size_t* pos, size_t end, bool skip_trailing_space = true);

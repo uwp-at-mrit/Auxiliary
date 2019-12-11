@@ -123,28 +123,28 @@ std::string WarGrey::SCADA::make_nstring(Platform::String^ wstr) {
 	return make_nstring("%S", wstr->Data());
 }
 
-std::string WarGrey::SCADA::binumber(unsigned long long n, size_t bitsize) {
+bytes WarGrey::SCADA::binumber(unsigned long long n, size_t bitsize) {
 	size_t size = ((bitsize < 1) ? ((n == 0) ? 1 : integer_length(n)) : bitsize);
-	std::string str(size, '0');
+	bytes bs(size, '0');
 
 	for (size_t idx = size; idx > 0; idx--) {
-		str[idx - 1] = (((n >> (size - idx)) & 0b1) ? '1' : '0');
+		bs[idx - 1] = (((n >> (size - idx)) & 0b1) ? '1' : '0');
 	}
 
-	return str;
+	return bs;
 }
 
-std::string WarGrey::SCADA::hexnumber(unsigned long long n, size_t bytecount) {
+bytes WarGrey::SCADA::hexnumber(unsigned long long n, size_t bytecount) {
 	size_t isize = integer_length(n);
 	size_t size = ((bytecount < 1) ? ((n == 0) ? 1 : (isize / 8 + ((isize % 8 == 0) ? 0 : 1))) : bytecount) * 2;
-	std::string str(size, '0');
+	bytes bs(size, '0');
 
 	for (size_t idx = size; idx > 0; idx --) {
-		str[idx - 1] = hexadecimal_to_byte(n & 0xFU);
+		bs[idx - 1] = hexadecimal_to_byte(n & 0xFU);
 		n >>= 4U;
 	}
 
-	return str;
+	return bs;
 }
 
 /**************************************************************************************************/
