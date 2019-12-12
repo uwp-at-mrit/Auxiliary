@@ -100,17 +100,6 @@ uint64 WarGrey::SCADA::enc_hardware_uid6(uint64 HW_ID) {
 	return (HW_ID << 8) ^ (HW_ID >> 32U);
 }
 
-bytes WarGrey::SCADA::enc_natural_bytes(uint64 id, size_t byte_count) {
-	bytes raw(byte_count, '\0');
-
-	for (size_t idx = byte_count; idx > 0; idx--) {
-		raw[idx - 1] = id & 0xFFU;
-		id >>= 8U;
-	}
-
-	return raw;
-}
-
 bytes WarGrey::SCADA::enc_hardware_uid_encrypt(uint64 HW_ID, const uint8* M_KEY) {
 	BlowfishCipher bf(M_KEY, 5);
 	

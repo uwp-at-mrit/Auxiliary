@@ -137,6 +137,11 @@ bool Natural::is_zero() const {
 			&& (this->natural[this->capacity - 1] == 0)));
 }
 
+bool Natural::is_one() const {
+	return ((this->payload == 1)
+		&& (this->natural[this->capacity - 1] == 1));
+}
+
 size_t Natural::length() const {
 	return this->payload;
 }
@@ -312,47 +317,49 @@ Natural& Natural::operator+=(unsigned long long rhs) {
 }
 
 Natural& Natural::operator+=(const Natural& rhs) {
-	size_t digits = fxmax(this->payload, rhs.payload);
-	size_t lcapacity = this->capacity;
-	uint8* lsrc = this->natural;
-	uint8* rsrc = rhs.natural;
-	uint16 carry = 0U;
+	if (!rhs.is_zero()) {
+		size_t digits = fxmax(this->payload, rhs.payload);
+		size_t lcapacity = this->capacity;
+		uint8* lsrc = this->natural;
+		uint8* rsrc = rhs.natural;
+		uint16 carry = 0U;
 
-	if (this->capacity <= digits) {
-		this->capacity = digits + 1;
-		this->natural = new uint8[this->capacity];
-	}
-
-	for (size_t idx = 1; idx <= digits; idx++) {
-		uint16 digit = carry
-			+ ((idx <= this->payload) ? lsrc[lcapacity - idx] : 0U)
-			+ ((idx <= rhs.payload) ? rsrc[rhs.capacity - idx] : 0U);
-
-		if (digit > 0xFF) {
-			this->natural[this->capacity - idx] = (uint8)(digit & 0xFFU);
-			carry = 1U;
-		} else {
-			this->natural[this->capacity - idx] = (uint8)digit;
-			carry = 0U;
+		if (this->capacity <= digits) {
+			this->capacity = digits + 1;
+			this->natural = new uint8[this->capacity];
 		}
-	}
 
-	if (carry == 1) {
-		this->payload = digits + carry;
-		this->natural[this->capacity - this->payload] = 1;
-	} else {
-		this->payload = digits;
-	}
+		for (size_t idx = 1; idx <= digits; idx++) {
+			uint16 digit = carry
+				+ ((idx <= this->payload) ? lsrc[lcapacity - idx] : 0U)
+				+ ((idx <= rhs.payload) ? rsrc[rhs.capacity - idx] : 0U);
 
-	if (this->natural != lsrc) {
-		delete [] lsrc;
+			if (digit > 0xFF) {
+				this->natural[this->capacity - idx] = (uint8)(digit & 0xFFU);
+				carry = 1U;
+			} else {
+				this->natural[this->capacity - idx] = (uint8)digit;
+				carry = 0U;
+			}
+		}
+
+		if (carry == 1) {
+			this->payload = digits + carry;
+			this->natural[this->capacity - this->payload] = 1;
+		} else {
+			this->payload = digits;
+		}
+
+		if (this->natural != lsrc) {
+			delete[] lsrc;
+		}
 	}
 
 	return (*this);
 }
 
 Natural& Natural::operator*=(unsigned long long rhs) {
-	if (!this->is_zero()) {
+	if ((!this->is_zero()) && (rhs != 1ULL)) {
 		if (rhs == 0ULL) {
 			this->bzero();
 		} else {
@@ -392,7 +399,7 @@ Natural& Natural::operator*=(unsigned long long rhs) {
 }
 
 Natural& Natural::operator*=(const Natural& rhs) {
-	if (!this->is_zero()) {
+	if ((!this->is_zero()) && (!rhs.is_one())) {
 		if (rhs.is_zero()) {
 			this->bzero();
 		} else {
@@ -423,6 +430,59 @@ Natural& Natural::operator*=(const Natural& rhs) {
 		}
 	}
 
+	return (*this);
+}
+
+Natural& Natural::operator<<=(unsigned long long rhs) {	
+	if ((!this->is_zero()) && (rhs != 0U)) {
+		size_t shift_byts = (size_t)(rhs / 8);
+		size_t shift_bits = (size_t)(rhs % 8);
+		size_t shift_load = this->payload + shift_byts;
+		size_t idx0 = this->capacity - shift_load;
+		size_t end = idx0 + this->payload;
+		size_t total = shift_load;
+
+		if (shift_bits > 0U) {
+			uint16 digit0 = this->natural[this->capacity - this->payload];
+
+			if ((digit0 << shift_bits) > 0xFFU) {
+				total++;
+			}
+		}
+
+		if (this->capacity < total) {
+			this->recalloc(total, '\0', shift_byts);
+			idx0 = this->capacity - shift_load;
+			end = idx0 + this->payload;
+		} else {
+			if (shift_byts > 0U) {
+				memmove(this->natural + idx0, this->natural + (this->capacity - this->payload), this->payload);
+				memset(this->natural + end, '\0', shift_byts);
+			}
+		}
+
+		if (shift_bits > 0U) {
+			for (size_t idx = idx0; idx < end; idx++) {
+				uint16 digit = this->natural[idx];
+
+				digit = digit << shift_bits;
+
+				if (digit <= 0xFFU) {
+					this->natural[idx] = (uint8)digit;
+				} else {
+					this->natural[idx] = (uint8)(digit & 0xFFU);
+					this->natural[idx - 1] ^= (uint8)(digit >> 8U);
+				}
+			}
+		}
+
+		this->payload = total;
+	}
+
+	return (*this);
+}
+
+Natural& Natural::operator>>=(unsigned long long rhs) {
 	return (*this);
 }
 
@@ -577,13 +637,13 @@ void Natural::bzero() {
 	}
 }
 
-void Natural::recalloc(size_t resize, uint8 initial) {
+void Natural::recalloc(size_t newsize, uint8 initial, size_t shift) {
 	uint8* n = this->natural;
 	size_t zsize = (this->capacity - this->payload);
 
-	this->capacity = resize;
+	this->capacity = newsize;
 	this->natural = new uint8[this->capacity];
-	memset(this->natural, initial, (this->capacity - this->payload));
-	memcpy(this->natural + (this->capacity - this->payload), n + zsize, this->payload);
+	memset(this->natural, initial, this->capacity);
+	memcpy(this->natural + (this->capacity - this->payload /* this is not the `zsize` */ - shift), n + zsize, this->payload);
 	delete[] n;
 }
