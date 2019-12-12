@@ -51,6 +51,38 @@ static size_t natural_from_base(uint8 base, uint8* natural, const BYTE n[], int 
 	return payload;
 }
 
+static inline size_t fixnum_length(size_t payload, size_t modulus) {
+	return payload / modulus + ((payload % modulus > 0) ? 1 : 0);
+}
+
+template<typename UI>
+UI fixnum_ref(const uint8* natural, size_t payload, int capacity, int slot_idx, size_t offset, size_t size) {
+	UI n = 0U;
+
+	if (payload > 0U) {
+		int start0 = capacity - payload;
+		int start, end;
+
+		if (slot_idx < 0) {
+			start = capacity + slot_idx * size;
+		} else {
+			start = capacity - (fixnum_length(payload, size) - slot_idx) * size;
+		}
+
+		start += offset;
+		end = start + int(size);
+
+		start = fxmax(start0, start);
+		end = fxmin(end, capacity);
+
+		for (int idx = start; idx < start + int(size); idx++) {
+			n = (n << 8U) ^ natural[idx];
+		}
+	}
+
+	return n;
+}
+
 /*************************************************************************************************/
 Natural::~Natural() {
 	if (this->natural != nullptr) {
@@ -118,6 +150,18 @@ size_t Natural::integer_length() const {
 	}
 
 	return s;
+}
+
+size_t Natural::fixnum_count(Fixnum type) const {
+	size_t modulus = 8U;
+
+	switch (type) {
+	case Fixnum::Uint64: modulus = 8U; break;
+	case Fixnum::Uint32: modulus = 4U; break;
+	case Fixnum::Uint16: modulus = 2U; break;
+	}
+	
+	return fixnum_length(this->payload, modulus);
 }
 
 bytes Natural::to_hexstring() {
@@ -388,6 +432,35 @@ Natural& Natural::operator*=(const Natural& rhs) {
 	}
 
 	return (*this);
+}
+
+/*************************************************************************************************/
+uint8 Natural::operator[](int idx) {
+	uint8 b = 0;
+
+	if (idx >= 0) {
+		if (((size_t)idx) < this->payload) {
+			b = this->natural[this->capacity - this->payload + idx];
+		}
+	} else {
+		if (idx >= -int(this->payload)) {
+			b = this->natural[this->capacity + idx];
+		}
+	}
+
+	return b;
+}
+
+uint16 Natural::fixnum16_ref(int slot_idx, size_t offset) {
+	return fixnum_ref<uint16>(this->natural, this->payload, this->capacity, slot_idx, offset, 2U);
+}
+
+uint32 Natural::fixnum32_ref(int slot_idx, size_t offset) {
+	return fixnum_ref<uint32>(this->natural, this->payload, this->capacity, slot_idx, offset, 4U);
+}
+
+uint64 Natural::fixnum64_ref(int slot_idx, size_t offset) {
+	return fixnum_ref<uint64>(this->natural, this->payload, this->capacity, slot_idx, offset, 8U);
 }
 
 /*************************************************************************************************/

@@ -3,6 +3,8 @@
 #include "datum/bytes.hpp"
 
 namespace WarGrey::SCADA {
+	private enum class Fixnum { Uint16, Uint32, Uint64 };
+
 	private class Natural {
 	public:
 		~Natural() noexcept;
@@ -66,9 +68,16 @@ namespace WarGrey::SCADA {
 		friend WarGrey::SCADA::Natural operator*(WarGrey::SCADA::Natural lhs, unsigned long long rhs) { lhs *= rhs; return lhs; }
 
 	public:
+		uint8 operator[] (int idx);
+		uint16 fixnum16_ref(int idx, size_t offset = 0U);
+		uint32 fixnum32_ref(int idx, size_t offset = 0U);
+		uint64 fixnum64_ref(int idx, size_t offset = 0U);
+
+	public:
 		bool is_zero() const;
 		size_t length() const;
 		size_t integer_length() const;
+		size_t fixnum_count(WarGrey::SCADA::Fixnum type = Fixnum::Uint64) const;
 
 	public:
 		bytes to_hexstring();

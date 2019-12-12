@@ -16,6 +16,7 @@ namespace WarGrey::SCADA {
 	uint64 enc_hexadecimal_from_ascii(std::string& literal_id, size_t digit_count, size_t start = 0U);
 
 	uint64 enc_hardware_uid6(uint64 HW_ID);
+	bytes enc_natural_bytes(uint64 id, size_t byte_count = 6U);
 	
 	uint64 enc_hexadecimal_pad(unsigned long long hex, size_t bsize = 5U);
 	bytes enc_pad(bytes bs, size_t start = 0U, size_t end = 0U);

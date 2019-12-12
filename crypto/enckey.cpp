@@ -87,6 +87,10 @@ uint64 WarGrey::SCADA::enc_hexadecimal_from_ascii(const char* ascii, size_t digi
 	return ascii_to_hexadecimal(ascii, digit_count, start);
 }
 
+uint64 WarGrey::SCADA::enc_hexadecimal_from_ascii(bytes& literal_id, size_t digit_count, size_t start) {
+	return ascii_to_hexadecimal(literal_id.c_str(), digit_count, start);
+}
+
 uint64 WarGrey::SCADA::enc_hexadecimal_from_ascii(std::string& literal_id, size_t digit_count, size_t start) {
 	return enc_hexadecimal_from_ascii(literal_id.c_str(), digit_count, start);
 }
@@ -94,6 +98,17 @@ uint64 WarGrey::SCADA::enc_hexadecimal_from_ascii(std::string& literal_id, size_
 /**************************************************************************************************/
 uint64 WarGrey::SCADA::enc_hardware_uid6(uint64 HW_ID) {
 	return (HW_ID << 8) ^ (HW_ID >> 32U);
+}
+
+bytes WarGrey::SCADA::enc_natural_bytes(uint64 id, size_t byte_count) {
+	bytes raw(byte_count, '\0');
+
+	for (size_t idx = byte_count; idx > 0; idx--) {
+		raw[idx - 1] = id & 0xFFU;
+		id >>= 8U;
+	}
+
+	return raw;
 }
 
 bytes WarGrey::SCADA::enc_hardware_uid_encrypt(uint64 HW_ID, const uint8* M_KEY) {
@@ -104,10 +119,10 @@ bytes WarGrey::SCADA::enc_hardware_uid_encrypt(uint64 HW_ID, const uint8* M_KEY)
 
 /**************************************************************************************************/
 uint64 WarGrey::SCADA::enc_hexadecimal_pad(unsigned long long hex, size_t bsize) {
-	size_t padsize = (8 - bsize) * 2U;
+	size_t padsize = (8 - bsize);
 
 	for (size_t idx = 0U; idx < padsize; idx++) {
-		hex = (hex << 4U) ^ padsize;
+		hex = (hex << 8U) ^ padsize;
 	}
 
 	return hex;
