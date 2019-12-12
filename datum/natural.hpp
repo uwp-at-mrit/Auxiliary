@@ -68,7 +68,7 @@ namespace WarGrey::SCADA {
 		friend WarGrey::SCADA::Natural operator*(WarGrey::SCADA::Natural lhs, unsigned long long rhs) { lhs *= rhs; return lhs; }
 
 	public:
-		uint8 operator[] (int idx);
+		uint8& operator[] (int idx);
 		uint16 fixnum16_ref(int idx, size_t offset = 0U);
 		uint32 fixnum32_ref(int idx, size_t offset = 0U);
 		uint64 fixnum64_ref(int idx, size_t offset = 0U);
@@ -80,6 +80,7 @@ namespace WarGrey::SCADA {
 		size_t fixnum_count(WarGrey::SCADA::Fixnum type = Fixnum::Uint64) const;
 
 	public:
+		bytes to_bytes();
 		bytes to_hexstring();
 
 	private:

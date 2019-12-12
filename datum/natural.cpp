@@ -152,16 +152,8 @@ size_t Natural::integer_length() const {
 	return s;
 }
 
-size_t Natural::fixnum_count(Fixnum type) const {
-	size_t modulus = 8U;
-
-	switch (type) {
-	case Fixnum::Uint64: modulus = 8U; break;
-	case Fixnum::Uint32: modulus = 4U; break;
-	case Fixnum::Uint16: modulus = 2U; break;
-	}
-	
-	return fixnum_length(this->payload, modulus);
+bytes Natural::to_bytes() {
+	return bytes(this->natural + (this->capacity - this->payload), this->payload);
 }
 
 bytes Natural::to_hexstring() {
@@ -435,20 +427,34 @@ Natural& Natural::operator*=(const Natural& rhs) {
 }
 
 /*************************************************************************************************/
-uint8 Natural::operator[](int idx) {
-	uint8 b = 0;
+uint8& Natural::operator[](int idx) {
+	size_t bidx = 0U;
 
-	if (idx >= 0) {
+	if (this->payload == 0U) {
+		// WARNING: this is an undefined behavior.
+	} else if (idx >= 0) {
 		if (((size_t)idx) < this->payload) {
-			b = this->natural[this->capacity - this->payload + idx];
+			bidx = this->capacity - this->payload + idx;
 		}
 	} else {
 		if (idx >= -int(this->payload)) {
-			b = this->natural[this->capacity + idx];
+			bidx = this->capacity + idx;
 		}
 	}
 
-	return b;
+	return this->natural[bidx];
+}
+
+size_t Natural::fixnum_count(Fixnum type) const {
+	size_t modulus = 8U;
+
+	switch (type) {
+	case Fixnum::Uint64: modulus = 8U; break;
+	case Fixnum::Uint32: modulus = 4U; break;
+	case Fixnum::Uint16: modulus = 2U; break;
+	}
+
+	return fixnum_length(this->payload, modulus);
 }
 
 uint16 Natural::fixnum16_ref(int slot_idx, size_t offset) {
