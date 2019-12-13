@@ -5,6 +5,8 @@
 namespace WarGrey::SCADA {
 	private enum class Fixnum { Uint16, Uint32, Uint64 };
 
+	// NOTE: Mehods take responsibilities to do zeroing if they reduce the payload.
+
 	private class Natural {
 	public:
 		~Natural() noexcept;
@@ -46,8 +48,6 @@ namespace WarGrey::SCADA {
 	public:
 		Natural(const WarGrey::SCADA::Natural& n);
 		Natural(WarGrey::SCADA::Natural&& n);
-
-		//auto operator<=>(const WarGrey::SCADA::Natural& chs);
 
 		WarGrey::SCADA::Natural& operator=(const WarGrey::SCADA::Natural& n);
 		WarGrey::SCADA::Natural& operator=(WarGrey::SCADA::Natural&& n);

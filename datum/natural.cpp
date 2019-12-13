@@ -438,41 +438,55 @@ Natural& Natural::operator<<=(unsigned long long rhs) {
 		size_t shift_byts = (size_t)(rhs / 8);
 		size_t shift_bits = (size_t)(rhs % 8);
 		size_t shift_load = this->payload + shift_byts;
-		size_t idx0 = this->capacity - shift_load;
-		size_t end = idx0 + this->payload;
+		size_t original_idx0 = this->capacity - this->payload;
 		size_t total = shift_load;
 
-		if (shift_bits > 0U) {
-			uint16 digit0 = this->natural[this->capacity - this->payload];
-
-			if ((digit0 << shift_bits) > 0xFFU) {
+		if (shift_bits == 0U) {
+			if (this->capacity < total) {
+				this->recalloc(total, '\0', shift_byts);
+			} else if (shift_byts > 0U) {
+				memmove(this->natural + (this->capacity - shift_load), this->natural + original_idx0, this->payload);
+				memset(this->natural + (this->capacity - shift_byts), '\0', shift_byts);
+			}
+		} else {
+			const uint8* src = this->natural;
+			size_t shift_diff = this->capacity - shift_load - original_idx0;
+			
+			if (((uint16)(src[original_idx0]) << shift_bits) > 0xFFU) {
 				total++;
 			}
-		}
 
-		if (this->capacity < total) {
-			this->recalloc(total, '\0', shift_byts);
-			idx0 = this->capacity - shift_load;
-			end = idx0 + this->payload;
-		} else {
-			if (shift_byts > 0U) {
-				memmove(this->natural + idx0, this->natural + (this->capacity - this->payload), this->payload);
-				memset(this->natural + end, '\0', shift_byts);
+			if (this->capacity < total) {
+				shift_diff += (total - this->capacity);
+
+				this->capacity = total;
+				this->natural = new uint8[this->capacity];
+				this->natural[0] = '\0';
+				
+				/** NOTE
+				 * There is no need to set other slots of `natural` to zero since
+				 *   after shifting all slots will be set by algorithm.
+				 */
 			}
-		}
 
-		if (shift_bits > 0U) {
-			for (size_t idx = idx0; idx < end; idx++) {
-				uint16 digit = this->natural[idx];
-
-				digit = digit << shift_bits;
+			for (size_t idx = original_idx0; idx < original_idx0 + this->payload; idx++) {
+				uint16 digit = ((uint16)(src[idx]) << shift_bits);
+				size_t shift_idx = idx + shift_diff;
 
 				if (digit <= 0xFFU) {
-					this->natural[idx] = (uint8)digit;
+					this->natural[shift_idx] = (uint8)digit;
 				} else {
-					this->natural[idx] = (uint8)(digit & 0xFFU);
-					this->natural[idx - 1] ^= (uint8)(digit >> 8U);
+					this->natural[shift_idx] = (uint8)(digit & 0xFFU);
+					this->natural[shift_idx - 1] ^= (uint8)(digit >> 8U);
 				}
+			}
+
+			if (shift_byts > 0U) {
+				memset(this->natural + (this->capacity - shift_byts), '\0', shift_byts);
+			}
+
+			if (src != this->natural) {
+				delete[] src;
 			}
 		}
 
@@ -638,12 +652,18 @@ void Natural::bzero() {
 }
 
 void Natural::recalloc(size_t newsize, uint8 initial, size_t shift) {
-	uint8* n = this->natural;
-	size_t zsize = (this->capacity - this->payload);
+	uint8* src = this->natural;
+	size_t zero_size = (this->capacity - this->payload);
 
 	this->capacity = newsize;
 	this->natural = new uint8[this->capacity];
-	memset(this->natural, initial, this->capacity);
-	memcpy(this->natural + (this->capacity - this->payload /* this is not the `zsize` */ - shift), n + zsize, this->payload);
-	delete[] n;
+
+	{ // do copying and shifting
+		size_t payload_idx0 = this->capacity - this->payload /* this is not the `zero_size` */ - shift;
+
+		memset(this->natural, initial, this->capacity /* avoid another syscall when shifting */);
+		memcpy(this->natural + payload_idx0, src + zero_size, this->payload);
+	}
+
+	delete[] src;
 }
