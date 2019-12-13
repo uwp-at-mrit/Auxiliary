@@ -60,17 +60,33 @@ namespace WarGrey::SCADA {
 		WarGrey::SCADA::Natural& operator*=(unsigned long long rhs);
 		WarGrey::SCADA::Natural& operator*=(const WarGrey::SCADA::Natural& rhs);
 
-		friend WarGrey::SCADA::Natural operator+(WarGrey::SCADA::Natural lhs, const WarGrey::SCADA::Natural& rhs) { lhs += rhs; return lhs; }
-		friend WarGrey::SCADA::Natural operator+(WarGrey::SCADA::Natural lhs, unsigned long long rhs) { lhs += rhs; return lhs; }
-		friend WarGrey::SCADA::Natural operator*(WarGrey::SCADA::Natural lhs, const WarGrey::SCADA::Natural& rhs) { lhs *= rhs; return lhs; }
-		friend WarGrey::SCADA::Natural operator*(WarGrey::SCADA::Natural lhs, unsigned long long rhs) { lhs *= rhs; return lhs; }
+		friend WarGrey::SCADA::Natural operator+(WarGrey::SCADA::Natural lhs, const WarGrey::SCADA::Natural& rhs) { return lhs += rhs; }
+		friend WarGrey::SCADA::Natural operator+(WarGrey::SCADA::Natural lhs, unsigned long long rhs) { return lhs += rhs; }
+		friend WarGrey::SCADA::Natural operator*(WarGrey::SCADA::Natural lhs, const WarGrey::SCADA::Natural& rhs) { return lhs *= rhs; }
+		friend WarGrey::SCADA::Natural operator*(WarGrey::SCADA::Natural lhs, unsigned long long rhs) { return lhs *= rhs; }
 
 	public:
+		//WarGrey::SCADA::Natural& operator~();
+
 		WarGrey::SCADA::Natural& operator<<=(unsigned long long rhs);
 		WarGrey::SCADA::Natural& operator>>=(unsigned long long rhs);
 
-		friend WarGrey::SCADA::Natural operator<<(WarGrey::SCADA::Natural lhs, unsigned long long rhs) { lhs <<= rhs; return lhs; }
-		friend WarGrey::SCADA::Natural operator>>(WarGrey::SCADA::Natural lhs, unsigned long long rhs) { lhs >>= rhs; return lhs; }
+		WarGrey::SCADA::Natural& operator&=(unsigned long long rhs);
+		WarGrey::SCADA::Natural& operator&=(const WarGrey::SCADA::Natural& rhs);
+		WarGrey::SCADA::Natural& operator|=(unsigned long long rhs);
+		WarGrey::SCADA::Natural& operator|=(const WarGrey::SCADA::Natural& rhs);
+		//WarGrey::SCADA::Natural& operator^=(unsigned long long rhs);
+		//WarGrey::SCADA::Natural& operator^=(const WarGrey::SCADA::Natural& rhs);
+
+		friend WarGrey::SCADA::Natural operator<<(WarGrey::SCADA::Natural lhs, unsigned long long rhs) { return lhs <<= rhs; }
+		friend WarGrey::SCADA::Natural operator>>(WarGrey::SCADA::Natural lhs, unsigned long long rhs) { return lhs >>= rhs; }
+
+		friend WarGrey::SCADA::Natural operator&(WarGrey::SCADA::Natural lhs, unsigned long long rhs) { return lhs &= rhs; }
+		friend WarGrey::SCADA::Natural operator&(WarGrey::SCADA::Natural lhs, const WarGrey::SCADA::Natural& rhs) { return lhs &= rhs; }
+		friend WarGrey::SCADA::Natural operator|(WarGrey::SCADA::Natural lhs, unsigned long long rhs) { return lhs |= rhs; }
+		friend WarGrey::SCADA::Natural operator|(WarGrey::SCADA::Natural lhs, const WarGrey::SCADA::Natural& rhs) { return lhs |= rhs; }
+		//friend WarGrey::SCADA::Natural operator^(WarGrey::SCADA::Natural lhs, unsigned long long rhs) { return lhs ^= rhs; }
+		//friend WarGrey::SCADA::Natural operator^(WarGrey::SCADA::Natural lhs, const WarGrey::SCADA::Natural& rhs) { return lhs ^= rhs; }
 
 	public:
 		uint8& operator[] (int idx);
