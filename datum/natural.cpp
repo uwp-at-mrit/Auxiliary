@@ -117,7 +117,7 @@ Natural::Natural(uint8 base, Platform::String^ nstr, size_t nstart, size_t nend)
 	: Natural(base, (const uint16*)nstr->Data(), nstart, ((nend <= nstart) ? nstr->Length() : nend)) {}
 
 Natural::Natural(unsigned long long n) : natural(nullptr), capacity(sizeof(unsigned long long)), payload(0U) {
-	this->natural = new uint8[this->capacity];
+	this->natural = this->malloc(this->capacity);
 	
 	for (size_t idx = this->capacity; idx > 0; idx--) {
 		uint8 ui8 = (n & 0xFF);
@@ -186,7 +186,7 @@ Natural::Natural(const Natural& n) : natural(nullptr), capacity(n.payload), payl
 	if (this->payload > 0) {
 		size_t payload_idx = n.capacity - n.payload;
 
-		this->natural = new uint8[this->capacity];
+		this->natural = this->malloc(this->capacity);
 		memcpy(this->natural, n.natural + payload_idx, this->payload);
 	}
 }
@@ -205,7 +205,7 @@ Natural& Natural::operator=(const Natural& n) {
 
 		this->payload = n.payload;
 		this->capacity = this->payload;
-		this->natural = new uint8[this->capacity];
+		this->natural = this->malloc(this->capacity);
 	}
 
 	if (this->payload > 0) {
@@ -326,7 +326,7 @@ Natural& Natural::operator+=(const Natural& rhs) {
 
 		if (this->capacity <= digits) {
 			this->capacity = digits + 1;
-			this->natural = new uint8[this->capacity];
+			this->natural = this->malloc(this->capacity);
 		}
 
 		for (size_t idx = 1; idx <= digits; idx++) {
@@ -364,7 +364,7 @@ Natural& Natural::operator*=(unsigned long long rhs) {
 			this->bzero();
 		} else {
 			size_t digits = this->payload + sizeof(unsigned long long);
-			uint8* product = new uint8[digits];
+			uint8* product = this->malloc(digits);
 			size_t j = 0U;
 			
 			memset(product + (digits - this->payload), '\0', this->payload);
@@ -404,7 +404,7 @@ Natural& Natural::operator*=(const Natural& rhs) {
 			this->bzero();
 		} else {
 			size_t digits = this->payload + rhs.payload;
-			uint8* product = new uint8[digits];
+			uint8* product = this->malloc(digits);
 			
 			memset(product + (digits - this->payload), '\0', this->payload);
 			for (size_t j = 1; j <= rhs.payload; j++) {
@@ -460,13 +460,16 @@ Natural& Natural::operator<<=(unsigned long long rhs) {
 				shift_diff += (total - this->capacity);
 
 				this->capacity = total;
-				this->natural = new uint8[this->capacity];
-				this->natural[0] = '\0';
+				this->natural = this->malloc(this->capacity);
 				
 				/** NOTE
 				 * There is no need to set other slots of `natural` to zero since
 				 *   after shifting all slots will be set by algorithm.
 				 */
+			}
+
+			if (shift_byts > 0) {
+				this->natural[this->capacity - total] = '\0';
 			}
 
 			for (size_t idx = original_idx0; idx < original_idx0 + this->payload; idx++) {
@@ -497,6 +500,52 @@ Natural& Natural::operator<<=(unsigned long long rhs) {
 }
 
 Natural& Natural::operator>>=(unsigned long long rhs) {
+	if ((!this->is_zero()) && (rhs != 0U)) {
+		size_t shift_byts = (size_t)(rhs / 8);
+		
+		if (this->payload <= shift_byts) {
+			this->bzero();
+		} else {
+			size_t shift_bits = (size_t)(rhs % 8);
+			size_t shift_cbits = 8 - shift_bits;
+			size_t original_idx0 = this->capacity - this->payload;
+			
+			this->payload -= shift_byts;
+
+			if (shift_bits == 0U) {
+				memmove(this->natural + (this->capacity - this->payload), this->natural + original_idx0, this->payload);
+				memset(this->natural + original_idx0, '\0', shift_byts);
+			} else {
+				size_t shift_endp1 = original_idx0 + this->payload;
+				size_t shift_diff = this->capacity - shift_endp1 - 1;
+				size_t mask = (1 << shift_bits) - 1;
+
+				this->natural[this->capacity - 1] = (this->natural[shift_endp1 - 1] >> shift_bits);
+				
+				for (size_t idx = shift_endp1 - 1; idx > original_idx0; idx--) {
+					size_t shift_idx = idx + shift_diff;
+					uint8 digit = this->natural[idx - 1];
+					uint8 tail = digit & mask;
+					
+					this->natural[shift_idx] = (digit >> shift_bits);
+
+					if (tail > 0U) {
+						this->natural[shift_idx + 1] ^= (tail << shift_cbits);
+					}
+				}
+
+				// reduntant zeroing since other operators do not assume it
+				//if (shift_byts > 0U) {
+				//	memset(this->natural + original_idx0, '\0', shift_byts);
+				//}
+
+				if (this->natural[this->capacity - this->payload] == 0U) {
+					this->payload--;
+				}
+			}
+		}
+	}
+
 	return (*this);
 }
 
@@ -547,7 +596,7 @@ uint64 Natural::fixnum64_ref(int slot_idx, size_t offset) {
 void Natural::from_memory(const uint8 nbytes[], size_t nstart, size_t nend) {
 	if (nend > nstart) {
 		this->capacity = nend - nstart;
-		this->natural = new uint8[this->capacity];
+		this->natural = this->malloc(this->capacity);
 
 		for (size_t idx = 0; idx < this->capacity; idx++) {
 			size_t sidx = idx + nstart;
@@ -566,7 +615,7 @@ void Natural::from_memory(const uint8 nbytes[], size_t nstart, size_t nend) {
 void Natural::from_memory(const uint16 nchars[], size_t nstart, size_t nend) {
 	if (nend > nstart) {
 		this->capacity = (nend - nstart) * 2;
-		this->natural = new uint8[this->capacity];
+		this->natural = this->malloc(this->capacity);
 		size_t idx = 0U;
 
 		for (size_t sidx = nstart; sidx < nend; sidx++) {
@@ -591,7 +640,7 @@ void Natural::from_base16(const uint8 nbytes[], size_t nstart, size_t nend) {
 		size_t span = nend - nstart;
 		
 		this->capacity = span / 2 + (span % 2);
-		this->natural = new uint8[this->capacity];
+		this->natural = this->malloc(this->capacity);
 		this->payload = natural_from_base16(this->natural, nbytes, nstart, nend, this->capacity);
 	}
 }
@@ -601,7 +650,7 @@ void Natural::from_base16(const uint16 nchars[], size_t nstart, size_t nend) {
 		size_t span = nend - nstart;
 		
 		this->capacity = span / 2 + (span % 2);
-		this->natural = new uint8[this->capacity];
+		this->natural = this->malloc(this->capacity);
 		this->payload = natural_from_base16(this->natural, nchars, nstart, nend, this->capacity);
 	}
 }
@@ -609,7 +658,7 @@ void Natural::from_base16(const uint16 nchars[], size_t nstart, size_t nend) {
 void Natural::from_base10(const uint8 nbytes[], size_t nstart, size_t nend) {
 	if (nend > nstart) {
 		this->capacity = nend - nstart;
-		this->natural = new uint8[this->capacity];
+		this->natural = this->malloc(this->capacity);
 		this->payload = natural_from_base(10U, this->natural, nbytes, int(nstart), int(nend), this->capacity);
 	}
 }
@@ -617,7 +666,7 @@ void Natural::from_base10(const uint8 nbytes[], size_t nstart, size_t nend) {
 void Natural::from_base10(const uint16 nchars[], size_t nstart, size_t nend) {
 	if (nend > nstart) {
 		this->capacity = nend - nstart;
-		this->natural = new uint8[this->capacity];
+		this->natural = this->malloc(this->capacity);
 		this->payload = natural_from_base(10U, this->natural, nchars, int(nstart), int(nend), this->capacity);
 	}
 }
@@ -628,7 +677,7 @@ void Natural::from_base8(const uint8 nbytes[], size_t nstart, size_t nend) {
 		size_t span = nend - nstart;
 		
 		this->capacity = (span / 3 + ((span % 3 == 0) ? 0 : 1)) * 2;
-		this->natural = new uint8[this->capacity];
+		this->natural = this->malloc(this->capacity);
 		this->payload = natural_from_base(8U, this->natural, nbytes, int(nstart), int(nend), this->capacity);
 	}
 }
@@ -638,7 +687,7 @@ void Natural::from_base8(const uint16 nchars[], size_t nstart, size_t nend) {
 		size_t span = nend - nstart;
 		
 		this->capacity = (span / 3 + ((span % 3 == 0) ? 0 : 1)) * 2;
-		this->natural = new uint8[this->capacity];
+		this->natural = this->malloc(this->capacity);
 		this->payload = natural_from_base(8U, this->natural, nchars, int(nstart), int(nend), this->capacity);
 	}
 }
@@ -651,12 +700,24 @@ void Natural::bzero() {
 	}
 }
 
+uint8* Natural::malloc(size_t size) {
+	uint8* memory = new uint8[size];
+
+	// NOTE: Method should not assume zeroed memory.
+
+#ifdef _DEBUG
+	memset(memory, size, size);
+#endif
+
+	return memory;
+}
+
 void Natural::recalloc(size_t newsize, uint8 initial, size_t shift) {
 	uint8* src = this->natural;
 	size_t zero_size = (this->capacity - this->payload);
 
 	this->capacity = newsize;
-	this->natural = new uint8[this->capacity];
+	this->natural = this->malloc(this->capacity);
 
 	{ // do copying and shifting
 		size_t payload_idx0 = this->capacity - this->payload /* this is not the `zero_size` */ - shift;

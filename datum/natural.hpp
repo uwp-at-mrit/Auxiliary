@@ -5,8 +5,6 @@
 namespace WarGrey::SCADA {
 	private enum class Fixnum { Uint16, Uint32, Uint64 };
 
-	// NOTE: Mehods take responsibilities to do zeroing if they reduce the payload.
-
 	private class Natural {
 	public:
 		~Natural() noexcept;
@@ -104,6 +102,7 @@ namespace WarGrey::SCADA {
 	private:
 		void on_moved();
 		void bzero();
+		uint8* malloc(size_t size);
 		void recalloc(size_t new_size, uint8 initial = '\0', size_t shift = 0U);
 
 	private:
