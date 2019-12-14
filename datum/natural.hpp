@@ -68,7 +68,7 @@ namespace WarGrey::SCADA {
 		friend WarGrey::SCADA::Natural operator*(WarGrey::SCADA::Natural lhs, const WarGrey::SCADA::Natural& rhs) { return lhs *= rhs; }
 
 	public:
-		//WarGrey::SCADA::Natural& operator~();
+		WarGrey::SCADA::Natural operator~();
 
 		WarGrey::SCADA::Natural& operator<<=(unsigned long long rhs);
 		WarGrey::SCADA::Natural& operator>>=(unsigned long long rhs);
@@ -77,8 +77,8 @@ namespace WarGrey::SCADA {
 		WarGrey::SCADA::Natural& operator&=(const WarGrey::SCADA::Natural& rhs);
 		WarGrey::SCADA::Natural& operator|=(unsigned long long rhs);
 		WarGrey::SCADA::Natural& operator|=(const WarGrey::SCADA::Natural& rhs);
-		//WarGrey::SCADA::Natural& operator^=(unsigned long long rhs);
-		//WarGrey::SCADA::Natural& operator^=(const WarGrey::SCADA::Natural& rhs);
+		WarGrey::SCADA::Natural& operator^=(unsigned long long rhs);
+		WarGrey::SCADA::Natural& operator^=(const WarGrey::SCADA::Natural& rhs);
 
 		friend WarGrey::SCADA::Natural operator<<(WarGrey::SCADA::Natural lhs, unsigned long long rhs) { return lhs <<= rhs; }
 		friend WarGrey::SCADA::Natural operator>>(WarGrey::SCADA::Natural lhs, unsigned long long rhs) { return lhs >>= rhs; }
@@ -89,8 +89,12 @@ namespace WarGrey::SCADA {
 		friend WarGrey::SCADA::Natural operator|(WarGrey::SCADA::Natural lhs, unsigned long long rhs) { return lhs |= rhs; }
 		friend WarGrey::SCADA::Natural operator|(unsigned long long lhs, WarGrey::SCADA::Natural rhs) { return rhs |= lhs; }
 		friend WarGrey::SCADA::Natural operator|(WarGrey::SCADA::Natural lhs, const WarGrey::SCADA::Natural& rhs) { return lhs |= rhs; }
-		//friend WarGrey::SCADA::Natural operator^(WarGrey::SCADA::Natural lhs, unsigned long long rhs) { return lhs ^= rhs; }
-		//friend WarGrey::SCADA::Natural operator^(WarGrey::SCADA::Natural lhs, const WarGrey::SCADA::Natural& rhs) { return lhs ^= rhs; }
+		friend WarGrey::SCADA::Natural operator^(WarGrey::SCADA::Natural lhs, unsigned long long rhs) { return lhs ^= rhs; }
+		friend WarGrey::SCADA::Natural operator^(unsigned long long lhs, WarGrey::SCADA::Natural rhs) { return rhs ^= lhs; }
+		friend WarGrey::SCADA::Natural operator^(WarGrey::SCADA::Natural lhs, const WarGrey::SCADA::Natural& rhs) { return lhs ^= rhs; }
+
+		bool is_bit_set(unsigned long long m);
+		WarGrey::SCADA::Natural bit_field(unsigned long long start, unsigned long long end);
 
 	public:
 		uint8& operator[] (int idx);
@@ -101,6 +105,7 @@ namespace WarGrey::SCADA {
 	public:
 		bool is_zero() const;
 		bool is_one() const;
+		bool is_fixnum() const;
 		size_t length() const;
 		size_t integer_length() const;
 		size_t fixnum_count(WarGrey::SCADA::Fixnum type = Fixnum::Uint64) const;
@@ -110,6 +115,7 @@ namespace WarGrey::SCADA {
 		bytes to_hexstring() const;
 
 	private:
+		Natural(void* null, long long capacity);
 		void from_memory(const uint8 nbytes[], size_t nstart, size_t nend);
 		void from_memory(const uint16 nchars[], size_t nstart, size_t nend);
 		void from_base16(const uint8 nbytes[], size_t nstart, size_t nend);
@@ -122,6 +128,7 @@ namespace WarGrey::SCADA {
 	private:
 		void on_moved();
 		void bzero();
+		void skip_leading_zeros(size_t payload);
 		uint8* malloc(size_t size);
 		void recalloc(size_t new_size, uint8 initial = '\0', size_t shift = 0U);
 

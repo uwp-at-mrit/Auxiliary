@@ -142,6 +142,10 @@ bool Natural::is_one() const {
 		&& (this->natural[this->capacity - 1] == 1));
 }
 
+bool Natural::is_fixnum() const {
+	return (this->payload <= 8U);
+}
+
 size_t Natural::length() const {
 	return this->payload;
 }
@@ -184,10 +188,8 @@ bytes Natural::to_hexstring() const {
 /*************************************************************************************************/
 Natural::Natural(const Natural& n) : natural(nullptr), capacity(n.payload), payload(n.payload) {
 	if (this->payload > 0) {
-		size_t payload_idx = n.capacity - n.payload;
-
 		this->natural = this->malloc(this->capacity);
-		memcpy(this->natural, n.natural + payload_idx, this->payload);
+		memcpy(this->natural, n.natural + (n.capacity - n.payload), this->payload);
 	}
 }
 
@@ -460,6 +462,19 @@ Natural& Natural::operator*=(const Natural& rhs) {
 }
 
 /*************************************************************************************************/
+WarGrey::SCADA::Natural Natural::operator~() {
+	Natural ones_complement(*this);
+
+	
+	for (size_t idx = ones_complement.capacity - ones_complement.payload; idx < ones_complement.capacity; idx++) {
+		ones_complement.natural[idx] = ~ones_complement.natural[idx];
+	}
+
+	ones_complement.skip_leading_zeros(ones_complement.payload);
+
+	return ones_complement;
+}
+
 Natural& Natural::operator<<=(unsigned long long rhs) {	
 	if ((!this->is_zero()) && (rhs != 0U)) {
 		size_t shift_byts = (size_t)(rhs / 8);
@@ -669,6 +684,116 @@ Natural& Natural::operator|=(const WarGrey::SCADA::Natural& rhs) {
 	return (*this);
 }
 
+Natural& Natural::operator^=(unsigned long long rhs) {
+	if (rhs > 0U) {
+		size_t digits = fxmax(this->payload, sizeof(unsigned long long));
+		size_t nidx = this->capacity - 1;
+
+		if (this->capacity < digits) { // deadcode since sizeof(uint64) is the smallest capacity
+			this->recalloc(digits);
+			nidx = this->capacity - 1;
+		}
+
+		do {
+			this->natural[nidx--] ^= (rhs & 0xFFU);
+			rhs >>= 8U;
+		} while (rhs > 0U);
+
+		{ // resolve the payload
+			size_t rhs_payload = (this->capacity - nidx - 1);
+
+			if (this->payload == rhs_payload) {
+				this->skip_leading_zeros(rhs_payload);
+			} else if (this->payload < rhs_payload) {
+				this->payload = rhs_payload;
+			}
+		}
+	}
+
+	return (*this);
+}
+
+Natural& Natural::operator^=(const WarGrey::SCADA::Natural& rhs) {
+	if (!rhs.is_zero()) {
+		size_t digits = fxmax(this->payload, rhs.payload);
+		size_t cdigits = fxmin(this->payload, rhs.payload);
+		size_t ddigits = digits - cdigits;
+		size_t lcapacity = this->capacity;
+		uint8* lsrc = this->natural;
+		uint8* rsrc = rhs.natural;
+
+		if (this->capacity < digits) {
+			this->capacity = digits;
+			this->natural = this->malloc(this->capacity);
+		}
+
+		for (size_t idx = 1; idx <= cdigits; idx++) {
+			this->natural[this->capacity - idx] = (lsrc[lcapacity - idx] ^ rsrc[rhs.capacity - idx]);
+		}
+
+		if (ddigits > 0U) {
+			if (this->payload < rhs.payload) {
+				memcpy(this->natural + (this->capacity - digits), rhs.natural + (rhs.capacity - rhs.payload), ddigits);
+			} else if (lsrc != this->natural) {
+				memcpy(this->natural + (this->capacity - digits), lsrc + (lcapacity - this->payload), ddigits);
+			}
+
+			this->payload = digits;
+		} else {
+			this->skip_leading_zeros(cdigits);
+		}
+
+		if (this->natural != lsrc) {
+			delete[] lsrc;
+		}
+	}
+
+	return (*this);
+}
+
+bool Natural::is_bit_set(unsigned long long m) {
+	bool set = false;
+
+	if (m <= (this->payload * 8U)) {
+		uint64 q = m / 8;
+		uint64 r = m % 8;
+		uint8 digit = this->natural[this->capacity - 1 - q];
+
+		set = ((digit & (1 << r)) > 0U);
+	}
+
+	return set;
+}
+
+Natural Natural::bit_field(unsigned long long start, unsigned long long end) {
+	long long startq = start / 8;
+	long long endq = end / 8 + 1;
+	size_t endr = (size_t)(end % 8);
+	long long size = endq - startq;
+	Natural sub(nullptr, fxmin(size, (long long)(this->payload)));
+
+	if (endq > this->payload) {
+		endq = this->payload;
+		size = endq - startq;
+		endr = 0U;
+	}
+
+	if (size > 0U) {
+		size_t startr = (size_t)(start % 8);
+
+		sub.payload = (size_t)size;
+		memcpy(sub.natural + (sub.capacity - size), this->natural + (this->capacity - endq), (size_t)size);
+
+		if (endr > 0U) {
+			sub.natural[sub.capacity - size] &= ((1 << endr) - 1);
+		}
+
+		sub >>= startr;
+	}
+
+	return sub;
+}
+
 /*************************************************************************************************/
 uint8& Natural::operator[](int idx) {
 	size_t bidx = 0U;
@@ -713,6 +838,13 @@ uint64 Natural::fixnum64_ref(int slot_idx, size_t offset) {
 }
 
 /*************************************************************************************************/
+Natural::Natural(void* null, long long capacity) : natural(nullptr), capacity(0L), payload(0L) {
+	if (capacity > 0) {
+		this->capacity = (size_t)capacity;
+		this->natural = this->malloc(this->capacity);
+	}
+}
+
 void Natural::from_memory(const uint8 nbytes[], size_t nstart, size_t nend) {
 	if (nend > nstart) {
 		this->capacity = nend - nstart;
@@ -819,6 +951,15 @@ void Natural::bzero() {
 	//if (this->natural != nullptr) {
 	//	memset(this->natural, '\0', this->capacity);
 	//}
+}
+
+void Natural::skip_leading_zeros(size_t payload) {
+	uint8* cursor = this->natural + (this->capacity - payload);
+
+	this->payload = payload;
+	while ((this->payload > 0U) && ((*cursor++) == 0U)) {
+		this->payload--;
+	}
 }
 
 uint8* Natural::malloc(size_t size) {
