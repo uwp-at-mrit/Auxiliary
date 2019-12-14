@@ -157,11 +157,11 @@ size_t Natural::integer_length() const {
 	return s;
 }
 
-bytes Natural::to_bytes() {
+bytes Natural::to_bytes() const {
 	return bytes(this->natural + (this->capacity - this->payload), this->payload);
 }
 
-bytes Natural::to_hexstring() {
+bytes Natural::to_hexstring() const {
 	bytes hex(fxmax((unsigned int)this->payload, 1U) * 2, '0');
 	size_t payload_idx = this->capacity - this->payload;
 	size_t msb_idx = 0U;
@@ -287,8 +287,6 @@ Natural Natural::operator++(int postfix) {
 	return snapshot;
 }
 
-#include "syslog.hpp"
-
 Natural& Natural::operator+=(unsigned long long rhs) {
 	if (rhs > 0U) {
 		size_t digits = fxmax(this->payload, sizeof(unsigned long long));
@@ -314,7 +312,6 @@ Natural& Natural::operator+=(unsigned long long rhs) {
 			nidx--;
 		} while (rhs > 0U);
 
-		syslog(Log::Info, L"%08x: %d %d", rhs, this->payload, this->capacity - nidx);
 		this->payload = fxmax(this->payload, (this->capacity - nidx - 1));
 	}
 
@@ -324,6 +321,8 @@ Natural& Natural::operator+=(unsigned long long rhs) {
 Natural& Natural::operator+=(const Natural& rhs) {
 	if (!rhs.is_zero()) {
 		size_t digits = fxmax(this->payload, rhs.payload);
+		size_t cdigits = fxmin(this->payload, rhs.payload);
+		size_t ddigits = digits - cdigits;
 		size_t lcapacity = this->capacity;
 		uint8* lsrc = this->natural;
 		uint8* rsrc = rhs.natural;
@@ -334,10 +333,8 @@ Natural& Natural::operator+=(const Natural& rhs) {
 			this->natural = this->malloc(this->capacity);
 		}
 
-		for (size_t idx = 1; idx <= digits; idx++) {
-			uint16 digit = carry
-				+ ((idx <= this->payload) ? lsrc[lcapacity - idx] : 0U)
-				+ ((idx <= rhs.payload) ? rsrc[rhs.capacity - idx] : 0U);
+		for (size_t idx = 1; idx <= cdigits; idx++) {
+			uint16 digit = carry + lsrc[lcapacity - idx] + rsrc[rhs.capacity - idx];
 
 			if (digit > 0xFF) {
 				this->natural[this->capacity - idx] = (uint8)(digit & 0xFFU);
@@ -345,6 +342,28 @@ Natural& Natural::operator+=(const Natural& rhs) {
 			} else {
 				this->natural[this->capacity - idx] = (uint8)digit;
 				carry = 0U;
+			}
+		}
+
+		if (ddigits > 0) {
+			if (this->payload < rhs.payload) {
+				memcpy(this->natural + (this->capacity - digits), rhs.natural + (rhs.capacity - rhs.payload), ddigits);
+			} else if (lsrc != this->natural) {
+				memcpy(this->natural + (this->capacity - digits), lsrc + (lcapacity - this->payload), ddigits);
+			}
+
+			if (carry == 1) {
+				for (size_t idx = cdigits + 1; idx <= digits; idx++) {
+					size_t slot = this->capacity - idx;
+
+					if (this->natural[slot] == 0xFFU) {
+						this->natural[slot] = 0U;
+					} else {
+						this->natural[slot] += 1;
+						carry = 0U;
+						break;
+					}
+				}
 			}
 		}
 
@@ -617,6 +636,8 @@ Natural& Natural::operator|=(unsigned long long rhs) {
 Natural& Natural::operator|=(const WarGrey::SCADA::Natural& rhs) {
 	if (!rhs.is_zero()) {
 		size_t digits = fxmax(this->payload, rhs.payload);
+		size_t cdigits = fxmin(this->payload, rhs.payload);
+		size_t ddigits = digits - cdigits;
 		size_t lcapacity = this->capacity;
 		uint8* lsrc = this->natural;
 		uint8* rsrc = rhs.natural;
@@ -626,10 +647,16 @@ Natural& Natural::operator|=(const WarGrey::SCADA::Natural& rhs) {
 			this->natural = this->malloc(this->capacity);
 		}
 
-		for (size_t idx = 1; idx <= digits; idx++) {
-			this->natural[this->capacity - idx]
-				= ((idx <= this->payload) ? lsrc[lcapacity - idx] : 0U)
-				| ((idx <= rhs.payload) ? rsrc[rhs.capacity - idx] : 0U);
+		for (size_t idx = 1; idx <= cdigits; idx++) {
+			this->natural[this->capacity - idx] = (lsrc[lcapacity - idx] | rsrc[rhs.capacity - idx]);
+		}
+
+		if (ddigits > 0U) {
+			if (this->payload < rhs.payload) {
+				memcpy(this->natural + (this->capacity - digits), rhs.natural + (rhs.capacity - rhs.payload), ddigits);
+			} else if (lsrc != this->natural) {
+				memcpy(this->natural + (this->capacity - digits), lsrc + (lcapacity - this->payload), ddigits);
+			}
 		}
 
 		this->payload = digits;
