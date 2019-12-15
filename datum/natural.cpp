@@ -56,26 +56,26 @@ static inline size_t fixnum_length(size_t payload, size_t modulus) {
 }
 
 template<typename UI>
-UI fixnum_ref(const uint8* natural, size_t payload, int capacity, int slot_idx, size_t offset, size_t size) {
+UI fixnum_ref(const uint8* natural, size_t payload, size_t capacity, int slot_idx, size_t offset, size_t size) {
 	UI n = 0U;
 
 	if (payload > 0U) {
-		int start0 = capacity - payload;
-		int start, end;
+		size_t start0 = capacity - payload;
+		size_t start, end;
 
-		if (slot_idx < 0) {
-			start = capacity + slot_idx * size;
-		} else {
+		if (slot_idx >= 0) {
 			start = capacity - (fixnum_length(payload, size) - slot_idx) * size;
+		} else {
+			start = capacity + slot_idx * size;
 		}
 
 		start += offset;
-		end = start + int(size);
+		end = start + size;
 
 		start = fxmax(start0, start);
 		end = fxmin(end, capacity);
 
-		for (int idx = start; idx < start + int(size); idx++) {
+		for (size_t idx = start; idx < end; idx++) {
 			n = (n << 8U) ^ natural[idx];
 		}
 	}
@@ -143,7 +143,7 @@ bool Natural::is_one() const {
 }
 
 bool Natural::is_fixnum() const {
-	return (this->payload <= 8U);
+	return (this->payload <= sizeof(unsigned long long));
 }
 
 size_t Natural::length() const {
@@ -240,6 +240,41 @@ void Natural::on_moved() {
 	this->capacity = 0U;
 	this->payload = 0U;
 	this->natural = nullptr;
+}
+
+/*************************************************************************************************/
+int Natural::compare(unsigned long long rhs) const {
+	int cmp = 0;
+
+	if (this->is_fixnum()) {
+		for (size_t slot = sizeof(unsigned long long); slot > 0; slot--) {
+			uint8 ldigit = ((slot > this->payload) ? 0U : this->natural[this->capacity - slot]);
+			uint8 rdigit = (rhs >> ((slot - 1) * 8)) & 0xFFU;
+
+			if (ldigit == rdigit) {
+				continue;
+			}
+
+			cmp = ((ldigit < rdigit) ? -1 : 1);
+			break;
+		}
+	} else {
+		cmp = 1;
+	}
+
+	return cmp;
+}
+
+int Natural::compare(const Natural& rhs) const {
+	int cmp = ((this->payload < rhs.payload) ? -1 : +1);
+
+	if (this->payload == rhs.payload) {
+		cmp = memcmp(this->natural + (this->capacity - this->payload),
+			rhs.natural + (rhs.capacity - rhs.payload),
+			this->payload);
+	}
+
+	return cmp;
 }
 
 /*************************************************************************************************/
@@ -766,29 +801,31 @@ bool Natural::is_bit_set(unsigned long long m) {
 }
 
 Natural Natural::bit_field(unsigned long long start, unsigned long long end) {
-	long long startq = start / 8;
-	long long endq = end / 8 + 1;
+	size_t startq = (size_t)(start / 8);
+	size_t endq = (size_t)end / 8 + 1;
 	size_t endr = (size_t)(end % 8);
-	long long size = endq - startq;
-	Natural sub(nullptr, fxmin(size, (long long)(this->payload)));
+	Natural sub(nullptr, 0LL);
 
-	if (endq > this->payload) {
-		endq = this->payload;
-		size = endq - startq;
-		endr = 0U;
-	}
-
-	if (size > 0U) {
-		size_t startr = (size_t)(start % 8);
-
-		sub.payload = (size_t)size;
-		memcpy(sub.natural + (sub.capacity - size), this->natural + (this->capacity - endq), (size_t)size);
-
-		if (endr > 0U) {
-			sub.natural[sub.capacity - size] &= ((1 << endr) - 1);
+	if (startq < this->payload) {
+		if (endq > this->payload) {
+			endq = this->payload;
+			endr = 0U;
 		}
 
-		sub >>= startr;
+		if (endq > startq) {
+			size_t startr = (size_t)(start % 8);
+			
+			sub.payload = endq - startq;
+			sub.expand(sub.payload);
+			
+			memcpy(sub.natural + (sub.capacity - sub.payload), this->natural + (this->capacity - endq), sub.payload);
+
+			if (endr > 0U) {
+				sub.natural[sub.capacity - sub.payload] &= ((1 << endr) - 1);
+			}
+
+			sub >>= startr;
+		}
 	}
 
 	return sub;
@@ -835,6 +872,20 @@ uint32 Natural::fixnum32_ref(int slot_idx, size_t offset) {
 
 uint64 Natural::fixnum64_ref(int slot_idx, size_t offset) {
 	return fixnum_ref<uint64>(this->natural, this->payload, this->capacity, slot_idx, offset, 8U);
+}
+
+/*************************************************************************************************/
+size_t Natural::expand(size_t size) {
+	if (size > 0) {
+		if (this->natural != nullptr) {
+			this->recalloc(this->capacity + size);
+		} else {
+			this->capacity += size;
+			this->natural = this->malloc(this->capacity);
+		}
+	}
+
+	return this->capacity;
 }
 
 /*************************************************************************************************/
@@ -923,7 +974,6 @@ void Natural::from_base10(const uint16 nchars[], size_t nstart, size_t nend) {
 	}
 }
 
-
 void Natural::from_base8(const uint8 nbytes[], size_t nstart, size_t nend) {
 	if (nend > nstart) {
 		size_t span = nend - nstart;
@@ -968,7 +1018,7 @@ uint8* Natural::malloc(size_t size) {
 	// NOTE: Method should not assume zeroed memory.
 
 #ifdef _DEBUG
-	memset(memory, size, size);
+	memset(memory, int(size), size);
 #endif
 
 	return memory;
