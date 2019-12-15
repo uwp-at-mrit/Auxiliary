@@ -281,6 +281,8 @@ int Natural::compare(const Natural& rhs) const {
 Natural& Natural::operator++() {
 	size_t idx = this->capacity - 1U;
 	
+	// TODO: should we check the nullity of `this->natural`
+
 	do {
 		uint8 digit = this->natural[idx];
 
@@ -316,40 +318,38 @@ Natural& Natural::operator++() {
 	return (*this);
 }
 
-Natural Natural::operator++(int postfix) {
-	Natural snapshot(*this);
+Natural& Natural::operator--() {
+	this->decrease_from_slot(1U);
 
-	this->operator++();
-
-	return snapshot;
+	return (*this);
 }
 
 Natural& Natural::operator+=(unsigned long long rhs) {
 	if (rhs > 0U) {
 		size_t digits = fxmax(this->payload, sizeof(unsigned long long));
-		size_t nidx = this->capacity - 1;
+		size_t addend_idx = this->capacity - 1;
 		uint16 carry = 0U;
 
 		if (this->capacity <= digits) { // deadcode since sizeof(uint64) is the smallest capacity
 			this->recalloc(digits + 1);
-			nidx = this->capacity - 1;
+			addend_idx = this->capacity - 1;
 		}
 
 		do {
-			uint16 digit = carry + this->natural[nidx] + (rhs & 0xFFU);
+			uint16 digit = this->natural[addend_idx] + (rhs & 0xFFU) + carry;
 
 			if (digit > 0xFF) {
-				this->natural[nidx] = (uint8)(digit & 0xFFU);
+				this->natural[addend_idx] = (uint8)(digit & 0xFFU);
 				rhs = (rhs >> 8U) + 1U;
 			} else {
-				this->natural[nidx] = (uint8)digit;
+				this->natural[addend_idx] = (uint8)digit;
 				rhs >>= 8U;
 			}
 
-			nidx--;
+			addend_idx--;
 		} while (rhs > 0U);
 
-		this->payload = fxmax(this->payload, (this->capacity - nidx - 1));
+		this->payload = fxmax(this->payload, (this->capacity - addend_idx - 1));
 	}
 
 	return (*this);
@@ -362,7 +362,6 @@ Natural& Natural::operator+=(const Natural& rhs) {
 		size_t ddigits = digits - cdigits;
 		size_t lcapacity = this->capacity;
 		uint8* lsrc = this->natural;
-		uint8* rsrc = rhs.natural;
 		uint16 carry = 0U;
 
 		if (this->capacity <= digits) {
@@ -371,7 +370,7 @@ Natural& Natural::operator+=(const Natural& rhs) {
 		}
 
 		for (size_t idx = 1; idx <= cdigits; idx++) {
-			uint16 digit = carry + lsrc[lcapacity - idx] + rsrc[rhs.capacity - idx];
+			uint16 digit = lsrc[lcapacity - idx] + rhs.natural[rhs.capacity - idx] + carry;
 
 			if (digit > 0xFF) {
 				this->natural[this->capacity - idx] = (uint8)(digit & 0xFFU);
@@ -413,6 +412,80 @@ Natural& Natural::operator+=(const Natural& rhs) {
 
 		if (this->natural != lsrc) {
 			delete[] lsrc;
+		}
+	}
+
+	return (*this);
+}
+
+Natural& Natural::operator-=(unsigned long long rhs) {
+	if ((!this->is_zero()) && (rhs > 0U)) {
+		size_t rhs_payloadp1 = 1U;
+		uint8 borrowed = 0U;
+
+		while ((rhs_payloadp1 <= this->payload) && (rhs > 0U)) {
+			uint16 minuend = this->natural[this->capacity - rhs_payloadp1];
+			uint16 subtrachend = (rhs & 0xFFU) + borrowed;
+
+			if (minuend >= subtrachend) {
+				this->natural[this->capacity - rhs_payloadp1] = (uint8)(minuend - subtrachend);
+				borrowed = 0U;
+			} else {
+				this->natural[this->capacity - rhs_payloadp1] = (uint8)(0x100U + minuend - subtrachend);
+				borrowed = 1U;
+			}
+
+			rhs >>= 8U;
+			rhs_payloadp1++;
+		}
+
+		if (rhs > 0U) {
+			this->bzero();
+		} else if (borrowed > 0U) {
+			if (this->payload + 1U == rhs_payloadp1) {
+				this->bzero();
+			} else {
+				this->decrease_from_slot(rhs_payloadp1);
+				this->skip_leading_zeros(this->payload);
+			}
+		} else {
+			this->skip_leading_zeros(this->payload);
+		}
+	}
+
+	return (*this);
+}
+
+Natural& Natural::operator-=(const Natural& rhs) {
+	if (!rhs.is_zero()) {
+		if (this->payload < rhs.payload) {
+			this->bzero();
+		} else {
+			uint8 borrowed = 0U;
+			
+			for (size_t idx = 1; idx <= rhs.payload; idx++) {
+				uint16 minuend = this->natural[this->capacity - idx];
+				uint16 subtrachend = rhs.natural[rhs.capacity - idx] + borrowed;
+
+				if (minuend >= subtrachend) {
+					this->natural[this->capacity - idx] = (uint8)(minuend - subtrachend);
+					borrowed = 0U;
+				} else {
+					this->natural[this->capacity - idx] = (uint8)(0x100U + minuend - subtrachend);
+					borrowed = 1U;
+				}
+			}
+
+			if (borrowed > 0U) {
+				if (this->payload == rhs.payload) {
+					this->bzero();
+				} else {
+					this->decrease_from_slot(rhs.payload + 1U);
+					this->skip_leading_zeros(this->payload);
+				}
+			} else if (this->payload == rhs.payload) {
+				this->skip_leading_zeros(this->payload);
+			}
 		}
 	}
 
@@ -690,7 +763,6 @@ Natural& Natural::operator|=(const WarGrey::SCADA::Natural& rhs) {
 		size_t ddigits = digits - cdigits;
 		size_t lcapacity = this->capacity;
 		uint8* lsrc = this->natural;
-		uint8* rsrc = rhs.natural;
 		
 		if (this->capacity < digits) {
 			this->capacity = digits;
@@ -698,7 +770,7 @@ Natural& Natural::operator|=(const WarGrey::SCADA::Natural& rhs) {
 		}
 
 		for (size_t idx = 1; idx <= cdigits; idx++) {
-			this->natural[this->capacity - idx] = (lsrc[lcapacity - idx] | rsrc[rhs.capacity - idx]);
+			this->natural[this->capacity - idx] = (lsrc[lcapacity - idx] | rhs.natural[rhs.capacity - idx]);
 		}
 
 		if (ddigits > 0U) {
@@ -755,15 +827,14 @@ Natural& Natural::operator^=(const WarGrey::SCADA::Natural& rhs) {
 		size_t ddigits = digits - cdigits;
 		size_t lcapacity = this->capacity;
 		uint8* lsrc = this->natural;
-		uint8* rsrc = rhs.natural;
-
+		
 		if (this->capacity < digits) {
 			this->capacity = digits;
 			this->natural = this->malloc(this->capacity);
 		}
 
 		for (size_t idx = 1; idx <= cdigits; idx++) {
-			this->natural[this->capacity - idx] = (lsrc[lcapacity - idx] ^ rsrc[rhs.capacity - idx]);
+			this->natural[this->capacity - idx] = (lsrc[lcapacity - idx] ^ rhs.natural[rhs.capacity - idx]);
 		}
 
 		if (ddigits > 0U) {
@@ -1009,6 +1080,30 @@ void Natural::skip_leading_zeros(size_t payload) {
 	this->payload = payload;
 	while ((this->payload > 0U) && ((*cursor++) == 0U)) {
 		this->payload--;
+	}
+}
+
+void Natural::decrease_from_slot(size_t slot) {
+	while (slot <= this->payload) {
+		uint8 digit = this->natural[this->capacity - slot];
+
+		if (digit > 0U) {
+			this->natural[this->capacity - slot] = digit - 1U;
+
+			if ((digit == 1) && (slot == this->payload)) {
+				this->payload--;
+			}
+
+			break;
+		} else {
+			if (slot < this->payload) {
+				this->natural[this->capacity - slot] = 0xFFU;
+				slot++;
+			} else {
+				this->bzero();
+				break;
+			}
+		}
 	}
 }
 
