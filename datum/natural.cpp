@@ -146,6 +146,14 @@ bool Natural::is_fixnum() const {
 	return (this->payload <= sizeof(unsigned long long));
 }
 
+bool Natural::is_odd() const {
+	return ((this->payload > 0U) && ((this->natural[this->capacity - 1U] & 0x1U) == 0x1U));
+}
+
+bool Natural::is_even() const {
+	return ((this->payload == 0U) || ((this->natural[this->capacity - 1U] & 0x1U) == 0x0U));
+}
+
 size_t Natural::length() const {
 	return this->payload;
 }
@@ -190,6 +198,9 @@ Natural::Natural(const Natural& n) : natural(nullptr), capacity(n.payload), payl
 	if (this->payload > 0) {
 		this->natural = this->malloc(this->capacity);
 		memcpy(this->natural, n.natural + (n.capacity - n.payload), this->payload);
+	} else {
+		this->capacity = sizeof(unsigned long long);
+		this->natural = this->malloc(this->capacity);
 	}
 }
 
@@ -279,41 +290,7 @@ int Natural::compare(const Natural& rhs) const {
 
 /*************************************************************************************************/
 Natural& Natural::operator++() {
-	size_t idx = this->capacity - 1U;
-	
-	// TODO: should we check the nullity of `this->natural`
-
-	do {
-		uint8 digit = this->natural[idx];
-
-		if (digit < 0xFF) {
-			this->natural[idx] = digit + 1U;
-			
-			if (this->payload == 0) {
-				this->payload++;
-			}
-
-			break;
-		} else {
-			size_t payload_idx = this->capacity - this->payload;
-			
-			this->natural[idx] = 0x00U;
-
-			if (idx > payload_idx) {
-				idx--;
-			} else {
-				if (idx == 0U) {
-					this->recalloc(this->capacity + 1, 1);
-				} else if (idx == payload_idx) {
-					this->natural[idx - 1] = 1;
-				}
-
-				this->payload++;
-
-				break;
-			}
-		}
-	} while (1);
+	this->add_digit(1U);
 
 	return (*this);
 }
@@ -325,12 +302,12 @@ Natural& Natural::operator--() {
 }
 
 Natural& Natural::operator+=(unsigned long long rhs) {
-	if (rhs > 0U) {
+	if (rhs > 0xFFU) {
 		size_t digits = fxmax(this->payload, sizeof(unsigned long long));
 		size_t addend_idx = this->capacity - 1;
 		uint16 carry = 0U;
 
-		if (this->capacity <= digits) { // deadcode since sizeof(uint64) is the smallest capacity
+		if (this->capacity <= digits) {
 			this->recalloc(digits + 1);
 			addend_idx = this->capacity - 1;
 		}
@@ -350,13 +327,17 @@ Natural& Natural::operator+=(unsigned long long rhs) {
 		} while (rhs > 0U);
 
 		this->payload = fxmax(this->payload, (this->capacity - addend_idx - 1));
+	} else {
+		this->add_digit((uint8)rhs);
 	}
 
 	return (*this);
 }
 
 Natural& Natural::operator+=(const Natural& rhs) {
-	if (!rhs.is_zero()) {
+	// NOTE: the rhs may refer to (*this)
+
+	if (rhs.payload > 1U) {
 		size_t digits = fxmax(this->payload, rhs.payload);
 		size_t cdigits = fxmin(this->payload, rhs.payload);
 		size_t ddigits = digits - cdigits;
@@ -413,6 +394,8 @@ Natural& Natural::operator+=(const Natural& rhs) {
 		if (this->natural != lsrc) {
 			delete[] lsrc;
 		}
+	} else if (rhs.payload == 1U) {
+		this->add_digit(rhs.natural[rhs.capacity - 1U]);
 	}
 
 	return (*this);
@@ -458,9 +441,7 @@ Natural& Natural::operator-=(unsigned long long rhs) {
 
 Natural& Natural::operator-=(const Natural& rhs) {
 	if (!rhs.is_zero()) {
-		if (this->payload < rhs.payload) {
-			this->bzero();
-		} else {
+		if (this->payload >= rhs.payload) {
 			uint8 borrowed = 0U;
 			
 			for (size_t idx = 1; idx <= rhs.payload; idx++) {
@@ -486,6 +467,8 @@ Natural& Natural::operator-=(const Natural& rhs) {
 			} else if (this->payload == rhs.payload) {
 				this->skip_leading_zeros(this->payload);
 			}
+		} else {
+			this->bzero();
 		}
 	}
 
@@ -493,18 +476,16 @@ Natural& Natural::operator-=(const Natural& rhs) {
 }
 
 Natural& Natural::operator*=(unsigned long long rhs) {
-	if ((!this->is_zero()) && (rhs != 1ULL)) {
-		if (rhs == 0ULL) {
-			this->bzero();
-		} else {
+	if (!this->is_zero()) {
+		if (rhs > 0xFFU) {
 			size_t digits = this->payload + sizeof(unsigned long long);
 			uint8* product = this->malloc(digits);
 			size_t j = 0U;
-			
+
 			memset(product + (digits - this->payload), '\0', this->payload);
 
 			do {
-				uint8 carry = 0U;
+				uint16 carry = 0U;
 				uint8 v = (uint8)(rhs & 0xFFU);
 
 				if (v > 0) {
@@ -513,11 +494,11 @@ Natural& Natural::operator*=(unsigned long long rhs) {
 						uint16 digit = this->natural[this->capacity - i] * v + product[ij] + carry;
 
 						product[ij] = (uint8)(digit & 0xFFU);
-						carry = (uint8)(digit >> 8);
+						carry = (digit >> 8);
 					}
 				}
 
-				product[digits - this->payload - (++j)] = carry;
+				product[digits - this->payload - (++j)] = (uint8)carry;
 				rhs >>= 8;
 			} while (rhs > 0U);
 
@@ -527,6 +508,12 @@ Natural& Natural::operator*=(unsigned long long rhs) {
 
 			digits = this->payload + j;
 			this->payload = ((this->natural[this->capacity - digits] > 0U) ? digits : (digits - 1));
+		} else {
+			if (rhs == 0U) {
+				this->bzero();
+			} else {
+				this->times_digit((uint8)rhs);
+			}
 		}
 	}
 
@@ -534,17 +521,17 @@ Natural& Natural::operator*=(unsigned long long rhs) {
 }
 
 Natural& Natural::operator*=(const Natural& rhs) {
-	if ((!this->is_zero()) && (!rhs.is_one())) {
-		if (rhs.is_zero()) {
-			this->bzero();
-		} else {
+	// NOTE: the rhs may refer to (*this)
+
+	if (!this->is_zero()) {
+		if (rhs.payload > 1U) {
 			size_t digits = this->payload + rhs.payload;
 			uint8* product = this->malloc(digits);
 			
 			memset(product + (digits - this->payload), '\0', this->payload);
 
 			for (size_t j = 1; j <= rhs.payload; j++) {
-				uint8 carry = 0U;
+				uint16 carry = 0U;
 				
 				if (rhs.natural[rhs.capacity - j] > 0) {
 					for (size_t i = 1; i <= this->payload; i++) {
@@ -552,18 +539,102 @@ Natural& Natural::operator*=(const Natural& rhs) {
 						uint16 digit = this->natural[this->capacity - i] * rhs.natural[rhs.capacity - j] + product[ij] + carry;
 
 						product[ij] = (uint8)(digit & 0xFFU);
-						carry = (uint8)(digit >> 8);
+						carry = (digit >> 8);
 					}
 				}
 
-				product[digits - this->payload - j] = carry;
+				product[digits - this->payload - j] = (uint8)carry;
 			}
 
 			delete[] this->natural;
 			this->natural = product;
 			this->capacity = digits;
 			this->payload = ((this->natural[0] > 0U) ? digits : (digits - 1));
+		} else {
+			if (rhs.is_zero()) {
+				this->bzero();
+			} else {
+				this->times_digit(rhs.natural[rhs.capacity - 1U]);
+			}
 		}
+	}
+
+	return (*this);
+}
+
+Natural& Natural::quotient_remainder(const Natural& rhs, Natural* remainder) {
+	// NOTE: the rhs may refer to (*this)
+
+	if (!this->is_zero()) {
+		if (rhs.payload > 1U) {
+			size_t digits = this->payload + rhs.payload;
+			uint8* product = this->malloc(digits);
+
+			memset(product + (digits - this->payload), '\0', this->payload);
+
+			for (size_t j = 1; j <= rhs.payload; j++) {
+				uint16 carry = 0U;
+
+				if (rhs.natural[rhs.capacity - j] > 0) {
+					for (size_t i = 1; i <= this->payload; i++) {
+						size_t ij = digits - i - j + 1;
+						uint16 digit = this->natural[this->capacity - i] * rhs.natural[rhs.capacity - j] + product[ij] + carry;
+
+						product[ij] = (uint8)(digit & 0xFFU);
+						carry = (digit >> 8);
+					}
+				}
+
+				product[digits - this->payload - j] = (uint8)carry;
+			}
+
+			delete[] this->natural;
+			this->natural = product;
+			this->capacity = digits;
+			this->payload = ((this->natural[0] > 0U) ? digits : (digits - 1));
+		} else {
+			if (rhs.is_zero()) {
+				this->bzero();
+			} else {
+				this->times_digit(rhs.natural[rhs.capacity - 1U]);
+			}
+		}
+	}
+
+	return (*this);
+}
+
+Natural& Natural::expt(unsigned long long n) {
+	Natural Z = (*this);
+	
+	(*this) = 1U;
+
+	while (n > 0U) {
+		if (n % 2 == 1) {
+			this->operator*=(Z);
+		}
+
+		n >>= 1U;
+		Z *= Z;
+	}
+
+	return (*this);
+}
+
+Natural& Natural::expt(const Natural& n) {
+	// Algorithm: Right-to-Left binary method (also known as "Russian Peasant Method")
+	Natural Z = (*this);
+	Natural N = n;
+
+	(*this) = 1U;
+
+	while (N.payload > 0U) {
+		if (N.is_odd()) {
+			this->operator*=(Z);
+		}
+
+		N >>= 1U;
+		Z *= Z;
 	}
 
 	return (*this);
@@ -740,7 +811,7 @@ Natural& Natural::operator|=(unsigned long long rhs) {
 		size_t digits = fxmax(this->payload, sizeof(unsigned long long));
 		size_t nidx = this->capacity - 1;
 
-		if (this->capacity < digits) { // deadcode since sizeof(uint64) is the smallest capacity
+		if (this->capacity < digits) {
 			this->recalloc(digits);
 			nidx = this->capacity - 1;
 		}
@@ -796,7 +867,7 @@ Natural& Natural::operator^=(unsigned long long rhs) {
 		size_t digits = fxmax(this->payload, sizeof(unsigned long long));
 		size_t nidx = this->capacity - 1;
 
-		if (this->capacity < digits) { // deadcode since sizeof(uint64) is the smallest capacity
+		if (this->capacity < digits) {
 			this->recalloc(digits);
 			nidx = this->capacity - 1;
 		}
@@ -887,7 +958,10 @@ Natural Natural::bit_field(unsigned long long start, unsigned long long end) {
 			size_t startr = (size_t)(start % 8);
 			
 			sub.payload = endq - startq;
-			sub.expand(sub.payload);
+
+			if (sub.payload > sub.capacity) {
+				sub.expand(sub.payload - sub.capacity);
+			}
 			
 			memcpy(sub.natural + (sub.capacity - sub.payload), this->natural + (this->capacity - endq), sub.payload);
 
@@ -961,10 +1035,8 @@ size_t Natural::expand(size_t size) {
 
 /*************************************************************************************************/
 Natural::Natural(void* null, long long capacity) : natural(nullptr), capacity(0L), payload(0L) {
-	if (capacity > 0) {
-		this->capacity = (size_t)capacity;
-		this->natural = this->malloc(this->capacity);
-	}
+	this->capacity = ((capacity > 0) ? (size_t)capacity : sizeof(unsigned long long));
+	this->natural = this->malloc(this->capacity);
 }
 
 void Natural::from_memory(const uint8 nbytes[], size_t nstart, size_t nend) {
@@ -1065,8 +1137,78 @@ void Natural::from_base8(const uint16 nchars[], size_t nstart, size_t nend) {
 	}
 }
 
+/*************************************************************************************************/
+void Natural::add_digit(uint8 digit) {
+	size_t idx = this->capacity - 1U;
+	
+	if (this->payload == 0) {
+		this->natural[idx] = digit;
+		this->payload++;
+	} else {
+		while (digit > 0U) {
+			uint16 sum = this->natural[idx] + digit;
+
+			if (sum <= 0xFF) {
+				this->natural[idx] = (uint8)sum;
+				digit = 0U;
+			} else {
+				size_t payload_idx = this->capacity - this->payload;
+
+				this->natural[idx] = (uint8)(sum & 0xFFU);
+				digit = sum >> 8U;
+
+				if (idx > payload_idx) {
+					idx--;
+					continue;
+				}
+				
+				if (idx == 0U) {
+					this->recalloc(this->capacity + 1, digit);
+				} else if (idx == payload_idx) {
+					this->natural[idx - 1] = digit;
+				}
+
+				this->payload++;
+				digit = 0U;
+			}
+		}
+	}
+}
+
+void Natural::times_digit(uint8 rhs) {
+	if (rhs > 1ULL) {
+		uint16 carry = 0U;
+
+		for (size_t idx = this->capacity; idx > this->capacity - this->payload; idx--) {
+			uint16 digit = this->natural[idx - 1U] * rhs + carry;
+
+			if (digit <= 0xFFU) {
+				this->natural[idx - 1U] = (uint8)digit;
+				carry = 0U;
+			} else {
+				this->natural[idx - 1U] = (uint8)(digit & 0xFFU);
+				carry = digit >> 8U;
+			}
+		}
+
+		if (carry > 0U) {
+			if (this->capacity == this->payload) {
+				this->recalloc(this->capacity + 1U, (uint8)carry);
+			} else {
+				this->natural[this->capacity - this->payload] = (uint8)carry;
+			}
+
+			this->payload++;
+		}
+	} else if (rhs == 0U) {
+		this->bzero();
+	}
+}
+
+
+/*************************************************************************************************/
 void Natural::bzero() {
-	this->payload = 0;
+	this->payload = 0U;
 
 	// Method should not assume zeroed memory.
 	//if (this->natural != nullptr) {
@@ -1129,7 +1271,7 @@ void Natural::recalloc(size_t newsize, uint8 initial, size_t shift) {
 	{ // do copying and shifting
 		size_t payload_idx0 = this->capacity - this->payload /* this is not the `zero_size` */ - shift;
 
-		memset(this->natural, initial, this->capacity /* avoid another syscall when shifting */);
+		memset(this->natural, initial, this->capacity);
 		memcpy(this->natural + payload_idx0, src + zero_size, this->payload);
 	}
 

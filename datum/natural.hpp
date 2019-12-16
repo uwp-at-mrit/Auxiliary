@@ -76,10 +76,10 @@ namespace WarGrey::SCADA {
 
 	public:
 		WarGrey::SCADA::Natural& operator++();
-		WarGrey::SCADA::Natural operator++(int postfix) { Natural snapshot(*this); this->operator++(); return snapshot; }
+		inline WarGrey::SCADA::Natural operator++(int postfix) { Natural snapshot(*this); this->operator++(); return snapshot; }
 
 		WarGrey::SCADA::Natural& operator--();
-		WarGrey::SCADA::Natural operator--(int postfix) { Natural snapshot(*this); this->operator--(); return snapshot; }
+		inline WarGrey::SCADA::Natural operator--(int postfix) { Natural snapshot(*this); this->operator--(); return snapshot; }
 
 		WarGrey::SCADA::Natural& operator+=(unsigned long long rhs);
 		WarGrey::SCADA::Natural& operator+=(const WarGrey::SCADA::Natural& rhs);
@@ -89,6 +89,9 @@ namespace WarGrey::SCADA {
 		
 		WarGrey::SCADA::Natural& operator*=(unsigned long long rhs);
 		WarGrey::SCADA::Natural& operator*=(const WarGrey::SCADA::Natural& rhs);
+
+		inline WarGrey::SCADA::Natural& operator/=(const WarGrey::SCADA::Natural& rhs) { return this->quotient_remainder(rhs, nullptr); }
+		inline WarGrey::SCADA::Natural& operator%=(const WarGrey::SCADA::Natural& rhs) { this->quotient_remainder(rhs, this); return (*this); };
 
 		friend inline WarGrey::SCADA::Natural operator+(WarGrey::SCADA::Natural lhs, unsigned long long rhs) { return lhs += rhs; }
 		friend inline WarGrey::SCADA::Natural operator+(unsigned long long lhs, WarGrey::SCADA::Natural rhs) { return rhs += lhs; }
@@ -101,6 +104,19 @@ namespace WarGrey::SCADA {
 		friend inline WarGrey::SCADA::Natural operator*(WarGrey::SCADA::Natural lhs, unsigned long long rhs) { return lhs *= rhs; }
 		friend inline WarGrey::SCADA::Natural operator*(unsigned long long lhs, WarGrey::SCADA::Natural rhs) { return rhs *= lhs; }
 		friend inline WarGrey::SCADA::Natural operator*(WarGrey::SCADA::Natural lhs, const WarGrey::SCADA::Natural& rhs) { return lhs *= rhs; }
+
+		friend inline WarGrey::SCADA::Natural operator/(WarGrey::SCADA::Natural lhs, const WarGrey::SCADA::Natural& rhs) { return lhs /= rhs; }
+		friend inline WarGrey::SCADA::Natural operator%(WarGrey::SCADA::Natural lhs, const WarGrey::SCADA::Natural& rhs) { return lhs %= rhs; }
+
+	public:
+		WarGrey::SCADA::Natural& expt(unsigned long long e);
+		WarGrey::SCADA::Natural& expt(const WarGrey::SCADA::Natural& e);
+
+		WarGrey::SCADA::Natural& quotient_remainder(const WarGrey::SCADA::Natural& divider, Natural* remainder = nullptr);
+
+		friend inline WarGrey::SCADA::Natural expt(WarGrey::SCADA::Natural b, unsigned long long e) { return b.expt(e); }
+		friend inline WarGrey::SCADA::Natural expt(unsigned long long b, WarGrey::SCADA::Natural e) { return Natural(b).expt(e); }
+		friend inline WarGrey::SCADA::Natural expt(WarGrey::SCADA::Natural b, const WarGrey::SCADA::Natural& e) { return b.expt(e); }
 
 	public:
 		WarGrey::SCADA::Natural operator~();
@@ -141,6 +157,8 @@ namespace WarGrey::SCADA {
 		bool is_zero() const;
 		bool is_one() const;
 		bool is_fixnum() const;
+		bool is_odd() const;
+		bool is_even() const;
 
 	public:
 		size_t length() const;
@@ -164,6 +182,10 @@ namespace WarGrey::SCADA {
 		void from_base10(const uint16 nchars[], size_t nstart, size_t nend);
 		void from_base8(const uint8 nbytes[], size_t nstart, size_t nend);
 		void from_base8(const uint16 nchars[], size_t nstart, size_t nend);
+
+	private:
+		void add_digit(uint8 digit);
+		void times_digit(uint8 digit);
 
 	private:
 		void on_moved();
