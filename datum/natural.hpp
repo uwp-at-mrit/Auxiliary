@@ -186,6 +186,7 @@ namespace WarGrey::SCADA {
 	private:
 		void add_digit(uint8 digit);
 		void times_digit(uint8 digit);
+		uint8 division_normalize(Natural* divisor);
 
 	private:
 		void on_moved();

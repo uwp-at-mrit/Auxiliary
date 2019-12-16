@@ -563,41 +563,14 @@ Natural& Natural::operator*=(const Natural& rhs) {
 }
 
 Natural& Natural::quotient_remainder(const Natural& rhs, Natural* remainder) {
+	// Algorithm: classic method that to estimate the pencil-and-paper method
+
 	// NOTE: the rhs may refer to (*this)
-
+	
 	if (!this->is_zero()) {
-		if (rhs.payload > 1U) {
-			size_t digits = this->payload + rhs.payload;
-			uint8* product = this->malloc(digits);
-
-			memset(product + (digits - this->payload), '\0', this->payload);
-
-			for (size_t j = 1; j <= rhs.payload; j++) {
-				uint16 carry = 0U;
-
-				if (rhs.natural[rhs.capacity - j] > 0) {
-					for (size_t i = 1; i <= this->payload; i++) {
-						size_t ij = digits - i - j + 1;
-						uint16 digit = this->natural[this->capacity - i] * rhs.natural[rhs.capacity - j] + product[ij] + carry;
-
-						product[ij] = (uint8)(digit & 0xFFU);
-						carry = (digit >> 8);
-					}
-				}
-
-				product[digits - this->payload - j] = (uint8)carry;
-			}
-
-			delete[] this->natural;
-			this->natural = product;
-			this->capacity = digits;
-			this->payload = ((this->natural[0] > 0U) ? digits : (digits - 1));
-		} else {
-			if (rhs.is_zero()) {
-				this->bzero();
-			} else {
-				this->times_digit(rhs.natural[rhs.capacity - 1U]);
-			}
+		if (rhs.payload > 0U) {
+			Natural divisor = rhs;
+			uint8 multipler = this->division_normalize(&divisor);
 		}
 	}
 
@@ -1205,6 +1178,41 @@ void Natural::times_digit(uint8 rhs) {
 	}
 }
 
+uint8 Natural::division_normalize(Natural* divisor) {
+	/** Theorem
+	 * u = (u_n u_n-1 ... u_1 u_0)b
+	 * v =     (v_n-1 ... v_1 v_0)b
+	 * where u/v < b <==> u/b < v <==> floor(u/b) < v
+	 * thus, q = floor(u/v), r = u - qv
+	 *
+	 * In order to eliminate the guesswork for q, let's find a
+	 *     q^ = min(floor((u_n * b + u_n-1) / v_n-1), b - 1)
+	 *   thus
+	 *   A). q^ >= q;
+	 *   B). v_n-1 >= floor(b/2) ==> q^ - 2 <= q <= q^
+	 */
+
+	uint8 d = 1U;
+	uint8 vn_1 = divisor->natural[divisor->capacity - divisor->payload];
+
+	while ((vn_1 * d) < 0x80) {
+		d << 1U;
+	}
+
+	if (d == 1) {
+		this->payload++;
+		if (this->payload > this->capacity) {
+			this->expand(1U);
+		}
+
+		this->natural[this->capacity - this->payload] = '\0';
+	} else {
+		this->times_digit(d);
+		divisor->times_digit(d);
+	}
+
+	return d;
+}
 
 /*************************************************************************************************/
 void Natural::bzero() {
