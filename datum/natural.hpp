@@ -92,8 +92,8 @@ namespace WarGrey::SCADA {
 
 		inline WarGrey::SCADA::Natural& operator/=(unsigned long long rhs) { return this->quotient_remainder(rhs, nullptr); }
 		inline WarGrey::SCADA::Natural& operator/=(const WarGrey::SCADA::Natural& rhs) { return this->quotient_remainder(rhs, nullptr); }
-		inline WarGrey::SCADA::Natural& operator%=(unsigned long long rhs) { this->quotient_remainder(rhs, this); return (*this); };
-		inline WarGrey::SCADA::Natural& operator%=(const WarGrey::SCADA::Natural& rhs) { this->quotient_remainder(rhs, this); return (*this); };
+		inline WarGrey::SCADA::Natural& operator%=(unsigned long long rhs) { return this->quotient_remainder(rhs, this); };
+		inline WarGrey::SCADA::Natural& operator%=(const WarGrey::SCADA::Natural& rhs) { return this->quotient_remainder(rhs, this); };
 
 		friend inline WarGrey::SCADA::Natural operator+(WarGrey::SCADA::Natural lhs, unsigned long long rhs) { return lhs += rhs; }
 		friend inline WarGrey::SCADA::Natural operator+(unsigned long long lhs, WarGrey::SCADA::Natural rhs) { return rhs += lhs; }
