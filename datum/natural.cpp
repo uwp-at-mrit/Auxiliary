@@ -56,7 +56,7 @@ static inline size_t fixnum_length(size_t payload, size_t modulus) {
 }
 
 template<typename UI>
-UI fixnum_ref(const uint8* natural, size_t payload, size_t capacity, int slot_idx, size_t offset, size_t size) {
+static UI fixnum_ref(const uint8* natural, size_t payload, size_t capacity, int slot_idx, size_t offset, size_t size) {
 	UI n = 0U;
 
 	if (payload > 0U) {
@@ -209,14 +209,13 @@ Natural::Natural(Natural&& n) : natural(n.natural), capacity(n.capacity), payloa
 }
 
 Natural& Natural::operator=(const Natural& n) {
-	if (n.payload <= this->capacity) {
-		this->payload = n.payload;
-	} else {
+	this->payload = n.payload;
+
+	if (this->payload > this->capacity) {
 		if (this->natural != nullptr) {
 			delete[] this->natural;
 		}
 
-		this->payload = n.payload;
 		this->capacity = this->payload;
 		this->natural = this->malloc(this->capacity);
 	}
@@ -443,7 +442,7 @@ Natural& Natural::operator-=(const Natural& rhs) {
 	if (!rhs.is_zero()) {
 		if (this->payload >= rhs.payload) {
 			uint8 borrowed = 0U;
-			
+
 			for (size_t idx = 1; idx <= rhs.payload; idx++) {
 				uint16 minuend = this->natural[this->capacity - idx];
 				uint16 subtrachend = rhs.natural[rhs.capacity - idx] + borrowed;
@@ -562,15 +561,75 @@ Natural& Natural::operator*=(const Natural& rhs) {
 	return (*this);
 }
 
-Natural& Natural::quotient_remainder(const Natural& rhs, Natural* remainder) {
-	// Algorithm: classic method that to estimate the pencil-and-paper method
-
-	// NOTE: the rhs may refer to (*this)
+Natural& Natural::quotient_remainder(unsigned long long rhs, Natural* oremainder) {
+	// WARNING: `rhs` may refer to `(*this)`, `oremainder` may point to `this`.
 	
 	if (!this->is_zero()) {
-		if (rhs.payload > 0U) {
+		if (rhs > 0xFFU) {
+			size_t payload_idx = this->capacity - this->payload;
+			size_t divisor_payload = fixnum_length(::integer_length(rhs), 8U);
+			size_t quotient_idx = payload_idx + divisor_payload - 1U;
+
+			if (this->payload >= divisor_payload) {
+				unsigned long long remainder = 0U;
+				size_t idx = payload_idx;
+
+				while (idx < quotient_idx) {
+					remainder = (remainder << 8U) ^ this->natural[idx++];
+				}
+
+				do {
+					remainder = (remainder << 8U) ^ this->natural[idx];
+
+					if (remainder < rhs) {
+						this->natural[idx++] = 0U;
+					} else {
+						this->natural[idx++] = (uint8)(remainder / rhs);
+						remainder = remainder % rhs;
+					}
+				} while (idx < this->capacity);
+
+				this->skip_leading_zeros(this->capacity - quotient_idx);
+				
+				if (oremainder != nullptr) {
+					(*oremainder) = remainder;
+				}
+			} else if (oremainder == nullptr) {
+				this->bzero();
+			} else if (oremainder != nullptr) {	
+				if (this != oremainder) {
+					oremainder->operator=(*this);
+					this->bzero();
+				}
+			}
+		} else if (rhs > 0U) {
+			this->divide_digit((uint8)rhs, oremainder);
+		}
+	} else if (oremainder != nullptr) {
+		oremainder->bzero();
+	}
+
+	return (*this);
+}
+
+#include "syslog.hpp"
+
+Natural& Natural::quotient_remainder(const Natural& rhs, Natural* oremainder) {
+	// Algorithm: classic method that to estimate the pencil-and-paper method
+
+	// WARNING: `rhs` may refer to `(*this)`, `oremainder` may point to `this`.
+
+	if (rhs.payload == 1) {
+		this->divide_digit(rhs.natural[rhs.capacity - 1U], oremainder);
+	} else {
+		syslog(Log::Info, L"%S[%d] / %S[%d]", this->to_hexstring().c_str(), this->payload, rhs.to_hexstring().c_str(), rhs.payload);
+
+		if ((this->payload >= rhs.payload) && (rhs.payload > 0U)) {
 			Natural divisor = rhs;
-			uint8 multipler = this->division_normalize(&divisor);
+			uint8 multiplier = this->division_normalize(&divisor);
+
+			syslog(Log::Info, L"[%d][%02x]{%02x} %S[%d] / %S[%d]", multiplier, divisor[0], 0x100 / (rhs.natural[rhs.capacity - rhs.payload] + 1),
+				this->to_hexstring().c_str(), this->payload, rhs.to_hexstring().c_str(), rhs.payload);
 		}
 	}
 
@@ -1178,6 +1237,34 @@ void Natural::times_digit(uint8 rhs) {
 	}
 }
 
+void Natural::divide_digit(uint8 divisor, Natural* oremainder) {
+	if (divisor > 1ULL) {
+		uint16 remainder = 0U;
+
+		for (size_t idx = this->capacity - this->payload; idx < this->capacity; idx++) {
+			uint16 dividend = (remainder << 8U) ^ this->natural[idx];
+
+			if (dividend < divisor) {
+				this->natural[idx] = 0U;
+				remainder = dividend;
+			} else {
+				this->natural[idx] = (uint8)(dividend / divisor);
+				remainder = dividend % divisor;
+			}
+		}
+
+		this->skip_leading_zeros(this->payload);
+
+		if (oremainder != nullptr) {
+			(*oremainder) = remainder;
+		}
+	} else if (divisor == 1ULL) {
+		if (oremainder != nullptr) {
+			oremainder->bzero();
+		}
+	}
+}
+
 uint8 Natural::division_normalize(Natural* divisor) {
 	/** Theorem
 	 * u = (u_n u_n-1 ... u_1 u_0)b
@@ -1196,15 +1283,15 @@ uint8 Natural::division_normalize(Natural* divisor) {
 	uint8 vn_1 = divisor->natural[divisor->capacity - divisor->payload];
 
 	while ((vn_1 * d) < 0x80) {
-		d << 1U;
+		d <<= 1U;
 	}
 
 	if (d == 1) {
-		this->payload++;
-		if (this->payload > this->capacity) {
+		if (this->payload == this->capacity) {
 			this->expand(1U);
 		}
 
+		this->payload++;
 		this->natural[this->capacity - this->payload] = '\0';
 	} else {
 		this->times_digit(d);
@@ -1224,10 +1311,12 @@ void Natural::bzero() {
 	//}
 }
 
-void Natural::skip_leading_zeros(size_t payload) {
-	uint8* cursor = this->natural + (this->capacity - payload);
+void Natural::skip_leading_zeros(size_t new_payload) {
+	uint8* cursor = this->natural + (this->capacity - new_payload);
 
-	this->payload = payload;
+	// WARNING: Invokers take responsibilities to ensure that `payload` is not out of index.
+
+	this->payload = new_payload;
 	while ((this->payload > 0U) && ((*cursor++) == 0U)) {
 		this->payload--;
 	}
