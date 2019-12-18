@@ -664,26 +664,26 @@ Natural& Natural::quotient_remainder(const Natural& rhs, Natural* oremainder) {
 			int cmp = this->compare(rhs);
 
 			if (cmp > 0) {
-				Natural* divisor = (Natural*)&rhs;
 				size_t quotient_size = (this->payload - rhs.payload) + 1U;
 				uint8* quotient = this->malloc(quotient_size); // `this` will be the remainder
-				uint8 d = 0U;
+				uint8 vn_1 = rhs.natural[rhs.capacity - rhs.payload];
+				uint8 vn_2 = rhs.natural[rhs.capacity - rhs.payload + 1U];
+				uint8 e = 0U;
 
-				{ // normalize
-					uint16 vn_1 = divisor->natural[divisor->capacity - divisor->payload];
+				{ // normalization
+					if (vn_1 < 0x80U) { // 0x80 is `base/2`
+						uint32 virtual_shifted = (vn_1 << 16U) ^ (vn_2 << 8U) ^ rhs.natural[rhs.capacity - rhs.payload + 2U];
 
-					while ((vn_1 << d) < 0x80U) { // 0x80 is `base/2`
-						d += 1U;
+						while (virtual_shifted < 0x80000000U) {
+							virtual_shifted <<= 1U;
+							e += 1U;
+						}
+
+						vn_1 = (virtual_shifted >> 24U) & 0xFFU;
+						vn_2 = (virtual_shifted >> 16U) & 0xFFU;
 					}
 
-					if (d > 0U) {
-						divisor = new Natural(rhs);
-
-						divisor->operator<<=(d);
-						this->operator<<=(d);
-					}
-
-					if (this->payload /* m + n + 1 */ < (quotient_size /* m + 1 */ + divisor->payload /* n */)) {
+					{ // m+n-bytes dividend / n-bytes divisor = m+1-bytes quotient ... n-bytes remainder
 						if (this->payload == this->capacity) {
 							this->expand(1U);
 						}
@@ -694,21 +694,28 @@ Natural& Natural::quotient_remainder(const Natural& rhs, Natural* oremainder) {
 				}
 
 				{ // long division
-					uint8 vn_1 = divisor->natural[divisor->capacity - divisor->payload];
-					uint8 vn_2 = divisor->natural[divisor->capacity - divisor->payload + 1U];
 					size_t quotient_idx0 = this->capacity - quotient_size;
 
 					for (size_t j_idx = 0; j_idx < quotient_size; j_idx++) {
 						size_t j = quotient_idx0 + j_idx;
-						size_t jn_idx = quotient_idx0 + j_idx - divisor->payload;
-						uint16 ujn_0 = this->natural[jn_idx + 0U];
-						uint16 ujn_1 = this->natural[jn_idx + 1U];
-						uint16 ujn_2 = this->natural[jn_idx + 2U];
-						uint16 ujnb_ujn_1 = (ujn_0 << 8U) ^ ujn_1;
-						uint32 q_hat = ujnb_ujn_1 / vn_1;
+						size_t jn_idx = quotient_idx0 + j_idx - rhs.payload;
+						uint64 ujn_0 = this->natural[jn_idx + 0U];
+						uint64 ujn_1 = this->natural[jn_idx + 1U];
+						uint64 ujn_2 = this->natural[jn_idx + 2U];
+						uint64 ujnb_ujn_1 = (ujn_0 << 8U) ^ ujn_1;
+						uint64 q_hat = 0U;
+
+						if (e > 0U) {
+							uint64 virtual_shifted = ((ujnb_ujn_1 << 16U) ^ (ujn_2 << 8U) ^ this->natural[jn_idx + 3U]) << e;
+
+							ujnb_ujn_1 = (virtual_shifted >> 24U) & 0xFFFFU;
+							ujn_2 = (virtual_shifted >> 16U) & 0xFFU;
+						}
 
 						{ // The q^ found here is guaranteed accurate (almost) 
-							uint32 r_hat = ujnb_ujn_1 % vn_1;
+							uint64 r_hat = ujnb_ujn_1 % vn_1;
+
+							q_hat = ujnb_ujn_1 / vn_1;
 
 							if (q_hat > 0xFFU) {
 								r_hat += (vn_1 * (q_hat - 0xFFU));
@@ -722,12 +729,12 @@ Natural& Natural::quotient_remainder(const Natural& rhs, Natural* oremainder) {
 						}
 
 						{ // in-place: r = u - v(q^)
-							size_t divisor_diff = divisor->capacity - j - 1U;
-							uint16 carry = 0U;
+							size_t divisor_diff = rhs.capacity - j - 1U;
+							uint64 carry = 0U;
 							uint8 borrowed = 0U;
 
 							for (size_t idx = j; idx > jn_idx; idx--) {
-								this->natural[idx] = (uint8)u_vq_hat(this->natural[idx], divisor->natural[idx + divisor_diff], q_hat, &carry, &borrowed);
+								this->natural[idx] = (uint8)u_vq_hat(this->natural[idx], rhs.natural[idx + divisor_diff], q_hat, &carry, &borrowed);
 							}
 							
 							this->natural[jn_idx] = (uint8)u_vq_hat(this->natural[jn_idx], 0U, q_hat, &carry, &borrowed);
@@ -737,7 +744,7 @@ Natural& Natural::quotient_remainder(const Natural& rhs, Natural* oremainder) {
 								carry = 0U;
 
 								for (size_t idx = j; idx > jn_idx; idx--) {
-									this->natural[idx] = (uint8)add(this->natural[idx], divisor->natural[idx + divisor_diff], &carry);
+									this->natural[idx] = (uint8)add(this->natural[idx], rhs.natural[idx + divisor_diff], &carry);
 								}
 
 								this->natural[jn_idx] = (uint8)add(this->natural[jn_idx], 0U, &carry);
@@ -750,13 +757,7 @@ Natural& Natural::quotient_remainder(const Natural& rhs, Natural* oremainder) {
 				}
 
 				if (oremainder != nullptr) {
-					if (d == 0U) {
-						this->skip_leading_zeros(rhs.payload);
-					} else {
-						this->payload = rhs.payload;
-						this->operator>>=(d);
-					}
-
+					this->skip_leading_zeros(rhs.payload);
 					(*oremainder) = (*this);
 				}
 
@@ -765,10 +766,6 @@ Natural& Natural::quotient_remainder(const Natural& rhs, Natural* oremainder) {
 					this->capacity = quotient_size;
 					this->natural = quotient;
 					this->skip_leading_zeros(quotient_size);
-				}
-
-				if (d > 0U) {
-					delete divisor;
 				}
 			} else if (cmp == 0) {
 				this->payload = 1U;
