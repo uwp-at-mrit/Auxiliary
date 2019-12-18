@@ -155,9 +155,9 @@ namespace WarGrey::SCADA {
 
 	public:
 		uint8& operator[] (int idx);
-		uint16 fixnum16_ref(int idx, size_t offset = 0U);
-		uint32 fixnum32_ref(int idx, size_t offset = 0U);
-		uint64 fixnum64_ref(int idx, size_t offset = 0U);
+		uint16 fixnum16_ref(int idx, size_t offset = 0U) const;
+		uint32 fixnum32_ref(int idx, size_t offset = 0U) const;
+		uint64 fixnum64_ref(int idx, size_t offset = 0U) const;
 
 	public:
 		bool is_zero() const;
@@ -193,7 +193,6 @@ namespace WarGrey::SCADA {
 		void add_digit(uint8 digit);
 		void times_digit(uint8 digit);
 		void divide_digit(uint8 digit, WarGrey::SCADA::Natural* remainder);
-		uint8 division_normalize(Natural* divisor);
 
 	private:
 		void on_moved();

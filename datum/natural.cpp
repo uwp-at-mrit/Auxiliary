@@ -616,21 +616,67 @@ Natural& Natural::quotient_remainder(unsigned long long rhs, Natural* oremainder
 
 Natural& Natural::quotient_remainder(const Natural& rhs, Natural* oremainder) {
 	// Algorithm: classic method that to estimate the pencil-and-paper method
+	
+	/** Theorem
+	 * u = (u_n u_n-1 ... u_1 u_0)b
+	 * v =     (v_n-1 ... v_1 v_0)b
+	 * where u/v < b <==> u/b < v <==> floor(u/b) < v
+	 * thus, q = floor(u/v), r = u - qv
+	 *
+	 * In order to eliminate the guesswork for q, let's find a
+	 *     q^ = min(floor((u_n * b + u_n-1) / v_n-1), b - 1)
+	 *   thus
+	 *   A). q^ >= q;
+	 *   B). v_n-1 >= floor(b/2) ==> q^-2 <= q <= q^
+	 */
 
 	// WARNING: `rhs` may refer to `(*this)`, `oremainder` may point to `this`.
 
-	if (rhs.payload == 1) {
-		this->divide_digit(rhs.natural[rhs.capacity - 1U], oremainder);
-	} else {
-		syslog(Log::Info, L"%S[%d] / %S[%d]", this->to_hexstring().c_str(), this->payload, rhs.to_hexstring().c_str(), rhs.payload);
+	if (!this->is_zero()) {
+		if (!rhs.is_fixnum()) {
+			syslog(Log::Info, L"%S[%d] / %S[%d]", this->to_hexstring().c_str(), this->payload, rhs.to_hexstring().c_str(), rhs.payload);
 
-		if ((this->payload >= rhs.payload) && (rhs.payload > 0U)) {
-			Natural divisor = rhs;
-			uint8 multiplier = this->division_normalize(&divisor);
+			if (this->compare(rhs) < 0) {
+				Natural divisor = rhs;
+				uint8 multiplier = 1U;
 
-			syslog(Log::Info, L"[%d][%02x]{%02x} %S[%d] / %S[%d]", multiplier, divisor[0], 0x100 / (rhs.natural[rhs.capacity - rhs.payload] + 1),
-				this->to_hexstring().c_str(), this->payload, rhs.to_hexstring().c_str(), rhs.payload);
+				{ // normalize
+					uint8 vn_1 = divisor.natural[divisor.capacity - divisor.payload];
+
+					while ((vn_1 * multiplier) < 0x80) {
+						multiplier <<= 1U;
+					}
+
+					if (multiplier == 1U) {
+						if (this->payload == this->capacity) {
+							this->expand(1U);
+						}
+
+						this->payload++;
+						this->natural[this->capacity - this->payload] = '\0';
+					} else {
+						this->times_digit(multiplier);
+						divisor.times_digit(multiplier);
+					}
+				}
+
+				syslog(Log::Info, L"[%d][%02x]{%02x} %S[%d] / %S[%d]", multiplier, divisor[0], 0x100 / (rhs.natural[rhs.capacity - rhs.payload] + 1),
+					this->to_hexstring().c_str(), this->payload, rhs.to_hexstring().c_str(), rhs.payload);
+			} else if (oremainder == nullptr) {
+				this->bzero();
+			} else if (oremainder != nullptr) {
+				if (this != oremainder) {
+					oremainder->operator=(*this);
+					this->bzero();
+				}
+			}
+		} else if (rhs.payload > 1U) {
+			this->quotient_remainder(rhs.fixnum64_ref(0), oremainder);
+		} else if (rhs.payload == 1U) {
+			this->divide_digit(rhs.natural[rhs.capacity - 1U], oremainder);
 		}
+	} else if (oremainder != nullptr) {
+		oremainder->bzero();
 	}
 
 	return (*this);
@@ -1039,15 +1085,15 @@ size_t Natural::fixnum_count(Fixnum type) const {
 	return fixnum_length(this->payload, modulus);
 }
 
-uint16 Natural::fixnum16_ref(int slot_idx, size_t offset) {
+uint16 Natural::fixnum16_ref(int slot_idx, size_t offset) const {
 	return fixnum_ref<uint16>(this->natural, this->payload, this->capacity, slot_idx, offset, 2U);
 }
 
-uint32 Natural::fixnum32_ref(int slot_idx, size_t offset) {
+uint32 Natural::fixnum32_ref(int slot_idx, size_t offset) const {
 	return fixnum_ref<uint32>(this->natural, this->payload, this->capacity, slot_idx, offset, 4U);
 }
 
-uint64 Natural::fixnum64_ref(int slot_idx, size_t offset) {
+uint64 Natural::fixnum64_ref(int slot_idx, size_t offset) const {
 	return fixnum_ref<uint64>(this->natural, this->payload, this->capacity, slot_idx, offset, 8U);
 }
 
@@ -1263,42 +1309,6 @@ void Natural::divide_digit(uint8 divisor, Natural* oremainder) {
 			oremainder->bzero();
 		}
 	}
-}
-
-uint8 Natural::division_normalize(Natural* divisor) {
-	/** Theorem
-	 * u = (u_n u_n-1 ... u_1 u_0)b
-	 * v =     (v_n-1 ... v_1 v_0)b
-	 * where u/v < b <==> u/b < v <==> floor(u/b) < v
-	 * thus, q = floor(u/v), r = u - qv
-	 *
-	 * In order to eliminate the guesswork for q, let's find a
-	 *     q^ = min(floor((u_n * b + u_n-1) / v_n-1), b - 1)
-	 *   thus
-	 *   A). q^ >= q;
-	 *   B). v_n-1 >= floor(b/2) ==> q^ - 2 <= q <= q^
-	 */
-
-	uint8 d = 1U;
-	uint8 vn_1 = divisor->natural[divisor->capacity - divisor->payload];
-
-	while ((vn_1 * d) < 0x80) {
-		d <<= 1U;
-	}
-
-	if (d == 1) {
-		if (this->payload == this->capacity) {
-			this->expand(1U);
-		}
-
-		this->payload++;
-		this->natural[this->capacity - this->payload] = '\0';
-	} else {
-		this->times_digit(d);
-		divisor->times_digit(d);
-	}
-
-	return d;
 }
 
 /*************************************************************************************************/
