@@ -667,27 +667,29 @@ Natural& Natural::quotient_remainder(const Natural& rhs, Natural* oremainder) {
 				Natural* divisor = (Natural*)&rhs;
 				size_t quotient_size = (this->payload - rhs.payload) + 1U;
 				uint8* quotient = this->malloc(quotient_size); // `this` will be the remainder
-				uint8 d = 1U;
+				uint8 d = 0U;
 
 				{ // normalize
-					uint8 vn_1 = divisor->natural[divisor->capacity - divisor->payload];
+					uint16 vn_1 = divisor->natural[divisor->capacity - divisor->payload];
 
-					while ((vn_1 * d) < 0x80U) { // 0x80 is `base/2`
-						d <<= 1U;
+					while ((vn_1 << d) < 0x80U) { // 0x80 is `base/2`
+						d += 1U;
 					}
 
-					if (d == 1U) {
+					if (d > 0U) {
+						divisor = new Natural(rhs);
+
+						divisor->operator<<=(d);
+						this->operator<<=(d);
+					}
+
+					if (this->payload /* m + n + 1 */ < (quotient_size /* m + 1 */ + divisor->payload /* n */)) {
 						if (this->payload == this->capacity) {
 							this->expand(1U);
 						}
 
-						this->payload++;
+						this->payload += 1U;
 						this->natural[this->capacity - this->payload] = '\0';
-					} else {
-						divisor = new Natural(rhs);
-
-						divisor->times_digit(d);
-						this->times_digit(d);
 					}
 				}
 
@@ -734,7 +736,6 @@ Natural& Natural::quotient_remainder(const Natural& rhs, Natural* oremainder) {
 								q_hat -= 1U;
 								carry = 0U;
 
-								syslog(Log::Info, L"%S", rhs.to_hexstring().c_str());
 								for (size_t idx = j; idx > jn_idx; idx--) {
 									this->natural[idx] = (uint8)add(this->natural[idx], divisor->natural[idx + divisor_diff], &carry);
 								}
@@ -749,9 +750,14 @@ Natural& Natural::quotient_remainder(const Natural& rhs, Natural* oremainder) {
 				}
 
 				if (oremainder != nullptr) {
-					this->payload = rhs.payload;
+					if (d == 0U) {
+						this->skip_leading_zeros(rhs.payload);
+					} else {
+						this->payload = rhs.payload;
+						this->operator>>=(d);
+					}
+
 					(*oremainder) = (*this);
-					oremainder->divide_digit(d, nullptr);
 				}
 
 				if (this != oremainder) {
@@ -761,7 +767,7 @@ Natural& Natural::quotient_remainder(const Natural& rhs, Natural* oremainder) {
 					this->skip_leading_zeros(quotient_size);
 				}
 
-				if (d > 1U) {
+				if (d > 0U) {
 					delete divisor;
 				}
 			} else if (cmp == 0) {
