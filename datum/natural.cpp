@@ -722,7 +722,7 @@ Natural& Natural::quotient_remainder(const Natural& rhs, Natural* oremainder) {
 								q_hat = 0xFFU;
 							}
 
-							if ((q_hat * vn_2) > ((r_hat << 8U) ^ ujn_2)) {
+							while ((q_hat * vn_2) > ((r_hat << 8U) ^ ujn_2)) {
 								q_hat -= 1U;
 								r_hat += vn_1;
 							}
@@ -766,6 +766,8 @@ Natural& Natural::quotient_remainder(const Natural& rhs, Natural* oremainder) {
 					this->capacity = quotient_size;
 					this->natural = quotient;
 					this->skip_leading_zeros(quotient_size);
+				} else {
+					delete quotient;
 				}
 			} else if (cmp == 0) {
 				this->payload = 1U;
