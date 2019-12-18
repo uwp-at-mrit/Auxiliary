@@ -83,6 +83,42 @@ static UI fixnum_ref(const uint8* natural, size_t payload, size_t capacity, int 
 	return n;
 }
 
+template<typename Q, typename C>
+static Q u_vq_hat(uint8 u, uint8 v, Q q_hat, C* carry, uint8* borrowed) {
+	Q diff = v * q_hat + (*carry) + (*borrowed);
+
+	if (diff <= 0xFFU) {
+		(*carry) = 0U;
+	} else {
+		(*carry) = diff >> 8U;
+		diff &= 0xFFU;
+	}
+
+	if (u < diff) {
+		diff = 0x100U + u - diff;
+		(*borrowed) = 1U;
+	} else {
+		diff = u - diff;
+		(*borrowed) = 0U;
+	}
+
+	return diff;
+}
+
+template<typename Q>
+static inline Q add(uint8 lhs, uint8 rhs, Q* carry) {
+	Q digit = lhs + rhs + (*carry);
+
+	if (digit > 0xFFU) {
+		digit &= 0xFFU;
+		(*carry) = 1U;
+	} else {
+		(*carry) = 0U;
+	}
+
+	return digit;
+}
+
 /*************************************************************************************************/
 Natural::~Natural() {
 	if (this->natural != nullptr) {
@@ -304,15 +340,14 @@ Natural& Natural::operator+=(unsigned long long rhs) {
 	if (rhs > 0xFFU) {
 		size_t digits = fxmax(this->payload, sizeof(unsigned long long));
 		size_t addend_idx = this->capacity - 1;
-		uint16 carry = 0U;
-
+		
 		if (this->capacity <= digits) {
 			this->recalloc(digits + 1);
 			addend_idx = this->capacity - 1;
 		}
 
 		do {
-			uint16 digit = this->natural[addend_idx] + (rhs & 0xFFU) + carry;
+			uint16 digit = this->natural[addend_idx] + (rhs & 0xFFU);
 
 			if (digit > 0xFF) {
 				this->natural[addend_idx] = (uint8)(digit & 0xFFU);
@@ -350,15 +385,7 @@ Natural& Natural::operator+=(const Natural& rhs) {
 		}
 
 		for (size_t idx = 1; idx <= cdigits; idx++) {
-			uint16 digit = lsrc[lcapacity - idx] + rhs.natural[rhs.capacity - idx] + carry;
-
-			if (digit > 0xFF) {
-				this->natural[this->capacity - idx] = (uint8)(digit & 0xFFU);
-				carry = 1U;
-			} else {
-				this->natural[this->capacity - idx] = (uint8)digit;
-				carry = 0U;
-			}
+			this->natural[this->capacity - idx] = (uint8)add(lsrc[lcapacity - idx], rhs.natural[rhs.capacity - idx], &carry);
 		}
 
 		if (ddigits > 0) {
@@ -615,7 +642,7 @@ Natural& Natural::quotient_remainder(unsigned long long rhs, Natural* oremainder
 #include "syslog.hpp"
 
 Natural& Natural::quotient_remainder(const Natural& rhs, Natural* oremainder) {
-	// Algorithm: classic method that to estimate the pencil-and-paper method
+	// Algorithm: classic method that to estimate the pencil-and-paper long division.
 	
 	/** Theorem
 	 * u = (u_n u_n-1 ... u_1 u_0)b
@@ -634,20 +661,22 @@ Natural& Natural::quotient_remainder(const Natural& rhs, Natural* oremainder) {
 
 	if (!this->is_zero()) {
 		if (!rhs.is_fixnum()) {
-			syslog(Log::Info, L"%S[%d] / %S[%d]", this->to_hexstring().c_str(), this->payload, rhs.to_hexstring().c_str(), rhs.payload);
+			int cmp = this->compare(rhs);
 
-			if (this->compare(rhs) < 0) {
-				Natural divisor = rhs;
-				uint8 multiplier = 1U;
+			if (cmp > 0) {
+				Natural* divisor = (Natural*)&rhs;
+				size_t quotient_size = (this->payload - rhs.payload) + 1U;
+				uint8* quotient = this->malloc(quotient_size); // `this` will be the remainder
+				uint8 d = 1U;
 
 				{ // normalize
-					uint8 vn_1 = divisor.natural[divisor.capacity - divisor.payload];
+					uint8 vn_1 = divisor->natural[divisor->capacity - divisor->payload];
 
-					while ((vn_1 * multiplier) < 0x80) {
-						multiplier <<= 1U;
+					while ((vn_1 * d) < 0x80U) { // 0x80 is `base/2`
+						d <<= 1U;
 					}
 
-					if (multiplier == 1U) {
+					if (d == 1U) {
 						if (this->payload == this->capacity) {
 							this->expand(1U);
 						}
@@ -655,13 +684,93 @@ Natural& Natural::quotient_remainder(const Natural& rhs, Natural* oremainder) {
 						this->payload++;
 						this->natural[this->capacity - this->payload] = '\0';
 					} else {
-						this->times_digit(multiplier);
-						divisor.times_digit(multiplier);
+						divisor = new Natural(rhs);
+
+						divisor->times_digit(d);
+						this->times_digit(d);
 					}
 				}
 
-				syslog(Log::Info, L"[%d][%02x]{%02x} %S[%d] / %S[%d]", multiplier, divisor[0], 0x100 / (rhs.natural[rhs.capacity - rhs.payload] + 1),
-					this->to_hexstring().c_str(), this->payload, rhs.to_hexstring().c_str(), rhs.payload);
+				{ // long division
+					uint8 vn_1 = divisor->natural[divisor->capacity - divisor->payload];
+					uint8 vn_2 = divisor->natural[divisor->capacity - divisor->payload + 1U];
+					size_t quotient_idx0 = this->capacity - quotient_size;
+
+					for (size_t j_idx = 0; j_idx < quotient_size; j_idx++) {
+						size_t j = quotient_idx0 + j_idx;
+						size_t jn_idx = quotient_idx0 + j_idx - divisor->payload;
+						uint16 ujn_0 = this->natural[jn_idx + 0U];
+						uint16 ujn_1 = this->natural[jn_idx + 1U];
+						uint16 ujn_2 = this->natural[jn_idx + 2U];
+						uint16 ujnb_ujn_1 = (ujn_0 << 8U) ^ ujn_1;
+						uint32 q_hat = ujnb_ujn_1 / vn_1;
+
+						{ // The q^ found here is guaranteed accurate (almost) 
+							uint32 r_hat = ujnb_ujn_1 % vn_1;
+
+							if (q_hat > 0xFFU) {
+								r_hat += (vn_1 * (q_hat - 0xFFU));
+								q_hat = 0xFFU;
+							}
+
+							if ((q_hat * vn_2) > ((r_hat << 8U) ^ ujn_2)) {
+								q_hat -= 1U;
+								r_hat += vn_1;
+							}
+						}
+
+						{ // in-place: r = u - v(q^)
+							size_t divisor_diff = divisor->capacity - j - 1U;
+							uint16 carry = 0U;
+							uint8 borrowed = 0U;
+
+							for (size_t idx = j; idx > jn_idx; idx--) {
+								this->natural[idx] = (uint8)u_vq_hat(this->natural[idx], divisor->natural[idx + divisor_diff], q_hat, &carry, &borrowed);
+							}
+							
+							this->natural[jn_idx] = (uint8)u_vq_hat(this->natural[jn_idx], 0U, q_hat, &carry, &borrowed);
+
+							if (borrowed > 0U) { // the probability of this case is `2/base`.
+								q_hat -= 1U;
+								carry = 0U;
+
+								syslog(Log::Info, L"%S", rhs.to_hexstring().c_str());
+								for (size_t idx = j; idx > jn_idx; idx--) {
+									this->natural[idx] = (uint8)add(this->natural[idx], divisor->natural[idx + divisor_diff], &carry);
+								}
+
+								this->natural[jn_idx] = (uint8)add(this->natural[jn_idx], 0U, &carry);
+								// Ignore the carry here since it is triggered by the borrowing.
+							}
+
+							quotient[j_idx] = (uint8)q_hat;
+						}
+					}
+				}
+
+				if (oremainder != nullptr) {
+					this->payload = rhs.payload;
+					(*oremainder) = (*this);
+					oremainder->divide_digit(d, nullptr);
+				}
+
+				if (this != oremainder) {
+					delete[] this->natural;
+					this->capacity = quotient_size;
+					this->natural = quotient;
+					this->skip_leading_zeros(quotient_size);
+				}
+
+				if (d > 1U) {
+					delete divisor;
+				}
+			} else if (cmp == 0) {
+				this->payload = 1U;
+				this->natural[this->capacity - 1U] = 1U;
+
+				if (oremainder != nullptr) {
+					oremainder->bzero();
+				}
 			} else if (oremainder == nullptr) {
 				this->bzero();
 			} else if (oremainder != nullptr) {
