@@ -119,6 +119,8 @@ namespace WarGrey::SCADA {
 		WarGrey::SCADA::Natural& expt(const WarGrey::SCADA::Natural& e);
 
 		WarGrey::SCADA::Natural& modular_expt(unsigned long long b, unsigned long long n);
+		WarGrey::SCADA::Natural& modular_expt(unsigned long long b, const WarGrey::SCADA::Natural& n);
+		WarGrey::SCADA::Natural& modular_expt(const WarGrey::SCADA::Natural& b, unsigned long long n);
 		WarGrey::SCADA::Natural& modular_expt(const WarGrey::SCADA::Natural& b, const WarGrey::SCADA::Natural& n);
 
 		WarGrey::SCADA::Natural& quotient_remainder(unsigned long long divisor, Natural* remainder = nullptr);
@@ -129,6 +131,8 @@ namespace WarGrey::SCADA {
 		friend inline WarGrey::SCADA::Natural expt(WarGrey::SCADA::Natural b, const WarGrey::SCADA::Natural& e) { return b.expt(e); }
 
 		friend inline WarGrey::SCADA::Natural modular_expt(WarGrey::SCADA::Natural a, unsigned long long b, unsigned long long n) { return a.modular_expt(b, n); }
+		friend inline WarGrey::SCADA::Natural modular_expt(WarGrey::SCADA::Natural a, unsigned long long b, const WarGrey::SCADA::Natural& n) { return a.modular_expt(b, n); }
+		friend inline WarGrey::SCADA::Natural modular_expt(WarGrey::SCADA::Natural a, const WarGrey::SCADA::Natural& b, unsigned long long n) { return a.modular_expt(b, n); }
 		friend inline WarGrey::SCADA::Natural modular_expt(WarGrey::SCADA::Natural a, const WarGrey::SCADA::Natural& b, const WarGrey::SCADA::Natural& n) { return a.modular_expt(b, n); }
 
 	public:
