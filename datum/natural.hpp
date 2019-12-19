@@ -47,6 +47,7 @@ namespace WarGrey::SCADA {
 		Natural(const WarGrey::SCADA::Natural& n);
 		Natural(WarGrey::SCADA::Natural&& n);
 
+		WarGrey::SCADA::Natural& operator=(unsigned long long n);
 		WarGrey::SCADA::Natural& operator=(const WarGrey::SCADA::Natural& n);
 		WarGrey::SCADA::Natural& operator=(WarGrey::SCADA::Natural&& n);
 
@@ -117,12 +118,17 @@ namespace WarGrey::SCADA {
 		WarGrey::SCADA::Natural& expt(unsigned long long e);
 		WarGrey::SCADA::Natural& expt(const WarGrey::SCADA::Natural& e);
 
+		WarGrey::SCADA::Natural& modular_expt(const WarGrey::SCADA::Natural& b, const WarGrey::SCADA::Natural& n);
+
 		WarGrey::SCADA::Natural& quotient_remainder(unsigned long long divisor, Natural* remainder = nullptr);
 		WarGrey::SCADA::Natural& quotient_remainder(const WarGrey::SCADA::Natural& divisor, Natural* remainder = nullptr);
 
 		friend inline WarGrey::SCADA::Natural expt(WarGrey::SCADA::Natural b, unsigned long long e) { return b.expt(e); }
 		friend inline WarGrey::SCADA::Natural expt(unsigned long long b, WarGrey::SCADA::Natural e) { return Natural(b).expt(e); }
 		friend inline WarGrey::SCADA::Natural expt(WarGrey::SCADA::Natural b, const WarGrey::SCADA::Natural& e) { return b.expt(e); }
+
+		friend inline WarGrey::SCADA::Natural modular_expt(WarGrey::SCADA::Natural a, const WarGrey::SCADA::Natural& b, const WarGrey::SCADA::Natural& n)
+		{ return a.modular_expt(b, n); }
 
 	public:
 		WarGrey::SCADA::Natural operator~();
@@ -180,6 +186,7 @@ namespace WarGrey::SCADA {
 
 	private:
 		Natural(void* null, long long capacity);
+		void replaced_by_fixnum(unsigned long long n);
 		void from_memory(const uint8 nbytes[], size_t nstart, size_t nend);
 		void from_memory(const uint16 nchars[], size_t nstart, size_t nend);
 		void from_base16(const uint8 nbytes[], size_t nstart, size_t nend);
@@ -193,6 +200,7 @@ namespace WarGrey::SCADA {
 		void add_digit(uint8 digit);
 		void times_digit(uint8 digit);
 		void divide_digit(uint8 digit, WarGrey::SCADA::Natural* remainder);
+		int compare_to_one() const;
 
 	private:
 		void on_moved();
@@ -200,7 +208,7 @@ namespace WarGrey::SCADA {
 		void skip_leading_zeros(size_t new_payload);
 		void decrease_from_slot(size_t slot);
 		uint8* malloc(size_t size);
-		void recalloc(size_t new_size, uint8 initial = '\0', size_t shift = 0U);
+		void recalloc(size_t new_size, size_t shift = 0U);
 		
 	private:
 		uint8* natural;

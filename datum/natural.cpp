@@ -128,6 +128,11 @@ Natural::~Natural() {
 
 Natural::Natural() : Natural(0ULL) {}
 
+Natural::Natural(unsigned long long n) : natural(nullptr), capacity(sizeof(unsigned long long)), payload(0U) {
+	this->natural = this->malloc(this->capacity);
+	this->replaced_by_fixnum(n);
+}
+
 Natural::Natural(bytes& nstr, size_t nstart, size_t nend)
 	: Natural(nstr.c_str(), nstart, ((nend <= nstart) ? nstr.size() : nend)) {}
 
@@ -151,21 +156,6 @@ Natural::Natural(uint8 base, std::wstring& nstr, size_t nstart, size_t nend)
 
 Natural::Natural(uint8 base, Platform::String^ nstr, size_t nstart, size_t nend)
 	: Natural(base, (const uint16*)nstr->Data(), nstart, ((nend <= nstart) ? nstr->Length() : nend)) {}
-
-Natural::Natural(unsigned long long n) : natural(nullptr), capacity(sizeof(unsigned long long)), payload(0U) {
-	this->natural = this->malloc(this->capacity);
-	
-	for (size_t idx = this->capacity; idx > 0; idx--) {
-		uint8 ui8 = (n & 0xFF);
-
-		this->natural[idx - 1] = ui8;
-		if (ui8 > 0) {
-			this->payload = this->capacity - idx + 1;
-		}
-
-		n >>= 8;
-	}
-}
 
 bool Natural::is_zero() const {
 	return ((this->payload == 0)
@@ -244,18 +234,23 @@ Natural::Natural(Natural&& n) : natural(n.natural), capacity(n.capacity), payloa
 	n.on_moved();
 }
 
-Natural& Natural::operator=(const Natural& n) {
-	this->payload = n.payload;
+Natural& Natural::operator=(unsigned long long n) {
+	this->replaced_by_fixnum(n);
 
-	if (this->payload > this->capacity) {
+	return (*this);
+}
+
+Natural& Natural::operator=(const Natural& n) {
+	if (n.payload > this->capacity) {
 		if (this->natural != nullptr) {
 			delete[] this->natural;
 		}
 
-		this->capacity = this->payload;
+		this->capacity = n.payload;
 		this->natural = this->malloc(this->capacity);
 	}
 
+	this->payload = n.payload;
 	if (this->payload > 0) {
 		size_t payload_idx = this->capacity - this->payload;
 		size_t n_idx = n.capacity - this->payload;
@@ -379,7 +374,7 @@ Natural& Natural::operator+=(const Natural& rhs) {
 		uint8* lsrc = this->natural;
 		uint16 carry = 0U;
 
-		if (this->capacity <= digits) {
+		if (this->capacity <= digits) { // no `this->expand`ing to avoid redundant copy
 			this->capacity = digits + 1;
 			this->natural = this->malloc(this->capacity);
 		}
@@ -505,8 +500,12 @@ Natural& Natural::operator*=(unsigned long long rhs) {
 	if (!this->is_zero()) {
 		if (rhs > 0xFFU) {
 			size_t digits = this->payload + sizeof(unsigned long long);
-			uint8* product = this->malloc(digits);
+			uint8* product = this->natural;
 			size_t j = 0U;
+
+			if (this->capacity < digits + this->payload) {
+				product = this->malloc(digits);
+			}
 
 			memset(product + (digits - this->payload), '\0', this->payload);
 
@@ -528,12 +527,15 @@ Natural& Natural::operator*=(unsigned long long rhs) {
 				rhs >>= 8;
 			} while (rhs > 0U);
 
-			delete[] this->natural;
-			this->natural = product;
-			this->capacity = digits;
+			if (this->natural != product) {
+				delete[] this->natural;
+				this->natural = product;
+				this->capacity = digits;
+			} else {
+				memmove(this->natural + (this->capacity - digits), this->natural, digits);
+			}
 
-			digits = this->payload + j;
-			this->payload = ((this->natural[this->capacity - digits] > 0U) ? digits : (digits - 1));
+			this->skip_leading_zeros(this->payload + j);
 		} else {
 			if (rhs == 0U) {
 				this->bzero();
@@ -552,7 +554,11 @@ Natural& Natural::operator*=(const Natural& rhs) {
 	if (!this->is_zero()) {
 		if (rhs.payload > 1U) {
 			size_t digits = this->payload + rhs.payload;
-			uint8* product = this->malloc(digits);
+			uint8* product = this->natural;
+
+			if (this->capacity < this->payload + digits) {
+				product = this->malloc(digits);
+			}
 			
 			memset(product + (digits - this->payload), '\0', this->payload);
 
@@ -572,10 +578,15 @@ Natural& Natural::operator*=(const Natural& rhs) {
 				product[digits - this->payload - j] = (uint8)carry;
 			}
 
-			delete[] this->natural;
-			this->natural = product;
-			this->capacity = digits;
-			this->payload = ((this->natural[0] > 0U) ? digits : (digits - 1));
+			if (this->natural != product) {
+				delete[] this->natural;
+				this->natural = product;
+				this->capacity = digits;
+			} else {
+				memmove(this->natural + (this->capacity - digits), this->natural, digits);
+			}
+
+			this->skip_leading_zeros(digits);
 		} else {
 			if (rhs.is_zero()) {
 				this->bzero();
@@ -639,8 +650,6 @@ Natural& Natural::quotient_remainder(unsigned long long rhs, Natural* oremainder
 	return (*this);
 }
 
-#include "syslog.hpp"
-
 Natural& Natural::quotient_remainder(const Natural& rhs, Natural* oremainder) {
 	// Algorithm: classic method that to estimate the pencil-and-paper long division.
 	
@@ -663,12 +672,12 @@ Natural& Natural::quotient_remainder(const Natural& rhs, Natural* oremainder) {
 		if (!rhs.is_fixnum()) {
 			int cmp = this->compare(rhs);
 
-			if (cmp > 0) {
+			if (cmp > 0) { // `this` will be the remainder
 				size_t quotient_size = (this->payload - rhs.payload) + 1U;
-				uint8* quotient = this->malloc(quotient_size); // `this` will be the remainder
+				uint8* quotient = ((this == oremainder) ? nullptr : this->natural);
 				uint8 vn_1 = rhs.natural[rhs.capacity - rhs.payload];
 				uint8 vn_2 = rhs.natural[rhs.capacity - rhs.payload + 1U];
-				uint8 e = 0U;
+				uint8 shifts = 0U;
 
 				{ // normalization
 					if (vn_1 < 0x80U) { // 0x80 is `base/2`
@@ -676,7 +685,7 @@ Natural& Natural::quotient_remainder(const Natural& rhs, Natural* oremainder) {
 
 						while (virtual_shifted < 0x80000000U) {
 							virtual_shifted <<= 1U;
-							e += 1U;
+							shifts += 1U;
 						}
 
 						vn_1 = (virtual_shifted >> 24U) & 0xFFU;
@@ -684,8 +693,15 @@ Natural& Natural::quotient_remainder(const Natural& rhs, Natural* oremainder) {
 					}
 
 					{ // m+n-bytes dividend / n-bytes divisor = m+1-bytes quotient ... n-bytes remainder
-						if (this->payload == this->capacity) {
-							this->expand(1U);
+						if (quotient == nullptr) {
+							if (this->capacity == this->payload) {
+								this->expand(1U);
+							}
+						} else {
+							if (this->capacity < this->payload + quotient_size + 1U) {
+								this->expand(this->payload + quotient_size + 1U - this->capacity);
+								quotient = this->natural;
+							}
 						}
 
 						this->payload += 1U;
@@ -705,8 +721,8 @@ Natural& Natural::quotient_remainder(const Natural& rhs, Natural* oremainder) {
 						uint64 ujnb_ujn_1 = (ujn_0 << 8U) ^ ujn_1;
 						uint64 q_hat = 0U;
 
-						if (e > 0U) {
-							uint64 virtual_shifted = ((ujnb_ujn_1 << 16U) ^ (ujn_2 << 8U) ^ this->natural[jn_idx + 3U]) << e;
+						if (shifts > 0U) {
+							uint64 virtual_shifted = ((ujnb_ujn_1 << 16U) ^ (ujn_2 << 8U) ^ this->natural[jn_idx + 3U]) << shifts;
 
 							ujnb_ujn_1 = (virtual_shifted >> 24U) & 0xFFFFU;
 							ujn_2 = (virtual_shifted >> 16U) & 0xFFU;
@@ -751,23 +767,24 @@ Natural& Natural::quotient_remainder(const Natural& rhs, Natural* oremainder) {
 								// Ignore the carry here since it is triggered by the borrowing.
 							}
 
-							quotient[j_idx] = (uint8)q_hat;
+							if (quotient != nullptr) {
+								quotient[j_idx] = (uint8)q_hat;
+							}
 						}
 					}
 				}
 
 				if (oremainder != nullptr) {
 					this->skip_leading_zeros(rhs.payload);
-					(*oremainder) = (*this);
+
+					if (this != oremainder) {
+						(*oremainder) = (*this);
+					}
 				}
 
-				if (this != oremainder) {
-					delete[] this->natural;
-					this->capacity = quotient_size;
-					this->natural = quotient;
+				if (quotient != nullptr) { // <==> (this != oremainder)
+					memmove(this->natural + (this->capacity - quotient_size), this->natural, quotient_size);
 					this->skip_leading_zeros(quotient_size);
-				} else {
-					delete quotient;
 				}
 			} else if (cmp == 0) {
 				this->payload = 1U;
@@ -832,6 +849,61 @@ Natural& Natural::expt(const Natural& n) {
 	return (*this);
 }
 
+#include "syslog.hpp"
+#include "string.hpp"
+
+static bool d = false;
+Natural& Natural::modular_expt(const Natural& b, const Natural& n) {
+	// Algorithm: repeated modular multiplication and squaring (the idea is the same as `expt`)
+
+	/** Theorem
+	 * f(a, b)
+	 *   = 1 % n,              b = 0;
+	 *   = a % n,              b = 1;
+	 *   = f^2(a, b >> 1) % n, b is even;
+	 *   = a*f(a, b - 1) % n,  b is odd;
+	 */
+
+	if (b.compare_to_one() > 0) {
+		size_t product_size = n.payload * 2U;
+		Natural me = 1U;
+		
+		{ // preallocate memory
+			if (product_size + this->payload > this->capacity) {
+				this->expand(product_size + this->payload - this->capacity);
+			}
+
+			if (product_size + me.payload > me.capacity) {
+				me.expand(product_size + me.payload - me.capacity);
+			}
+		}
+
+		syslog(Log::Info, "modular-expt");
+		d = true;
+		this->quotient_remainder(n, this);
+		for (size_t bidx = 1; bidx <= b.payload; bidx++) {
+			uint8 bself = b.natural[b.capacity - bidx];
+			
+			for (uint16 bmask = 0b1U; bmask < 0x100U; bmask <<= 1U) {
+				if ((bself & bmask) > 0U) {
+					me.operator*=(*this).quotient_remainder(n, &me);
+				}
+
+				this->operator*=(*this).quotient_remainder(n, this);
+			}
+		}
+		d = false;
+		
+		(*this) = me;
+	} else if (b.is_zero()) {
+		(*this) = 1U;
+	} else {
+		this->quotient_remainder(n, this);
+	}
+
+	return (*this);
+}
+
 /*************************************************************************************************/
 WarGrey::SCADA::Natural Natural::operator~() {
 	Natural ones_complement(*this);
@@ -847,7 +919,7 @@ WarGrey::SCADA::Natural Natural::operator~() {
 }
 
 Natural& Natural::operator<<=(unsigned long long rhs) {	
-	if ((!this->is_zero()) && (rhs != 0U)) {
+	if ((!this->is_zero()) && (rhs > 0U)) {
 		size_t shift_byts = (size_t)(rhs / 8);
 		size_t shift_bits = (size_t)(rhs % 8);
 		size_t shift_load = this->payload + shift_byts;
@@ -856,7 +928,7 @@ Natural& Natural::operator<<=(unsigned long long rhs) {
 
 		if (shift_bits == 0U) {
 			if (this->capacity < total) {
-				this->recalloc(total, '\0', shift_byts);
+				this->recalloc(total, shift_byts);
 			} else if (shift_byts > 0U) {
 				memmove(this->natural + (this->capacity - shift_load), this->natural + original_idx0, this->payload);
 				memset(this->natural + (this->capacity - shift_byts), '\0', shift_byts);
@@ -869,7 +941,7 @@ Natural& Natural::operator<<=(unsigned long long rhs) {
 				total++;
 			}
 
-			if (this->capacity < total) {
+			if (this->capacity < total) { // no `this->expand`ing to avoid redundant copy 
 				shift_diff += (total - this->capacity);
 
 				this->capacity = total;
@@ -881,7 +953,7 @@ Natural& Natural::operator<<=(unsigned long long rhs) {
 				 */
 			}
 
-			if (shift_byts > 0) {
+			if ((shift_byts > 0) || (total > shift_load)) {
 				this->natural[this->capacity - total] = '\0';
 			}
 
@@ -1231,6 +1303,17 @@ Natural::Natural(void* null, long long capacity) : natural(nullptr), capacity(0L
 	this->natural = this->malloc(this->capacity);
 }
 
+void Natural::replaced_by_fixnum(unsigned long long n) {
+	this->payload = 0U;
+
+	while (n > 0U) {
+		this->payload++;
+		this->natural[this->capacity - this->payload] = (uint8)(n & 0xFFU);
+		
+		n >>= 8U;
+	}
+}
+
 void Natural::from_memory(const uint8 nbytes[], size_t nstart, size_t nend) {
 	if (nend > nstart) {
 		this->capacity = nend - nstart;
@@ -1355,7 +1438,8 @@ void Natural::add_digit(uint8 digit) {
 				}
 				
 				if (idx == 0U) {
-					this->recalloc(this->capacity + 1, digit);
+					this->expand(1U);
+					this->natural[0] = digit;
 				} else if (idx == payload_idx) {
 					this->natural[idx - 1] = digit;
 				}
@@ -1371,26 +1455,25 @@ void Natural::times_digit(uint8 rhs) {
 	if (rhs > 1ULL) {
 		uint16 carry = 0U;
 
-		for (size_t idx = this->capacity; idx > this->capacity - this->payload; idx--) {
-			uint16 digit = this->natural[idx - 1U] * rhs + carry;
+		for (size_t idx = 1U; idx <= this->payload; idx++) {
+			uint16 digit = this->natural[this->capacity - idx] * rhs + carry;
 
 			if (digit <= 0xFFU) {
-				this->natural[idx - 1U] = (uint8)digit;
+				this->natural[this->capacity - idx] = (uint8)digit;
 				carry = 0U;
 			} else {
-				this->natural[idx - 1U] = (uint8)(digit & 0xFFU);
+				this->natural[this->capacity - idx] = (uint8)(digit & 0xFFU);
 				carry = digit >> 8U;
 			}
 		}
 
 		if (carry > 0U) {
 			if (this->capacity == this->payload) {
-				this->recalloc(this->capacity + 1U, (uint8)carry);
-			} else {
-				this->natural[this->capacity - this->payload] = (uint8)carry;
-			}
-
+				this->expand(1U);
+			} 
+			
 			this->payload++;
+			this->natural[this->capacity - this->payload] = (uint8)carry;
 		}
 	} else if (rhs == 0U) {
 		this->bzero();
@@ -1423,6 +1506,16 @@ void Natural::divide_digit(uint8 divisor, Natural* oremainder) {
 			oremainder->bzero();
 		}
 	}
+}
+
+int Natural::compare_to_one() const {
+	int cmp = this->payload - 1;
+
+	if (cmp == 0) {
+		cmp = this->natural[this->capacity - 1U] - 1;
+	}
+
+	return cmp;
 }
 
 /*************************************************************************************************/
@@ -1475,6 +1568,10 @@ uint8* Natural::malloc(size_t size) {
 
 	// NOTE: Method should not assume zeroed memory.
 
+	if (d) {
+		syslog(Log::Info, L"mallocated %u", size);
+	}
+
 #ifdef _DEBUG
 	memset(memory, int(size), size);
 #endif
@@ -1482,7 +1579,7 @@ uint8* Natural::malloc(size_t size) {
 	return memory;
 }
 
-void Natural::recalloc(size_t newsize, uint8 initial, size_t shift) {
+void Natural::recalloc(size_t newsize, size_t shift) {
 	uint8* src = this->natural;
 	size_t zero_size = (this->capacity - this->payload);
 
@@ -1492,7 +1589,7 @@ void Natural::recalloc(size_t newsize, uint8 initial, size_t shift) {
 	{ // do copying and shifting
 		size_t payload_idx0 = this->capacity - this->payload /* this is not the `zero_size` */ - shift;
 
-		memset(this->natural, initial, this->capacity);
+		memset(this->natural, '\0', this->capacity);
 		memcpy(this->natural + payload_idx0, src + zero_size, this->payload);
 	}
 
