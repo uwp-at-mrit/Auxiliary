@@ -118,6 +118,7 @@ namespace WarGrey::SCADA {
 		WarGrey::SCADA::Natural& expt(unsigned long long e);
 		WarGrey::SCADA::Natural& expt(const WarGrey::SCADA::Natural& e);
 
+		WarGrey::SCADA::Natural& modular_expt(unsigned long long b, unsigned long long n);
 		WarGrey::SCADA::Natural& modular_expt(const WarGrey::SCADA::Natural& b, const WarGrey::SCADA::Natural& n);
 
 		WarGrey::SCADA::Natural& quotient_remainder(unsigned long long divisor, Natural* remainder = nullptr);
@@ -127,8 +128,8 @@ namespace WarGrey::SCADA {
 		friend inline WarGrey::SCADA::Natural expt(unsigned long long b, WarGrey::SCADA::Natural e) { return Natural(b).expt(e); }
 		friend inline WarGrey::SCADA::Natural expt(WarGrey::SCADA::Natural b, const WarGrey::SCADA::Natural& e) { return b.expt(e); }
 
-		friend inline WarGrey::SCADA::Natural modular_expt(WarGrey::SCADA::Natural a, const WarGrey::SCADA::Natural& b, const WarGrey::SCADA::Natural& n)
-		{ return a.modular_expt(b, n); }
+		friend inline WarGrey::SCADA::Natural modular_expt(WarGrey::SCADA::Natural a, unsigned long long b, unsigned long long n) { return a.modular_expt(b, n); }
+		friend inline WarGrey::SCADA::Natural modular_expt(WarGrey::SCADA::Natural a, const WarGrey::SCADA::Natural& b, const WarGrey::SCADA::Natural& n) { return a.modular_expt(b, n); }
 
 	public:
 		WarGrey::SCADA::Natural operator~();
@@ -209,6 +210,7 @@ namespace WarGrey::SCADA {
 		void decrease_from_slot(size_t slot);
 		uint8* malloc(size_t size);
 		void recalloc(size_t new_size, size_t shift = 0U);
+		void smart_prealloc(size_t size);
 		
 	private:
 		uint8* natural;

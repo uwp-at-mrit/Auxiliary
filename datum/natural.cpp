@@ -5,6 +5,7 @@
 
 using namespace WarGrey::SCADA;
 
+/*************************************************************************************************/
 template<typename BYTE>
 static size_t natural_from_base16(uint8* natural, const BYTE n[], size_t nstart, size_t nend, size_t capacity) {
 	size_t slot = capacity - 1;
@@ -220,13 +221,13 @@ bytes Natural::to_hexstring() const {
 }
 
 /*************************************************************************************************/
-Natural::Natural(const Natural& n) : natural(nullptr), capacity(n.payload), payload(n.payload) {
+Natural::Natural(const Natural& n) : natural(nullptr), capacity(fxmax(n.payload, sizeof(unsigned long long))), payload(n.payload) {
+	this->natural = this->malloc(this->capacity);
+
 	if (this->payload > 0) {
-		this->natural = this->malloc(this->capacity);
-		memcpy(this->natural, n.natural + (n.capacity - n.payload), this->payload);
-	} else {
-		this->capacity = sizeof(unsigned long long);
-		this->natural = this->malloc(this->capacity);
+		memcpy(this->natural + (this->capacity - this->payload),
+			n.natural + (n.capacity - n.payload),
+			this->payload);
 	}
 }
 
@@ -849,10 +850,34 @@ Natural& Natural::expt(const Natural& n) {
 	return (*this);
 }
 
-#include "syslog.hpp"
-#include "string.hpp"
+Natural& Natural::modular_expt(unsigned long long b, unsigned long long n) {
+	if (b > 0U) {
+		size_t product_size = sizeof(unsigned long long) * 2U;
+		Natural me = 1U;
+		
+		me.smart_prealloc(product_size);
+		this->smart_prealloc(product_size);
+		this->quotient_remainder(n, this);
 
-static bool d = false;
+		do {
+			if ((b & 0b1U) > 0U) {
+				me.operator*=(*this).quotient_remainder(n, &me);
+			}
+
+			this->operator*=(*this).quotient_remainder(n, this);
+			b >>= 1U;
+		} while (b > 0U);
+
+		(*this) = me;
+	} else if (b == 0U) {
+		(*this) = 1U;
+	} else {
+		this->quotient_remainder(n, this);
+	}
+
+	return (*this);
+}
+
 Natural& Natural::modular_expt(const Natural& b, const Natural& n) {
 	// Algorithm: repeated modular multiplication and squaring (the idea is the same as `expt`)
 
@@ -868,19 +893,10 @@ Natural& Natural::modular_expt(const Natural& b, const Natural& n) {
 		size_t product_size = n.payload * 2U;
 		Natural me = 1U;
 		
-		{ // preallocate memory
-			if (product_size + this->payload > this->capacity) {
-				this->expand(product_size + this->payload - this->capacity);
-			}
-
-			if (product_size + me.payload > me.capacity) {
-				me.expand(product_size + me.payload - me.capacity);
-			}
-		}
-
-		syslog(Log::Info, "modular-expt");
-		d = true;
+		me.smart_prealloc(product_size);
+		this->smart_prealloc(product_size);
 		this->quotient_remainder(n, this);
+
 		for (size_t bidx = 1; bidx <= b.payload; bidx++) {
 			uint8 bself = b.natural[b.capacity - bidx];
 			
@@ -892,7 +908,6 @@ Natural& Natural::modular_expt(const Natural& b, const Natural& n) {
 				this->operator*=(*this).quotient_remainder(n, this);
 			}
 		}
-		d = false;
 		
 		(*this) = me;
 	} else if (b.is_zero()) {
@@ -1078,6 +1093,8 @@ Natural& Natural::operator|=(unsigned long long rhs) {
 		if (this->capacity < digits) {
 			this->recalloc(digits);
 			nidx = this->capacity - 1;
+		} else {
+			memset(this->natural, '\0', this->capacity - this->payload);
 		}
 
 		do {
@@ -1134,6 +1151,8 @@ Natural& Natural::operator^=(unsigned long long rhs) {
 		if (this->capacity < digits) {
 			this->recalloc(digits);
 			nidx = this->capacity - 1;
+		} else {
+			memset(this->natural, '\0', this->capacity - this->payload);
 		}
 
 		do {
@@ -1509,7 +1528,7 @@ void Natural::divide_digit(uint8 divisor, Natural* oremainder) {
 }
 
 int Natural::compare_to_one() const {
-	int cmp = this->payload - 1;
+	int cmp = int(this->payload) - 1;
 
 	if (cmp == 0) {
 		cmp = this->natural[this->capacity - 1U] - 1;
@@ -1568,10 +1587,6 @@ uint8* Natural::malloc(size_t size) {
 
 	// NOTE: Method should not assume zeroed memory.
 
-	if (d) {
-		syslog(Log::Info, L"mallocated %u", size);
-	}
-
 #ifdef _DEBUG
 	memset(memory, int(size), size);
 #endif
@@ -1594,4 +1609,10 @@ void Natural::recalloc(size_t newsize, size_t shift) {
 	}
 
 	delete[] src;
+}
+
+void Natural::smart_prealloc(size_t size) {
+	if (size + this->payload > this->capacity) {
+		this->expand(size + this->payload - this->capacity);
+	}
 }
