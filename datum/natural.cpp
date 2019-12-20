@@ -123,7 +123,7 @@ static inline Q add(uint8 lhs, uint8 rhs, Q* carry) {
 #define NATURAL_MODULAR_EXPT(self, me, b, n) { \
 	self->quotient_remainder(n, self); \
 \
-	for (size_t bidx = 1; bidx <= b.payload; bidx++) { \
+	for (size_t bidx = 1; bidx < b.payload; bidx++) { \
 		uint8 bself = b.natural[b.capacity - bidx]; \
 \
 		for (uint16 bmask = 0b1U; bmask < 0x100U; bmask <<= 1U) { \
@@ -134,13 +134,16 @@ static inline Q add(uint8 lhs, uint8 rhs, Q* carry) {
 			self->operator*=(*self).quotient_remainder(n, self); \
 		} \
 	} \
-\
-	(*self) = me; \
+    /* All leading zeros of the leading byte do not change the result but do make some useless computations. */ \
+	natural_modular_expt(self, &me, b.natural[b.capacity - b.payload], n); \
 }
 
 template<typename N>
 static void natural_modular_expt(Natural* self, Natural* me, unsigned long long b, N n) {
-	self->quotient_remainder(n, self);
+	/** NOTE
+	 * This function also serves the NATURAL_MODULAR_EXPT for the leading byte of b's payload
+	 * Thus, invokers of this function should do all the preparations.
+	 */
 
 	do {
 		if ((b & 0b1U) > 0U) {
@@ -891,6 +894,7 @@ Natural& Natural::modular_expt(unsigned long long b, unsigned long long n) {
 		
 		me.smart_prealloc(product_size);
 		this->smart_prealloc(product_size);
+		this->quotient_remainder(n, this);
 		natural_modular_expt(this, &me, b, n);
 	} else if (b == 0U) {
 		(*this) = 1U;
@@ -902,17 +906,15 @@ Natural& Natural::modular_expt(unsigned long long b, unsigned long long n) {
 }
 
 Natural& Natural::modular_expt(const Natural& b, unsigned long long n) {
-	if (b.compare_to_one() > 0) {
+	if (b.is_fixnum()) {
+		this->modular_expt(b.fixnum64_ref(0U), n);
+	} else {
 		size_t product_size = sizeof(unsigned long long) * 2U;
 		Natural me = 1U;
 
 		me.smart_prealloc(product_size);
 		this->smart_prealloc(product_size);
 		NATURAL_MODULAR_EXPT(this, me, b, n);
-	} else if (b.is_zero()) {
-		(*this) = 1U;
-	} else {
-		this->quotient_remainder(n, this);
 	}
 
 	return (*this);
@@ -929,17 +931,24 @@ Natural& Natural::modular_expt(const Natural& b, const Natural& n) {
 	 *   = a*f(a, b - 1) % n,  b is odd;
 	 */
 
-	if (b.compare_to_one() > 0) {
+	bool fixed_b = b.is_fixnum();
+	bool fixed_n = n.is_fixnum();
+
+	if (fixed_b || fixed_b) {
+		if (fixed_b && fixed_b) {
+			this->modular_expt(b.fixnum64_ref(0U), n.fixnum64_ref(0U));
+		} else if (fixed_b) {
+			this->modular_expt(b.fixnum64_ref(0U), n);
+		} else if (fixed_n) {
+			this->modular_expt(b, n.fixnum64_ref(0U));
+		}
+	} else {
 		size_t product_size = n.payload * 2U;
 		Natural me = 1U;
-		
+
 		me.smart_prealloc(product_size);
 		this->smart_prealloc(product_size);
 		NATURAL_MODULAR_EXPT(this, me, b, n);
-	} else if (b.is_zero()) {
-		(*this) = 1U;
-	} else {
-		this->quotient_remainder(n, this);
 	}
 
 	return (*this);
@@ -947,12 +956,17 @@ Natural& Natural::modular_expt(const Natural& b, const Natural& n) {
 
 Natural& Natural::modular_expt(unsigned long long b, const Natural& n) {
 	if (b > 0U) {
-		size_t product_size = n.payload * 2U;
-		Natural me = 1U;
+		if (n.is_fixnum()) {
+			this->modular_expt(b, n.fixnum64_ref(0));
+		} else {
+			size_t product_size = n.payload * 2U;
+			Natural me = 1U;
 
-		me.smart_prealloc(product_size);
-		this->smart_prealloc(product_size);
-		natural_modular_expt(this, &me, b, n);
+			me.smart_prealloc(product_size);
+			this->smart_prealloc(product_size);
+			this->quotient_remainder(n, this);
+			natural_modular_expt(this, &me, b, n);
+		}
 	} else if (b == 0U) {
 		(*this) = 1U;
 	} else {
