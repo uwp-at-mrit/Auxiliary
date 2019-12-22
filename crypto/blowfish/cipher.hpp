@@ -8,15 +8,10 @@ namespace WarGrey::SCADA {
 	private class BlowfishCipher {
 	public:
 		BlowfishCipher(const uint8* key, size_t ksize);
-		BlowfishCipher(bytes& key, size_t start = 0, size_t end = 0);
 
 	public:
 		size_t encrypt(const uint8* plaintext, size_t pstart, size_t pend, uint8* ciphertext, size_t cstart, size_t cend);
 		size_t decrypt(const uint8* ciphertext, size_t cstart, size_t cend, uint8* plaintext, size_t pstart, size_t pend);
-
-	public:
-		uint64 encrypt(uint64 plain);
-		uint64 decrypt(uint64 cipher);
 
 	private:
 		WarGrey::SCADA::BFBox box;
