@@ -18,7 +18,7 @@ namespace WarGrey::SCADA {
 	WarGrey::SCADA::Natural enc_natural_from_ascii(bytes& literal_id, size_t digit_count, size_t start = 0U);
 	WarGrey::SCADA::Natural enc_natural_from_ascii(std::string& literal_id, size_t digit_count, size_t start = 0U);
 
-	WarGrey::SCADA::Natural enc_hardware_uid6(WarGrey::SCADA::Natural HW_ID);
 	WarGrey::SCADA::Natural enc_natural_pad(WarGrey::SCADA::Natural bs);
 	WarGrey::SCADA::Natural enc_natural_unpad(WarGrey::SCADA::Natural bs);
+	WarGrey::SCADA::Natural enc_hardware_uid6(WarGrey::SCADA::Natural HW_ID);
 }
