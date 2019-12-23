@@ -49,3 +49,20 @@ static unsigned long update_crc(unsigned long crc, const uint8* message, size_t 
 unsigned long WarGrey::SCADA::checksum_crc32(const uint8* message, size_t start, size_t end) {
     return update_crc(0xFFFFFFFFL, message, start, end) ^ 0xFFFFFFFFL;
 }
+
+unsigned long WarGrey::SCADA::checksum_crc32(unsigned long acc_crc, const uint8* message, size_t start, size_t end) {
+    return update_crc(~acc_crc, message, start, end) ^ 0xFFFFFFFFL;
+}
+
+unsigned long  WarGrey::SCADA::checksum_crc32(unsigned long* acc_crc, const uint8* message, size_t start, size_t end) {
+    unsigned long crc = 0UL;
+
+    if (acc_crc == nullptr) {
+        crc = checksum_crc32(message, start, end);
+    } else {
+        crc = (update_crc(~(*acc_crc), message, start, end) ^ 0xFFFFFFFFL);
+        (*acc_crc) = crc;
+    }
+
+    return crc;
+}
