@@ -1,4 +1,5 @@
 #include "crypto/enckey.hpp"
+#include "crypto/blowfish.hpp"
 
 #include "datum/bytes.hpp"
 
@@ -95,4 +96,21 @@ Natural WarGrey::SCADA::enc_natural_unpad(Natural n) {
 	n >>= (8U * n[-1]);
 
 	return n;
+}
+
+/**************************************************************************************************/
+Natural WarGrey::SCADA::enc_cell_permit_encrypted_key(const Natural& HW_ID, const Natural& key) {
+	const size_t key_size = 8U;
+	uint8 cipher[key_size];
+	Natural HW_ID6 = enc_hardware_uid6(HW_ID);
+	BlowfishCipher bf(HW_ID6.to_bytes().c_str(), HW_ID6.length());
+	size_t key_remainder = key.length() % 8U;
+
+	if (key_remainder > 0U) {
+		bf.encrypt(enc_natural_pad(key).to_bytes().c_str(), 0U, key_size, cipher, 0U, key_size);
+	} else {
+		bf.encrypt(key.to_bytes().c_str(), 0U, key_size, cipher, 0U, key_size);
+	}
+
+	return Natural(cipher);
 }

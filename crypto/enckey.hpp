@@ -21,4 +21,7 @@ namespace WarGrey::SCADA {
 	WarGrey::SCADA::Natural enc_natural_pad(WarGrey::SCADA::Natural bs);
 	WarGrey::SCADA::Natural enc_natural_unpad(WarGrey::SCADA::Natural bs);
 	WarGrey::SCADA::Natural enc_hardware_uid6(WarGrey::SCADA::Natural HW_ID);
+
+	WarGrey::SCADA::Natural enc_cell_permit_encrypted_key(const WarGrey::SCADA::Natural& HW_ID, const WarGrey::SCADA::Natural& key);
+	//bool enc_cell_permit_checksum_verify();
 }
