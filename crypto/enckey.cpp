@@ -1,6 +1,8 @@
 #include "crypto/enckey.hpp"
 #include "crypto/blowfish.hpp"
+#include "crypto/checksum.hpp"
 
+#include "datum/string.hpp"
 #include "datum/bytes.hpp"
 
 using namespace WarGrey::SCADA;
@@ -99,18 +101,54 @@ Natural WarGrey::SCADA::enc_natural_unpad(Natural n) {
 }
 
 /**************************************************************************************************/
-Natural WarGrey::SCADA::enc_cell_permit_encrypted_key(const Natural& HW_ID, const Natural& key) {
+Natural WarGrey::SCADA::enc_cell_permit_encrypt(const Natural& HW_ID, const Natural& ck) {
 	const size_t key_size = 8U;
 	uint8 cipher[key_size];
 	Natural HW_ID6 = enc_hardware_uid6(HW_ID);
 	BlowfishCipher bf(HW_ID6.to_bytes().c_str(), HW_ID6.length());
-	size_t key_remainder = key.length() % 8U;
+	size_t key_remainder = ck.length() % 8U;
 
 	if (key_remainder > 0U) {
-		bf.encrypt(enc_natural_pad(key).to_bytes().c_str(), 0U, key_size, cipher, 0U, key_size);
+		bf.encrypt(enc_natural_pad(ck).to_bytes().c_str(), 0U, key_size, cipher, 0U, key_size);
 	} else {
-		bf.encrypt(key.to_bytes().c_str(), 0U, key_size, cipher, 0U, key_size);
+		bf.encrypt(ck.to_bytes().c_str(), 0U, key_size, cipher, 0U, key_size);
 	}
 
 	return Natural(cipher);
+}
+
+Natural WarGrey::SCADA::enc_cell_permit_decrypt(const Natural& HW_ID, const Natural& eck) {
+	const size_t key_size = 8U;
+	uint8 plain[key_size];
+	Natural HW_ID6 = enc_hardware_uid6(HW_ID);
+	BlowfishCipher bf(HW_ID6.to_bytes().c_str(), HW_ID6.length());
+	size_t key_remainder = eck.length() % 8U;
+
+	if (key_remainder > 0U) {
+		bf.decrypt(enc_natural_pad(eck).to_bytes().c_str(), 0U, key_size, plain, 0U, key_size);
+	} else {
+		bf.decrypt(eck.to_bytes().c_str(), 0U, key_size, plain, 0U, key_size);
+	}
+
+	return enc_natural_unpad(Natural(plain));
+}
+
+Natural WarGrey::SCADA::enc_cell_permit_checksum(const char* name, size_t nsize, uint32 expiry_date, const Natural& eck1, const Natural& eck2) {
+	std::string date = make_nstring("%d", expiry_date);
+	unsigned long CRC = 0U;
+
+	checksum_crc32(&CRC, (const uint8*)name, 0U, nsize);
+	checksum_crc32(&CRC, (const uint8*)date.c_str(), 0U, date.length());
+	checksum_crc32(&CRC, eck1.to_hexstring().c_str(), 0U, eck1.length() * 2U);
+	checksum_crc32(&CRC, eck2.to_hexstring().c_str(), 0U, eck2.length() * 2U);
+
+	return Natural(CRC);
+}
+
+Natural WarGrey::SCADA::enc_cell_permit_checksum(const Natural& HW_ID, const char* name, size_t nsize, uint32 expiry_date, const Natural& ck1, const Natural& ck2) {
+	Natural eck1 = enc_cell_permit_encrypt(HW_ID, ck1);
+	Natural eck2 = enc_cell_permit_encrypt(HW_ID, ck2);
+	Natural CRC = enc_cell_permit_checksum(name, nsize, expiry_date, eck1, eck2);
+
+	return enc_cell_permit_encrypt(HW_ID, CRC);
 }

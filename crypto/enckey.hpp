@@ -22,6 +22,13 @@ namespace WarGrey::SCADA {
 	WarGrey::SCADA::Natural enc_natural_unpad(WarGrey::SCADA::Natural bs);
 	WarGrey::SCADA::Natural enc_hardware_uid6(WarGrey::SCADA::Natural HW_ID);
 
-	WarGrey::SCADA::Natural enc_cell_permit_encrypted_key(const WarGrey::SCADA::Natural& HW_ID, const WarGrey::SCADA::Natural& key);
-	//bool enc_cell_permit_checksum_verify();
+	WarGrey::SCADA::Natural enc_cell_permit_encrypt(const WarGrey::SCADA::Natural& HW_ID, const WarGrey::SCADA::Natural& cell_key);
+	WarGrey::SCADA::Natural enc_cell_permit_decrypt(const WarGrey::SCADA::Natural& HW_ID, const WarGrey::SCADA::Natural& en_cell_key);
+
+	WarGrey::SCADA::Natural enc_cell_permit_checksum(const char* name, size_t nsize, uint32 expiry_date,
+		const WarGrey::SCADA::Natural& eck1, const WarGrey::SCADA::Natural& eck2);
+
+	WarGrey::SCADA::Natural enc_cell_permit_checksum(const WarGrey::SCADA::Natural& HW_ID,
+		const char* name, size_t nsize, uint32 expiry_date,
+		const WarGrey::SCADA::Natural& ck1, const WarGrey::SCADA::Natural& ck2);
 }
