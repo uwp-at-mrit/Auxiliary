@@ -167,6 +167,23 @@ void WarGrey::SCADA::split_time_utc(long long s, bool locale, long long* hours, 
 	SET_BOX(seconds, daytime % minute_span_s);
 }
 
+long long WarGrey::SCADA::make_seconds(long long year, long long month, long long day, bool locale) {
+	time_t rawtime = current_seconds();
+	struct tm datetime;
+
+	gmtime_s(&datetime, &rawtime);
+
+	datetime.tm_hour = 0;
+	datetime.tm_min = 0;
+	datetime.tm_sec = 0;
+
+	datetime.tm_year = int(year - 1900);
+	datetime.tm_mon = int(month - 1);
+	datetime.tm_mday = int(day);
+
+	return mktime(&datetime) - (locale ? 0L : time_zone_utc_bias_seconds());
+}
+
 long long WarGrey::SCADA::seconds_add_seconds(long long s, long long count) {
 	return s + count;
 }

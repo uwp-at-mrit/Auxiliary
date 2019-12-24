@@ -28,7 +28,14 @@ namespace WarGrey::SCADA {
 	WarGrey::SCADA::Natural enc_cell_permit_checksum(const char* name, size_t nsize, uint32 expiry_date,
 		const WarGrey::SCADA::Natural& eck1, const WarGrey::SCADA::Natural& eck2);
 
+	WarGrey::SCADA::Natural enc_cell_permit_checksum(const char* name, size_t nsize, uint32 expiry_year, uint32 expiry_month, uint32 expiry_day,
+		const WarGrey::SCADA::Natural& eck1, const WarGrey::SCADA::Natural& eck2);
+
 	WarGrey::SCADA::Natural enc_cell_permit_checksum(const WarGrey::SCADA::Natural& HW_ID,
 		const char* name, size_t nsize, uint32 expiry_date,
+		const WarGrey::SCADA::Natural& ck1, const WarGrey::SCADA::Natural& ck2);
+
+	WarGrey::SCADA::Natural enc_cell_permit_checksum(const WarGrey::SCADA::Natural& HW_ID,
+		const char* name, size_t nsize, uint32 expiry_year, uint32 expiry_month, uint32 expiry_day,
 		const WarGrey::SCADA::Natural& ck1, const WarGrey::SCADA::Natural& ck2);
 }

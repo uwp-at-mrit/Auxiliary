@@ -27,6 +27,7 @@ namespace WarGrey::SCADA {
 	void split_date_utc(long long s, bool locale, long long* year, long long* month, long long* day);
 	void split_time_utc(long long s, bool locale, long long* hours, long long* minutes, long long* seconds);
 	
+	long long make_seconds(long long year, long long month, long long day, bool locale = false);
 	long long seconds_add_seconds(long long s, long long count);
 	long long seconds_add_minutes(long long s, long long count);
 	long long seconds_add_hours(long long s, long long count);

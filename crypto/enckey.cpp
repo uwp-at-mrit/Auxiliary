@@ -152,3 +152,13 @@ Natural WarGrey::SCADA::enc_cell_permit_checksum(const Natural& HW_ID, const cha
 
 	return enc_cell_permit_encrypt(HW_ID, CRC);
 }
+
+Natural WarGrey::SCADA::enc_cell_permit_checksum(const char* name, size_t nsize
+	, uint32 expiry_year, uint32 expiry_month, uint32 expiry_day, const Natural& eck1, const Natural& eck2) {
+	return enc_cell_permit_checksum(name, nsize, expiry_year * 10000U + expiry_month * 100U + expiry_day, eck1, eck2);
+}
+
+Natural WarGrey::SCADA::enc_cell_permit_checksum(const Natural& HW_ID, const char* name, size_t nsize
+	, uint32 expiry_year, uint32 expiry_month, uint32 expiry_day, const Natural& ck1, const Natural& ck2) {
+	return enc_cell_permit_checksum(HW_ID, name, nsize, expiry_year * 10000U + expiry_month * 100U + expiry_day, ck1, ck2);
+}
