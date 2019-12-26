@@ -17,13 +17,19 @@ namespace WarGrey::SCADA {
 
 	protected:
 		virtual void on_directory_changed(Windows::Storage::StorageFolder^ rootdir) = 0;
-		virtual TypeName filter_file(Platform::String^ file, Platform::String^ _ext) { return TypeName::_; }
+		virtual TypeName filter_file(Platform::String^ dirpath, Platform::String^ file, Platform::String^ _ext) { return TypeName::_; }
+		virtual bool filter_folder(Platform::String^ dirpath, Platform::String^ dirname) { return false; }
 
 		virtual void on_appdata(Platform::String^ file, FileType^ ftobject, TypeName type) = 0;
+		virtual void on_appdatadir_listed(Platform::String^ dirname) {}
 		virtual void on_appdata_notify(Platform::String^ file, FileType^ ftobject, TypeName type) {}
 		
 		virtual void on_appdata_not_found(Platform::String^ file, TypeName type) {
 			this->log_message(WarGrey::SCADA::Log::Error, make_wstring(L"failed to load %s: file does not exist", file->Data()));
+		}
+
+		virtual void on_appdatadir_not_found(Platform::String^ dir) {
+			this->log_message(WarGrey::SCADA::Log::Error, make_wstring(L"failed to changed to folder %s: folder does not exist", dir->Data()));
 		}
 
 	protected:
@@ -38,41 +44,13 @@ namespace WarGrey::SCADA {
 		}
 
 	protected:
-		void cd(Platform::String^ ms_appdata_rootdir) {
+		void cd(Platform::String^ ms_appdata_rootdir, bool create_if_not_exist = true) {
 			this->root = Windows::Storage::ApplicationData::Current->LocalFolder;
-			this->cd_async(ms_appdata_rootdir, 0);
+			this->cd_async(ms_appdata_rootdir, 0, create_if_not_exist);
 		}
 
-		void list_files() {
-			auto token = this->shared_task.get_token();
-			auto ls = Concurrency::create_task(this->root->GetFilesAsync(), token);
-
-			ls.then([=](Concurrency::task<Windows::Foundation::Collections::IVectorView<Windows::Storage::StorageFile^>^> list) {
-				auto files = list.get();
-				
-				for (unsigned int idx = 0; idx < files->Size; idx++) {
-					Windows::Storage::StorageFile^ file = files->GetAt(idx);
-					Platform::String^ filename = file_name_from_path(file->Path);
-					Platform::String^ file_ext = file_extension_from_path(file->Path);
-					TypeName filetype = this->filter_file(filename, file_ext);
-					
-					if (filetype != TypeName::_) {
-						this->load_file(filename, filetype);
-					}
-				}
-			}).then([=](Concurrency::task<void> maybe_exn) {
-				try {
-					maybe_exn.get();
-				} catch (Platform::Exception^ e) {
-					this->log_message(WarGrey::SCADA::Log::Error,
-						make_wstring(L"failed to list the directory %s: %s",
-							this->root->Path->Data(), e->Message->Data()));
-				} catch (Concurrency::task_canceled&) {
-					this->log_message(WarGrey::SCADA::Log::Debug, make_wstring(L"cancelled traversing %s", this->root->Path->Data()));
-				} catch (std::exception& e) {
-					this->log_message(WarGrey::SCADA::Log::Debug, make_wstring(L"list_files: unexcepted exception: %s", e.what()));
-				}
-			});
+		void list_files_or_folders() {
+			this->list_async(this->root);
 		}
 		
 		void load_file(Platform::String^ filename, TypeName filetype) {
@@ -80,7 +58,7 @@ namespace WarGrey::SCADA {
 		}
 
 	private:
-		void cd_async(Platform::String^ path, unsigned int search_start = 0) {
+		void cd_async(Platform::String^ path, unsigned int search_start = 0, bool create_if_not_exist = true) {
 			if (search_start < path->Length()) {
 				int slash_pos = path_next_slash_position(path, search_start);
 				Platform::String^ subdir = substring(path, search_start, slash_pos);
@@ -88,10 +66,12 @@ namespace WarGrey::SCADA {
 				unsigned int next_search_pos = search_start + subdir->Length() + 1;
 				
 				if ((subsize == 0) || (subdir->Equals("."))) { // TODO: deal with '..'
-					this->cd_async(path, next_search_pos);
+					this->cd_async(path, next_search_pos, create_if_not_exist);
 				} else {
 					auto token = this->shared_task.get_token();
-					auto cd = Concurrency::create_task(this->root->CreateFolderAsync(subdir, Windows::Storage::CreationCollisionOption::OpenIfExists), token);
+					auto cd = (create_if_not_exist
+						? Concurrency::create_task(this->root->CreateFolderAsync(subdir, Windows::Storage::CreationCollisionOption::OpenIfExists), token)
+						: Concurrency::create_task(this->root->GetFolderAsync(subdir), token));
 
 					cd.then([=](Concurrency::task<Windows::Storage::StorageFolder^> sdir) {
 						this->root = sdir.get();
@@ -100,9 +80,16 @@ namespace WarGrey::SCADA {
 						try {
 							maybe_exn.get();
 						} catch (Platform::Exception^ e) {
-							this->log_message(WarGrey::SCADA::Log::Error,
-								make_wstring(L"failed to changed to directory %s: %s",
-									path->Data(), e->Message->Data()));
+							switch (e->HResult) {
+							case HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND): {
+								this->on_appdatadir_not_found(subdir);
+							}; break;
+							default: {
+								this->log_message(WarGrey::SCADA::Log::Error,
+									make_wstring(L"failed to changed to folder %s: %s",
+										path->Data(), e->Message->Data()));
+							}
+							}
 						} catch (Concurrency::task_canceled&) {
 							this->log_message(WarGrey::SCADA::Log::Debug, make_wstring(L"cancelled traversing %s", path->Data()));
 						} catch (std::exception& e) {
@@ -156,6 +143,58 @@ namespace WarGrey::SCADA {
 						make_wstring(L"load: unexcepted exception: %s", e.what()));
 				}
 			});
+		}
+
+		void list_async(Windows::Storage::StorageFolder^ root) {
+			auto token = this->shared_task.get_token();
+			auto ls = Concurrency::create_task(root->GetItemsAsync(), token);
+
+			ls.then([=](Concurrency::task<Windows::Foundation::Collections::IVectorView<Windows::Storage::IStorageItem^>^> list) {
+				auto items = list.get();
+
+				for (unsigned int idx = 0; idx < items->Size; idx++) {
+					Windows::Storage::IStorageItem^ item = items->GetAt(idx);
+					Platform::String^ name = file_name_from_path(item->Path);
+					Platform::String^ parent = this->relative_folder_name(item->Path);
+
+					if (item->IsOfType(Windows::Storage::StorageItemTypes::File)) {
+						Platform::String^ file_ext = file_extension_from_path(item->Path);
+						TypeName filetype = this->filter_file(parent, name, file_ext);
+
+						if (filetype != TypeName::_) {
+							this->load_file(name, filetype);
+						}
+					} else if (item->IsOfType(Windows::Storage::StorageItemTypes::Folder)) {
+						if (this->filter_folder(parent, name)) {
+							this->list_async(static_cast<Windows::Storage::StorageFolder^>(item));
+						}
+					}
+				}
+			}).then([=](Concurrency::task<void> maybe_exn) {
+				try {
+					maybe_exn.get();
+					this->on_appdatadir_listed(this->relative_folder_name(root->Path));
+				} catch (Platform::Exception ^ e) {
+					this->log_message(WarGrey::SCADA::Log::Error,
+						make_wstring(L"failed to list folder %s: %s",
+							root->Path->Data(), e->Message->Data()));
+				} catch (Concurrency::task_canceled&) {
+					this->log_message(WarGrey::SCADA::Log::Debug, make_wstring(L"cancelled traversing %s", root->Path->Data()));
+				} catch (std::exception & e) {
+					this->log_message(WarGrey::SCADA::Log::Debug, make_wstring(L"list_items: unexcepted exception: %s", e.what()));
+				}
+			});
+		}
+
+		Platform::String^ relative_folder_name(Platform::String^ dirpath) {
+			unsigned int root_path_size = this->root->Path->Length();
+			Platform::String^ dirname = "/";
+			
+			if (dirpath->Length() > root_path_size) {
+				dirname = substring(dirpath, root_path_size);
+			}
+
+			return dirname;
 		}
 
 	private:
