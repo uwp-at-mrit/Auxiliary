@@ -17,8 +17,8 @@ namespace WarGrey::SCADA {
 
 	protected:
 		virtual void on_directory_changed(Windows::Storage::StorageFolder^ rootdir) = 0;
-		virtual TypeName filter_file(Platform::String^ dirpath, Platform::String^ file, Platform::String^ _ext) { return TypeName::_; }
-		virtual bool filter_folder(Platform::String^ dirpath, Platform::String^ dirname) { return false; }
+		virtual TypeName filter_file(Platform::String^ parent, Platform::String^ file, Platform::String^ _ext) { return TypeName::_; }
+		virtual bool filter_folder(Platform::String^ parent, Platform::String^ dirname) { return false; }
 
 		virtual void on_appdata(Platform::String^ file, FileType^ ftobject, TypeName type) = 0;
 		virtual void on_appdatadir_listed(Platform::String^ dirname) {}
@@ -155,7 +155,7 @@ namespace WarGrey::SCADA {
 				for (unsigned int idx = 0; idx < items->Size; idx++) {
 					Windows::Storage::IStorageItem^ item = items->GetAt(idx);
 					Platform::String^ name = file_name_from_path(item->Path);
-					Platform::String^ parent = this->relative_folder_name(item->Path);
+					Platform::String^ parent = this->relative_folder_name(root->Path);
 
 					if (item->IsOfType(Windows::Storage::StorageItemTypes::File)) {
 						Platform::String^ file_ext = file_extension_from_path(item->Path);
@@ -188,7 +188,7 @@ namespace WarGrey::SCADA {
 
 		Platform::String^ relative_folder_name(Platform::String^ dirpath) {
 			unsigned int root_path_size = this->root->Path->Length();
-			Platform::String^ dirname = "/";
+			Platform::String^ dirname = nullptr;
 			
 			if (dirpath->Length() > root_path_size) {
 				dirname = substring(dirpath, root_path_size);
