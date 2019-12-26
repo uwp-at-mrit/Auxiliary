@@ -162,7 +162,11 @@ namespace WarGrey::SCADA {
 						TypeName filetype = this->filter_file(parent, name, file_ext);
 
 						if (filetype != TypeName::_) {
-							this->load_file(name, filetype);
+							if (parent == nullptr) {
+								this->load_file(name, filetype);
+							} else {
+								this->load_file(substring(item->Path, this->root->Path->Length() + 1), filetype);
+							}
 						}
 					} else if (item->IsOfType(Windows::Storage::StorageItemTypes::Folder)) {
 						if (this->filter_folder(parent, name)) {
