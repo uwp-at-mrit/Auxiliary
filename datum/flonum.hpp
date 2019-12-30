@@ -81,6 +81,10 @@ namespace WarGrey::SCADA {
 	double inline fllog(double fl, double b) { return std::log(fl) / std::log(b); }
 	long double inline fllog(long double fl, long double b) { return std::logl(fl) / std::logl(b); }
 
+	float inline flsqr(float f) { return f * f; }
+	double inline flsqr(double fl) { return fl * fl; }
+	long double inline flsqr(long double fl) { return fl * fl; }
+
 	float inline flsqrt(float f) { return std::sqrtf(f); }
 	double inline flsqrt(double fl) { return std::sqrt(fl); }
 	long double inline flsqrt(long double fl) { return std::sqrtl(fl); }
