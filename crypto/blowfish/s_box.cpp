@@ -3,10 +3,10 @@
 
 #include <cstring>
 
-using namespace WarGrey::SCADA;
+using namespace WarGrey::DTPM;
 
 /**************************************************************************************************/
-void WarGrey::SCADA::blowfish_initiate_boxes(const uint8* key, size_t size, BFBox *B) {
+void WarGrey::DTPM::blowfish_initiate_boxes(const uint8* key, size_t size, BFBox *B) {
 	const unsigned char *d, *end;
 	const size_t roundp2 = sizeof(parray) / sizeof(uint32);
 	uint32 ri;

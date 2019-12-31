@@ -4,7 +4,7 @@
 #define bf_round_do(l, r, S, P, idx) ((l ^ P[idx]) ^ bf_F(r, S))
 
 /*************************************************************************************************/
-void WarGrey::SCADA::bf_encrypt(uint32 pL, uint32 pR, const uint32* P, const uint32* S, uint32* cL, uint32* cR) {
+void WarGrey::DTPM::bf_encrypt(uint32 pL, uint32 pR, const uint32* P, const uint32* S, uint32* cL, uint32* cR) {
 	uint32 l, r;
 
     r = pR;
@@ -31,7 +31,7 @@ void WarGrey::SCADA::bf_encrypt(uint32 pL, uint32 pR, const uint32* P, const uin
     (*cL) = r & 0xffffffffU;
 }
 
-void WarGrey::SCADA::bf_decrypt(uint32 cL, uint32 cR, const uint32* P, const uint32* S, uint32* pL, uint32* pR) {
+void WarGrey::DTPM::bf_decrypt(uint32 cL, uint32 cR, const uint32* P, const uint32* S, uint32* pL, uint32* pR) {
 	uint32 l, r;
     
     r = cR;

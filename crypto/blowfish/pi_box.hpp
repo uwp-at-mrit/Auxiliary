@@ -1,6 +1,6 @@
 #pragma once
 
-namespace WarGrey::SCADA {
+namespace WarGrey::DTPM {
 	static const uint32 parray[] = {
 		 0x243f6a88U, 0x85a308d3U, 0x13198a2eU, 0x03707344U,
 		 0xa4093822U, 0x299f31d0U, 0x082efa98U, 0xec4e6c89U,

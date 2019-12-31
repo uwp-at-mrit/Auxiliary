@@ -4,7 +4,7 @@
 
 #include "datum/bytes.hpp"
 
-namespace WarGrey::SCADA {
+namespace WarGrey::DTPM {
 	private class BlowfishCipher {
 	public:
 		BlowfishCipher(const uint8* key, size_t ksize);
@@ -14,7 +14,7 @@ namespace WarGrey::SCADA {
 		size_t decrypt(const uint8* ciphertext, size_t cstart, size_t cend, uint8* plaintext, size_t pstart, size_t pend);
 
 	private:
-		WarGrey::SCADA::BFBox box;
+		WarGrey::DTPM::BFBox box;
 	};
 
 	private class BlowfishCipherCBC {
@@ -26,7 +26,7 @@ namespace WarGrey::SCADA {
 		size_t decrypt(const uint8* ciphertext, size_t cstart, size_t cend, uint8* plaintext, size_t pstart, size_t pend);
 
 	private:
-		WarGrey::SCADA::BFBox box;
+		WarGrey::DTPM::BFBox box;
 		uint32 cbcL;
 		uint32 cbcR;
 	};

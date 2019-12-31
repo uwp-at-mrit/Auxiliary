@@ -2,20 +2,20 @@
 
 #include "datum/natural.hpp"
 
-namespace WarGrey::SCADA {
+namespace WarGrey::DTPM {
 	// These APIs are intended to use `Natural` as its primitive data type instead of `uint64`s and `String`s.
 	// Hint: Strings(std::basic_string<unsigned char>) are just base-256 Naturals.
 
 	WarGrey::SCADA::Natural enc_natural(uint64 literal_id);
 	WarGrey::SCADA::Natural enc_natural(const char* literal_id, size_t digit_count, size_t start = 0U);
-	WarGrey::SCADA::Natural enc_natural(bytes& literal_id, size_t start = 0U);
+	WarGrey::SCADA::Natural enc_natural(WarGrey::SCADA::bytes& literal_id, size_t start = 0U);
 	WarGrey::SCADA::Natural enc_natural(std::string& literal_id, size_t start = 0U);
 
-	bytes enc_ascii(uint64 id);
-	bytes enc_ascii(WarGrey::SCADA::Natural& id);
+	WarGrey::SCADA::bytes enc_ascii(uint64 id);
+	WarGrey::SCADA::bytes enc_ascii(WarGrey::SCADA::Natural& id);
 
 	WarGrey::SCADA::Natural enc_natural_from_ascii(const char* literal_id, size_t digit_count, size_t start = 0U);
-	WarGrey::SCADA::Natural enc_natural_from_ascii(bytes& literal_id, size_t digit_count, size_t start = 0U);
+	WarGrey::SCADA::Natural enc_natural_from_ascii(WarGrey::SCADA::bytes& literal_id, size_t digit_count, size_t start = 0U);
 	WarGrey::SCADA::Natural enc_natural_from_ascii(std::string& literal_id, size_t digit_count, size_t start = 0U);
 
 	WarGrey::SCADA::Natural enc_natural_pad(WarGrey::SCADA::Natural bs);
