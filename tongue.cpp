@@ -71,6 +71,12 @@ Platform::String^ WarGrey::SCADA::speak(Platform::String^ word, Platform::String
 	return do_speak(scope, word, exists);
 }
 
+Platform::String^ WarGrey::SCADA::status_speak(Platform::String^ word) {
+	static ResourceLoader^ tongue = ResourceLoader::GetForViewIndependentUse("status");
+
+	return do_speak(tongue, word);
+}
+
 Platform::String^ WarGrey::SCADA::dbspeak(Platform::String^ word) {
 	static ResourceLoader^ tongue = ResourceLoader::GetForViewIndependentUse("dbfield");
 

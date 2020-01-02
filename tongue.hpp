@@ -4,6 +4,7 @@ namespace WarGrey::SCADA {
 	Platform::String^ speak(Platform::String^ word);
 	Platform::String^ speak(Platform::String^ word, Platform::String^ scope);
 	Platform::String^ speak(Platform::String^ word, Platform::String^ scope, bool* exists);
+	Platform::String^ status_speak(Platform::String^ word);
 	Platform::String^ dbspeak(Platform::String^ field);
 	Platform::String^ unitspeak(Platform::String^ unit);
 
@@ -15,6 +16,11 @@ namespace WarGrey::SCADA {
 	template<typename E>
 	Platform::String^ speak(E id, Platform::String^ scope) {
 		return WarGrey::SCADA::speak(id.ToString(), scope);
+	}
+
+	template<typename E>
+	Platform::String^ status_speak(E id) {
+		return WarGrey::SCADA::status_speak(id.ToString());
 	}
 
 	template<typename E>
