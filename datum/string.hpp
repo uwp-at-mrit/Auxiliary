@@ -63,6 +63,7 @@ std::string retval; { \
 	Platform::String^ flstring(double flonum, int precision);
 	Platform::String^ fxstring(long long fixnum, int width);
 	Platform::String^ sstring(unsigned long long bytes, int precision);
+	Platform::String^ gpstring(double position, char suffix, int precision = 3);
 
 	Platform::String^ make_wstring(const wchar_t* fmt, ...);
 	Platform::String^ make_wstring(const char* bytes);

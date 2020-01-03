@@ -95,6 +95,25 @@ Platform::String^ WarGrey::SCADA::sstring(unsigned long long bytes, int precisio
 	return size;
 }
 
+Platform::String^ WarGrey::SCADA::gpstring(double position, char suffix, int precision) {
+	double abs_dmm = flabs(position);
+	int deg = int(flfloor(abs_dmm / 100.0));
+	double mm_mm = abs_dmm - deg * 100.0;
+	int min = int(flfloor(mm_mm));
+	int sec = int(flround((mm_mm - min) * 60.0));
+
+	if (position < 0.0) {
+		deg = -deg;
+	}
+
+	if (sec >= 60) {
+		min += 1;
+		sec -= 60;
+	}
+
+	return make_wstring(L"%d°%d'%d\"%c", deg, min, sec, suffix);
+}
+
 /*************************************************************************************************/
 Platform::String^ WarGrey::SCADA::substring(Platform::String^ src, int start, int endplus1) {
 	Platform::String^ substr = nullptr;
