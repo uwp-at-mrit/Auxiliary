@@ -9,10 +9,12 @@
 
 namespace WarGrey::SCADA {
 	private enum class TCPMode { Root, User, Debug, _ };
+	private enum class TCPType { PLC, GPS, AIS, _ };
 	
 	private class ITCPConnection abstract {
 	public:
 		virtual ~ITCPConnection() noexcept;
+		ITCPConnection(WarGrey::SCADA::TCPType type) : type(type) {}
 
 	public:
 		virtual Platform::String^ device_hostname() = 0;
@@ -31,7 +33,8 @@ namespace WarGrey::SCADA {
 	public:
 		bool authorized();
 		void set_mode(WarGrey::SCADA::TCPMode mode);
-		WarGrey::SCADA::TCPMode get_mode();
+		WarGrey::SCADA::TCPMode get_mode() { return this->mode; }
+		WarGrey::SCADA::TCPType get_type() { return this->type; }
 
 	public:
 		void set_suicide_timeout(long long timeout_ms);
@@ -41,6 +44,7 @@ namespace WarGrey::SCADA {
 
 	private:
 		WarGrey::SCADA::TCPMode mode = TCPMode::Root;
+		WarGrey::SCADA::TCPType type = TCPType::PLC;
 		Platform::Object^ killer;
 	};
 
@@ -56,6 +60,9 @@ namespace WarGrey::SCADA {
 
 	template<class TCPStateListener>
 	private class ITCPFeedBackConnection abstract : public WarGrey::SCADA::ITCPConnection {
+	public:
+		ITCPFeedBackConnection(WarGrey::SCADA::TCPType type) : ITCPConnection(type) {}
+
 	public:
 		void push_status_listener(TCPStateListener* listener) {
 			if (listener != nullptr) {

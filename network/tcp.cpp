@@ -65,7 +65,3 @@ bool ITCPConnection::authorized() {
 void ITCPConnection::set_mode(WarGrey::SCADA::TCPMode mode) {
 	this->mode = mode;
 }
-
-TCPMode ITCPConnection::get_mode() {
-	return this->mode;
-}
