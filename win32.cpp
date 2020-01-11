@@ -7,7 +7,7 @@ using namespace WarGrey::SCADA;
 
 using namespace Windows::Foundation;
 
-HMODULE win32_load_foreign_library(Platform::String^ dllname, Syslog* logger) {
+HMODULE WarGrey::SCADA::win32_load_foreign_library(Platform::String^ dllname, Syslog* logger) {
 	HMODULE m = nullptr;
 	Platform::String^ bslash = L"\\";
 	Platform::String^ dll = "stone" + bslash + "lib" + bslash + dllname;
@@ -26,7 +26,7 @@ HMODULE win32_load_foreign_library(Platform::String^ dllname, Syslog* logger) {
 	return m;
 }
 
-bool win32_unload_foreign_library(HMODULE m, Syslog* logger) {
+bool WarGrey::SCADA::win32_unload_foreign_library(HMODULE m, Syslog* logger) {
 	int okay = FreeLibrary(m);
 
 	if (okay == 0) {
@@ -40,7 +40,7 @@ bool win32_unload_foreign_library(HMODULE m, Syslog* logger) {
 	return (okay > 0);
 }
 
-FARPROC win32_fetch_foreign_object(HMODULE m, LPCSTR name, Syslog* logger) {
+FARPROC WarGrey::SCADA::win32_fetch_foreign_object(HMODULE m, LPCSTR name, Syslog* logger) {
 	FARPROC fobj = GetProcAddress(m, name);
 
 	if (fobj == nullptr) {
@@ -58,7 +58,7 @@ FARPROC win32_fetch_foreign_object(HMODULE m, LPCSTR name, Syslog* logger) {
 	return fobj;
 }
 
-Platform::String^ win32_last_strerror() {
+Platform::String^ WarGrey::SCADA::win32_last_strerror() {
 	Platform::String^ message = nullptr;
 	DWORD flags = FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS;
 	DWORD lang = MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT);

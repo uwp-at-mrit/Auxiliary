@@ -8,20 +8,20 @@ static Platform::String^ default_racket_receiver_host = nullptr;
 static Platform::String^ default_logging_topic = "WinSCADA";
 static Log default_logging_level = Log::Debug;
 
-void set_default_logging_level(Log level) {
+void WarGrey::SCADA::set_default_logging_level(Log level) {
 	default_logging_level = level;
 }
 
-void set_default_logging_topic(Platform::String^ topic) {
+void WarGrey::SCADA::set_default_logging_topic(Platform::String^ topic) {
 	default_logging_topic = topic;
 }
 
-void set_default_racket_receiver_host(Platform::String^ ipv4) {
+void WarGrey::SCADA::set_default_racket_receiver_host(Platform::String^ ipv4) {
 	default_racket_receiver_host = ipv4;
 }
 
 /*************************************************************************************************/
-RacketReceiver* default_racket_receiver() {
+RacketReceiver* WarGrey::SCADA::default_racket_receiver() {
 	static RacketReceiver* rsyslog;
 
 	if ((rsyslog == nullptr) && (default_racket_receiver_host != nullptr)) {
@@ -32,7 +32,7 @@ RacketReceiver* default_racket_receiver() {
 	return rsyslog;
 }
 
-Syslog* default_logger() {
+Syslog* WarGrey::SCADA::default_logger() {
 	static Syslog* winlog;
 
 	if (winlog == nullptr) {
@@ -51,13 +51,13 @@ Syslog* default_logger() {
 	return winlog;
 }
 
-void syslog(Log level, Platform::String^ message) {
+void WarGrey::SCADA::syslog(Log level, Platform::String^ message) {
 	auto self = default_logger();
 
 	self->log_message(level, message);
 }
 
-void syslog(Log level, const wchar_t *fmt, ...) {
+void WarGrey::SCADA::syslog(Log level, const wchar_t *fmt, ...) {
 	VSWPRINT(message, fmt);
 
 	syslog(level, message);
@@ -80,18 +80,18 @@ implement_syslog(panic,    Log::Panic)
 #undef implement_syslog
 
 /*************************************************************************************************/
-Syslog* make_logger(Log level, Platform::String^ topic, Syslog* parent) {
+Syslog* WarGrey::SCADA::make_logger(Log level, Platform::String^ topic, Syslog* parent) {
 	return new Syslog(level, topic, parent);
 }
 
-Syslog* make_silent_logger(Platform::String^ topic) {
+Syslog* WarGrey::SCADA::make_silent_logger(Platform::String^ topic) {
 	return make_logger(Log::_, topic);
 }
 
-Syslog* make_system_logger(Log level, Platform::String^ topic) {
+Syslog* WarGrey::SCADA::make_system_logger(Log level, Platform::String^ topic) {
 	return make_logger(level, topic, default_logger());
 }
 
-Syslog* make_system_logger(Platform::String^ topic) {
+Syslog* WarGrey::SCADA::make_system_logger(Platform::String^ topic) {
 	return make_logger(default_logging_level, topic, default_logger());
 }
