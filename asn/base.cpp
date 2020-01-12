@@ -7,7 +7,7 @@ using namespace WarGrey::SCADA;
 using namespace WarGrey::DTPM;
 
 /*************************************************************************************************/
-static inline size_t fill_natural_octets(uint8* pool, unsigned long long n, size_t capacity, size_t payload) {
+static inline size_t fill_ufixnum_octets(uint8* pool, unsigned long long n, size_t capacity, size_t payload) {
     do {
         payload++;
         pool[capacity - payload] = (uint8)(n & 0xFF);
@@ -17,9 +17,9 @@ static inline size_t fill_natural_octets(uint8* pool, unsigned long long n, size
     return payload;
 }
 
-static inline size_t fill_integer_octets(uint8* pool, long long n, size_t capacity, size_t payload) {
+static inline size_t fill_fixnum_octets(uint8* pool, long long n, size_t capacity, size_t payload) {
     if (n >= 0) {
-        payload = fill_natural_octets(pool, n, capacity, payload);
+        payload = fill_ufixnum_octets(pool, n, capacity, payload);
 
         if (pool[capacity - payload] >= 0b10000000) {
             pool[capacity - (++payload)] = 0;
@@ -41,7 +41,7 @@ static inline size_t fill_length_octets(uint8* pool, size_t length, size_t capac
     if (length <= 127) {
         pool[capacity - payload] = (uint8)(length);
     } else {
-        payload = fill_natural_octets(pool, length, capacity, payload - 1);
+        payload = fill_ufixnum_octets(pool, length, capacity, payload - 1);
         pool[capacity - (++payload)] = (uint8)(0b10000000 | payload);
     }
 
@@ -123,10 +123,10 @@ bool WarGrey::DTPM::asn_primitive_predicate(ASNPrimitive type, octets& content, 
     return (asn_primitive_identifier(type) == content[offset]);
 }
 
-octets WarGrey::DTPM::asn_octets_box(uint8 tag, octets& content) {
+octets WarGrey::DTPM::asn_octets_box(uint8 tag, octets& content, size_t size) {
     uint8 pool[10];
     size_t capacity = sizeof(pool) / sizeof(uint8);
-    size_t payload = fill_length_octets(pool, content.size(), capacity);
+    size_t payload = fill_length_octets(pool, size, capacity);
 
     pool[capacity - (++payload)] = tag;
 
@@ -143,10 +143,10 @@ size_t WarGrey::DTPM::asn_octets_unbox(WarGrey::DTPM::octets& basn, size_t* offs
 }
 
 /*************************************************************************************************/
-octets WarGrey::DTPM::asn_integer_to_octets(long long integer) {
+octets WarGrey::DTPM::asn_fixnum_to_octets(long long fixnum) {
     uint8 pool[12];
     size_t capacity = sizeof(pool) / sizeof(uint8);
-    size_t payload = fill_integer_octets(pool, integer, capacity, 0U);
+    size_t payload = fill_fixnum_octets(pool, fixnum, capacity, 0U);
 
     pool[capacity - (++payload)] = (uint8)payload;
     pool[capacity - (++payload)] = asn_primitive_identifier(ASNPrimitive::Integer);
@@ -154,16 +154,38 @@ octets WarGrey::DTPM::asn_integer_to_octets(long long integer) {
     return octets(pool + (capacity - payload), payload);
 }
 
-long long WarGrey::DTPM::asn_octets_to_integer(octets& bint, size_t* offset0) {
+long long WarGrey::DTPM::asn_octets_to_fixnum(octets& bfixnum, size_t* offset0) {
     size_t offset = ((offset0 == nullptr) ? 0 : (*offset0));
-    size_t size = asn_octets_unbox(bint, &offset);
+    size_t size = asn_octets_unbox(bfixnum, &offset);
     long long integer = 0;
 
-    fill_integer_from_bytes(&integer, bint, offset - size, offset, true);
+    fill_integer_from_bytes(&integer, bfixnum, offset - size, offset, true);
 
     SET_BOX(offset0, offset);
 
     return integer;
+}
+
+octets WarGrey::DTPM::asn_natural_to_octets(Natural& nat) {
+    octets payload = nat.to_bytes();
+    size_t size = nat.length();
+    
+    if (payload[0] >= 0b10000000) {
+        payload.insert(0, 1, '\x00');
+        size += 1;
+    }
+
+    return asn_octets_box(asn_primitive_identifier(ASNPrimitive::Integer), payload, size);
+}
+
+Natural WarGrey::DTPM::asn_octets_to_natural(octets& bnat, size_t* offset0) {
+    size_t offset = ((offset0 == nullptr) ? 0 : (*offset0));
+    size_t size = asn_octets_unbox(bnat, &offset);
+    Natural nat(bnat, offset - size, offset);
+
+    SET_BOX(offset0, offset);
+
+    return nat;
 }
 
 octets WarGrey::DTPM::asn_real_to_octets(double real) {
@@ -196,8 +218,8 @@ octets WarGrey::DTPM::asn_real_to_octets(double real) {
         long long E, N;
         
         fill_real_binary(flabs(real), double(base), &E, &N);
-        info_size = fill_integer_octets(pool, N, capacity, payload);
-        payload = fill_integer_octets(pool, E, capacity, info_size);
+        info_size = fill_fixnum_octets(pool, N, capacity, payload);
+        payload = fill_fixnum_octets(pool, E, capacity, info_size);
         info_size = payload - info_size;
 
         switch (base) {

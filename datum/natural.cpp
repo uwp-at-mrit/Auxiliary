@@ -4,6 +4,7 @@
 #include "datum/fixnum.hpp"
 
 using namespace WarGrey::SCADA;
+using namespace WarGrey::DTPM;
 
 /*************************************************************************************************/
 template<typename BYTE>
@@ -977,7 +978,7 @@ Natural& Natural::modular_expt(unsigned long long b, const Natural& n) {
 }
 
 /*************************************************************************************************/
-WarGrey::SCADA::Natural Natural::operator~() {
+Natural Natural::operator~() {
 	Natural ones_complement(*this);
 
 	
@@ -1125,7 +1126,7 @@ Natural& Natural::operator&=(unsigned long long rhs) {
 	return (*this);
 }
 
-Natural& Natural::operator&=(const WarGrey::SCADA::Natural& rhs) {
+Natural& Natural::operator&=(const Natural& rhs) {
 	size_t upsize = fxmin(this->payload, rhs.payload);
 
 	this->payload = 0U;
@@ -1165,7 +1166,7 @@ Natural& Natural::operator|=(unsigned long long rhs) {
 	return (*this);
 }
 
-Natural& Natural::operator|=(const WarGrey::SCADA::Natural& rhs) {
+Natural& Natural::operator|=(const Natural& rhs) {
 	if (!rhs.is_zero()) {
 		size_t digits = fxmax(this->payload, rhs.payload);
 		size_t cdigits = fxmin(this->payload, rhs.payload);
@@ -1231,7 +1232,7 @@ Natural& Natural::operator^=(unsigned long long rhs) {
 	return (*this);
 }
 
-Natural& Natural::operator^=(const WarGrey::SCADA::Natural& rhs) {
+Natural& Natural::operator^=(const Natural& rhs) {
 	if (!rhs.is_zero()) {
 		size_t digits = fxmax(this->payload, rhs.payload);
 		size_t cdigits = fxmin(this->payload, rhs.payload);
