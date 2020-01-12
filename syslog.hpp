@@ -25,13 +25,13 @@ namespace WarGrey::SCADA {
     void syslog_##level(Platform::String^ message);
 
     declare_syslog(debug)
-        declare_syslog(info)
-        declare_syslog(notice)
-        declare_syslog(warning)
-        declare_syslog(error)
-        declare_syslog(critical)
-        declare_syslog(alert)
-        declare_syslog(panic)
+    declare_syslog(info)
+    declare_syslog(notice)
+    declare_syslog(warning)
+    declare_syslog(error)
+    declare_syslog(critical)
+    declare_syslog(alert)
+    declare_syslog(panic)
 
 #undef declare_syslog
 }

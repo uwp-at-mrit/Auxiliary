@@ -40,10 +40,14 @@ namespace WarGrey::SCADA {
 	static const float infinity_f        = std::numeric_limits<float>::infinity();
 	static const double infinity         = std::numeric_limits<double>::infinity();
 	static const long double infinity_t  = std::numeric_limits<long double>::infinity();
-
+	
 	bool inline flisnan(float f) { return std::isnan(f); }
 	bool inline flisnan(double fl) { return std::isnan(fl); }
 	bool inline flisnan(long double fl) { return std::isnan(fl); }
+
+	bool inline flisfinite(float f) { return std::isfinite(f); }
+	bool inline flisfinite(double fl) { return std::isfinite(fl); }
+	bool inline flisfinite(long double fl) { return std::isfinite(fl); }
 
 	float inline flsafe(float v, float fallback = 0.0F) { return (flisnan(v) ? fallback : v); }
 	double inline flsafe(double v, double fallback = 0.0) { return (flisnan(v) ? fallback : v); }
@@ -69,6 +73,7 @@ namespace WarGrey::SCADA {
 	double inline flabs(double fl) { return std::abs(fl); }
 	long double inline flabs(long double fl) { return std::abs(fl); }
 
+	// WARNING: 0.0 is +0.0, hence, flsign(0.0) => 1.0
 	float inline flsign(float f) { return std::copysignf(1.0f, f); }
 	double inline flsign(double fl) { return std::copysign(1.0, fl); }
 	long double inline flsign(long double fl) { return std::copysignl(1.0l, fl); }
