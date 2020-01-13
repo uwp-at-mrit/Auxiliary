@@ -10,7 +10,7 @@ static void initialize_identifiers() {
         size_t total = sizeof(identifiers) / sizeof(uint8);
 
         for (size_t idx = 0; idx < total; idx++) {
-            identifiers[idx] = asn_identifier_octet(idx);
+            identifiers[idx] = asn_identifier_octet((uint8)idx);
         }
 
         initialized = true;
@@ -62,6 +62,7 @@ uint8 WarGrey::DTPM::asn_primitive_identifier(ASNPrimitive type) {
     case ASNPrimitive::Null:       idx = 0x05; break;
     case ASNPrimitive::Real:       idx = 0x09; break;
     case ASNPrimitive::Enumerated: idx = 0x0A; break;
+    case ASNPrimitive::IA5:        idx = 0x16; break;
     }
 
     return identifiers[idx];

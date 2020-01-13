@@ -4,7 +4,8 @@ namespace WarGrey::DTPM {
     private enum class ASNPrimitive {
         Boolean, Integer, /* BitString, OctetString, */ Null,
         /* ObjectIdentifier, ObjectDescriptor, External, */
-        Real, Enumerated
+        Real, Enumerated,
+        IA5
     };
 
     private enum class ASN1TagClass { Universal, Application, ContextSpecific, Private };

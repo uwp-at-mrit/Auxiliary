@@ -143,6 +143,25 @@ size_t WarGrey::DTPM::asn_octets_unbox(WarGrey::DTPM::octets& basn, size_t* offs
 }
 
 /*************************************************************************************************/
+octets WarGrey::DTPM::asn_boolean_to_octets(bool b) {
+    uint8 pool[3];
+   
+    pool[0] = asn_primitive_identifier(ASNPrimitive::Boolean);
+    pool[1] = 0x01;
+    pool[2] = (b ? 0xFF : 0x00);
+
+    return octets(pool, sizeof(pool)/sizeof(uint8));
+}
+
+bool WarGrey::DTPM::asn_octets_to_boolean(octets& bnat, size_t* offset0) {
+    size_t offset = ((offset0 == nullptr) ? 0 : (*offset0));
+    size_t size = asn_octets_unbox(bnat, &offset);
+    
+    SET_BOX(offset0, offset);
+
+    return (bnat[offset - size] > 0x00);
+}
+
 octets WarGrey::DTPM::asn_fixnum_to_octets(long long fixnum) {
     uint8 pool[12];
     size_t capacity = sizeof(pool) / sizeof(uint8);
@@ -186,6 +205,24 @@ Natural WarGrey::DTPM::asn_octets_to_natural(octets& bnat, size_t* offset0) {
     SET_BOX(offset0, offset);
 
     return nat;
+}
+
+octets WarGrey::DTPM::asn_null_to_octets(std::nullptr_t placeholder) {
+    uint8 pool[2];
+
+    pool[0] = asn_primitive_identifier(ASNPrimitive::Null);
+    pool[1] = 0x00;
+
+    return octets(pool, sizeof(pool) / sizeof(uint8));
+}
+
+std::nullptr_t WarGrey::DTPM::asn_octets_to_null(octets& bnat, size_t* offset0) {
+    size_t offset = ((offset0 == nullptr) ? 0 : (*offset0));
+    size_t size = asn_octets_unbox(bnat, &offset);
+
+    SET_BOX(offset0, offset);
+
+    return nullptr;
 }
 
 octets WarGrey::DTPM::asn_real_to_octets(double real) {
@@ -298,4 +335,21 @@ double WarGrey::DTPM::asn_octets_to_real(octets& breal, size_t* offset0) {
     SET_BOX(offset0, offset);
 
     return real;
+}
+
+octets WarGrey::DTPM::asn_ia5_to_octets(std::string& str) {
+    size_t size = str.length();
+    octets payload((uint8*)str.c_str(), 0, size);
+   
+    return asn_octets_box(asn_primitive_identifier(ASNPrimitive::IA5), payload, size);
+}
+
+std::string WarGrey::DTPM::asn_octets_to_ia5(octets& bnat, size_t* offset0) {
+    size_t offset = ((offset0 == nullptr) ? 0 : (*offset0));
+    size_t size = asn_octets_unbox(bnat, &offset);
+    Natural nat(bnat, offset - size, offset);
+
+    SET_BOX(offset0, offset);
+
+    return std::string((char*)bnat.c_str(), offset - size, size);
 }
