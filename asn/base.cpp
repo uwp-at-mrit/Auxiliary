@@ -1,3 +1,5 @@
+#include <Windows.h>
+
 #include "asn/base.hpp"
 
 #include "datum/box.hpp"
@@ -88,6 +90,57 @@ static inline void fill_integer_from_bytes(N* n, octets& pool, size_t start, siz
     for (size_t idx = start; idx < end; idx++) {
         (*n) = ((*n) << 8U) | pool[idx];
     }
+}
+
+// https://docs.microsoft.com/en-us/windows/win32/intl/code-page-identifiers
+const uint32 UTF8_CODE = (uint32)65001;
+
+static octets make_utf8_string(const wchar_t* src, size_t size) {
+    uint8 upool[1024];
+    uint8* pool = upool;
+    size_t usize = sizeof(upool) / sizeof(uint8);
+    octets utf8;
+
+    if (size > usize) {
+        pool = new uint8[size];
+        usize = size;
+    }
+
+    usize = WideCharToMultiByte(UTF8_CODE, 0, src, int(size), (char*)pool, int(usize), NULL, NULL);
+
+    if (usize > 0) {
+        utf8 = octets(pool, usize);
+    }
+
+    if (pool != upool) {
+        delete[] pool;
+    }
+
+    return utf8;
+}
+
+static std::wstring make_wide_string(const uint8* src, size_t size) {
+    wchar_t wpool[1024];
+    wchar_t* pool = wpool;
+    size_t wsize = sizeof(wpool) / sizeof(wchar_t);
+    std::wstring wide;
+
+    if (size > wsize) {
+        pool = new wchar_t[size];
+        wsize = size;
+    }
+
+    wsize = (size_t)(MultiByteToWideChar(UTF8_CODE, 0, (char*)src, int(size), pool, int(wsize)));
+
+    if (wsize > 0) {
+        wide = std::wstring(pool, wsize);
+    }
+
+    if (pool != wpool) {
+        delete[] pool;
+    }
+
+    return wide;
 }
 
 /*************************************************************************************************/
@@ -341,15 +394,36 @@ octets WarGrey::DTPM::asn_ia5_to_octets(std::string& str) {
     size_t size = str.length();
     octets payload((uint8*)str.c_str(), 0, size);
    
-    return asn_octets_box(asn_primitive_identifier(ASNPrimitive::IA5), payload, size);
+    return asn_octets_box(asn_primitive_identifier(ASNPrimitive::IA5_String), payload, size);
 }
 
-std::string WarGrey::DTPM::asn_octets_to_ia5(octets& bnat, size_t* offset0) {
+std::string WarGrey::DTPM::asn_octets_to_ia5(octets& bia5, size_t* offset0) {
     size_t offset = ((offset0 == nullptr) ? 0 : (*offset0));
-    size_t size = asn_octets_unbox(bnat, &offset);
-    Natural nat(bnat, offset - size, offset);
+    size_t size = asn_octets_unbox(bia5, &offset);
+    Natural nat(bia5, offset - size, offset);
 
     SET_BOX(offset0, offset);
 
-    return std::string((char*)bnat.c_str(), offset - size, size);
+    return std::string((char*)bia5.c_str(), offset - size, size);
+}
+
+octets WarGrey::DTPM::asn_utf8_to_octets(Platform::String^ str) {
+    octets payload = make_utf8_string(str->Data(), str->Length());
+
+    return asn_octets_box(asn_primitive_identifier(ASNPrimitive::UTF8_String), payload, payload.size());
+}
+
+octets WarGrey::DTPM::asn_utf8_to_octets(std::wstring& str) {
+    octets payload = make_utf8_string(str.c_str(), str.size());
+
+    return asn_octets_box(asn_primitive_identifier(ASNPrimitive::UTF8_String), payload, payload.size());
+}
+
+std::wstring WarGrey::DTPM::asn_octets_to_utf8(octets& butf8, size_t* offset0) {
+    size_t offset = ((offset0 == nullptr) ? 0 : (*offset0));
+    size_t size = asn_octets_unbox(butf8, &offset);
+    
+    SET_BOX(offset0, offset);
+
+    return make_wide_string(butf8.c_str() + (offset - size), size);
 }

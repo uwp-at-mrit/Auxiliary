@@ -33,5 +33,9 @@ namespace WarGrey::DTPM {
     double asn_octets_to_real(WarGrey::DTPM::octets& bint, size_t* offset = nullptr);
 
     WarGrey::DTPM::octets asn_ia5_to_octets(std::string& ia5_str);
-    std::string asn_octets_to_ia5(WarGrey::DTPM::octets& bint, size_t* offset = nullptr);
+    std::string asn_octets_to_ia5(WarGrey::DTPM::octets& bia5, size_t* offset = nullptr);
+
+    WarGrey::DTPM::octets asn_utf8_to_octets(Platform::String^ wide_str);
+    WarGrey::DTPM::octets asn_utf8_to_octets(std::wstring& wide_str);
+    std::wstring asn_octets_to_utf8(WarGrey::DTPM::octets& butf8, size_t* offset = nullptr);
 }

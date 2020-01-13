@@ -57,12 +57,13 @@ uint8 WarGrey::DTPM::asn_primitive_identifier(ASNPrimitive type) {
     initialize_identifiers();
 
     switch (type) {
-    case ASNPrimitive::Boolean:    idx = 0x01; break;
-    case ASNPrimitive::Integer:    idx = 0x02; break;
-    case ASNPrimitive::Null:       idx = 0x05; break;
-    case ASNPrimitive::Real:       idx = 0x09; break;
-    case ASNPrimitive::Enumerated: idx = 0x0A; break;
-    case ASNPrimitive::IA5:        idx = 0x16; break;
+    case ASNPrimitive::Boolean:     idx = 0x01; break;
+    case ASNPrimitive::Integer:     idx = 0x02; break;
+    case ASNPrimitive::Null:        idx = 0x05; break;
+    case ASNPrimitive::Real:        idx = 0x09; break;
+    case ASNPrimitive::Enumerated:  idx = 0x0A; break;
+    case ASNPrimitive::UTF8_String: idx = 0x0C; break;
+    case ASNPrimitive::IA5_String:  idx = 0x16; break;
     }
 
     return identifiers[idx];

@@ -5,7 +5,7 @@ namespace WarGrey::DTPM {
         Boolean, Integer, /* BitString, OctetString, */ Null,
         /* ObjectIdentifier, ObjectDescriptor, External, */
         Real, Enumerated,
-        IA5
+        UTF8_String, IA5_String
     };
 
     private enum class ASN1TagClass { Universal, Application, ContextSpecific, Private };
