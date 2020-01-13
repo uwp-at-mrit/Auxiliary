@@ -179,10 +179,13 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)asn\base.hpp">
       <Filter>asn</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\wargrey\Source\Repos\Tamer\Auxiliary\asn\der.hpp">
+    <ClInclude Include="$(MSBuildThisFileDirectory)asn\identifier.hpp">
       <Filter>asn</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)asn\identifier.hpp">
+    <ClInclude Include="$(MSBuildThisFileDirectory)asn\enumerated.hpp">
+      <Filter>asn</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)asn\der.hpp">
       <Filter>asn</Filter>
     </ClInclude>
   </ItemGroup>

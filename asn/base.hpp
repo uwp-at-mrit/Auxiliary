@@ -14,13 +14,14 @@ namespace WarGrey::DTPM {
 
     bool asn_primitive_predicate(WarGrey::DTPM::ASNPrimitive type, WarGrey::DTPM::octets& content, size_t offset = 0);
     WarGrey::DTPM::octets asn_octets_box(uint8 tag, WarGrey::DTPM::octets& content, size_t size);
-    size_t asn_octets_unbox(WarGrey::DTPM::octets& basn, size_t* offset);
+    size_t asn_octets_unbox(WarGrey::DTPM::octets& basn, size_t* offset = nullptr);
+    WarGrey::DTPM::octets asn_int64_to_octets(long long integer, WarGrey::DTPM::ASNPrimitive id = ASNPrimitive::Integer);
 
     // NOTE: `asn_octets_to_xxx` does not check the tag, please ensure that the octet is really what it should be.  
     WarGrey::DTPM::octets asn_boolean_to_octets(bool b);
     bool asn_octets_to_boolean(WarGrey::DTPM::octets& bbool, size_t* offset = nullptr);
 
-    WarGrey::DTPM::octets asn_fixnum_to_octets(long long integer);
+    inline WarGrey::DTPM::octets asn_fixnum_to_octets(long long integer) { return asn_int64_to_octets(integer, ASNPrimitive::Integer); }
     long long asn_octets_to_fixnum(WarGrey::DTPM::octets& bint, size_t* offset = nullptr);
 
     WarGrey::DTPM::octets asn_natural_to_octets(WarGrey::DTPM::Natural& integer);

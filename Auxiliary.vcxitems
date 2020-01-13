@@ -49,6 +49,7 @@
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)asn\der.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)asn\base.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)asn\enumerated.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)asn\identifier.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)backtask.hxx" />
     <ClInclude Include="$(MSBuildThisFileDirectory)crypto\blowfish.hpp" />

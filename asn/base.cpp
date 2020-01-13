@@ -95,21 +95,24 @@ static inline void fill_integer_from_bytes(N* n, octets& pool, size_t start, siz
 // https://docs.microsoft.com/en-us/windows/win32/intl/code-page-identifiers
 const uint32 UTF8_CODE = (uint32)65001;
 
-static octets make_utf8_string(const wchar_t* src, size_t size) {
+static octets make_utf8_string(const wchar_t* src, size_t* size) {
     uint8 upool[1024];
     uint8* pool = upool;
     size_t usize = sizeof(upool) / sizeof(uint8);
     octets utf8;
 
-    if (size > usize) {
-        pool = new uint8[size];
-        usize = size;
+    if ((*size) > usize) {
+        pool = new uint8[*size];
+        usize = (*size);
     }
 
-    usize = WideCharToMultiByte(UTF8_CODE, 0, src, int(size), (char*)pool, int(usize), NULL, NULL);
+    usize = WideCharToMultiByte(UTF8_CODE, 0, src, int(*size), (char*)pool, int(usize), NULL, NULL);
 
     if (usize > 0) {
         utf8 = octets(pool, usize);
+        (*size) = usize;
+    } else {
+        (*size) = 0;
     }
 
     if (pool != upool) {
@@ -183,7 +186,7 @@ octets WarGrey::DTPM::asn_octets_box(uint8 tag, octets& content, size_t size) {
 
     pool[capacity - (++payload)] = tag;
 
-    return octets(pool + (capacity - payload), payload).append(content);
+    return octets(content, 0, size).insert(0, pool + (capacity - payload), payload);
 }
 
 size_t WarGrey::DTPM::asn_octets_unbox(WarGrey::DTPM::octets& basn, size_t* offset) {
@@ -215,13 +218,13 @@ bool WarGrey::DTPM::asn_octets_to_boolean(octets& bnat, size_t* offset0) {
     return (bnat[offset - size] > 0x00);
 }
 
-octets WarGrey::DTPM::asn_fixnum_to_octets(long long fixnum) {
+octets WarGrey::DTPM::asn_int64_to_octets(long long fixnum, ASNPrimitive id) {
     uint8 pool[12];
     size_t capacity = sizeof(pool) / sizeof(uint8);
     size_t payload = fill_fixnum_octets(pool, fixnum, capacity, 0U);
 
     pool[capacity - (++payload)] = (uint8)payload;
-    pool[capacity - (++payload)] = asn_primitive_identifier(ASNPrimitive::Integer);
+    pool[capacity - (++payload)] = asn_primitive_identifier(id);
 
     return octets(pool + (capacity - payload), payload);
 }
@@ -408,15 +411,17 @@ std::string WarGrey::DTPM::asn_octets_to_ia5(octets& bia5, size_t* offset0) {
 }
 
 octets WarGrey::DTPM::asn_utf8_to_octets(Platform::String^ str) {
-    octets payload = make_utf8_string(str->Data(), str->Length());
+    size_t size = str->Length();
+    octets payload = make_utf8_string(str->Data(), &size);
 
-    return asn_octets_box(asn_primitive_identifier(ASNPrimitive::UTF8_String), payload, payload.size());
+    return asn_octets_box(asn_primitive_identifier(ASNPrimitive::UTF8_String), payload, size);
 }
 
 octets WarGrey::DTPM::asn_utf8_to_octets(std::wstring& str) {
-    octets payload = make_utf8_string(str.c_str(), str.size());
+    size_t size = str.size();
+    octets payload = make_utf8_string(str.c_str(), &size);
 
-    return asn_octets_box(asn_primitive_identifier(ASNPrimitive::UTF8_String), payload, payload.size());
+    return asn_octets_box(asn_primitive_identifier(ASNPrimitive::UTF8_String), payload, size);
 }
 
 std::wstring WarGrey::DTPM::asn_octets_to_utf8(octets& butf8, size_t* offset0) {
