@@ -64,11 +64,14 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)crypto\checksum.cpp">
       <Filter>crypto</Filter>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)asn\base.cpp">
-      <Filter>asn</Filter>
+    <ClCompile Include="$(MSBuildThisFileDirectory)asn\der\base.cpp">
+      <Filter>asn\der</Filter>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)asn\identifier.cpp">
-      <Filter>asn</Filter>
+    <ClCompile Include="$(MSBuildThisFileDirectory)asn\der\identifier.cpp">
+      <Filter>asn\der</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)asn\der\sequence.cpp">
+      <Filter>asn\der</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -176,17 +179,20 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)crypto\checksum.hpp">
       <Filter>crypto</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)asn\base.hpp">
-      <Filter>asn</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)asn\identifier.hpp">
-      <Filter>asn</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)asn\enumerated.hpp">
-      <Filter>asn</Filter>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)asn\der.hpp">
       <Filter>asn</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)asn\der\base.hpp">
+      <Filter>asn\der</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)asn\der\enumerated.hpp">
+      <Filter>asn\der</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)asn\der\identifier.hpp">
+      <Filter>asn\der</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)asn\der\sequence.hpp">
+      <Filter>asn\der</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -213,6 +219,9 @@
     </Filter>
     <Filter Include="asn">
       <UniqueIdentifier>{bffe5ed7-a23d-4947-9131-fb1cfe52cc5c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="asn\der">
+      <UniqueIdentifier>{03a24b58-875b-4a7e-a5d2-5664def7260c}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

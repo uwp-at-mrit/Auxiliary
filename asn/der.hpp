@@ -1,5 +1,6 @@
 #pragma once
 
-#include "asn/base.hpp"
-#include "asn/identifier.hpp"
-#include "asn/enumerated.hpp"
+#include "asn/der/base.hpp"
+#include "asn/der/identifier.hpp"
+#include "asn/der/enumerated.hpp"
+#include "asn/der/sequence.hpp"
