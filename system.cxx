@@ -29,6 +29,7 @@ using namespace Windows::Networking;
 using namespace Windows::Networking::Connectivity;
 
 using namespace Windows::UI;
+using namespace Windows::UI::Core;
 using namespace Windows::UI::Xaml;
 using namespace Windows::UI::Xaml::Controls;
 using namespace Windows::UI::ViewManagement;
@@ -37,6 +38,7 @@ typedef TypedEventHandler<Battery^, Platform::Object^> BatteryUpdateHandler;
 typedef TypedEventHandler<WiFiAdapter^, Platform::Object^> WiFiUpdateHandler;
 
 static UISettings^ sysUI = nullptr;
+static CoreDispatcher^ ui_thread = nullptr;
 
 static inline Size adjust_size(float Width, float Height, FrameworkElement^ workspace) {
     auto margin = workspace->Margin;
@@ -78,6 +80,21 @@ Color WarGrey::SCADA::system_color(UIElementType type) {
     }
 
     return sysUI->UIElementColor(type);
+}
+
+/*************************************************************************************************/
+void WarGrey::SCADA::ui_thread_initialize() {
+	if (ui_thread == nullptr) {
+		ui_thread = CoreWindow::GetForCurrentThread()->Dispatcher;
+	}
+}
+
+bool WarGrey::SCADA::ui_thread_accessed() {
+	return ui_thread->HasThreadAccess;
+}
+
+IAsyncAction^ WarGrey::SCADA::ui_thread_run_async(DispatchedHandler^ handler, CoreDispatcherPriority priority) {
+	return ui_thread->RunAsync(priority, handler);
 }
 
 /*************************************************************************************************/

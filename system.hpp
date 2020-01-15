@@ -30,4 +30,14 @@ namespace WarGrey::SCADA {
 	void system_set_subnet_prefix(Platform::String^ subnet_prefix);
 
 	unsigned int system_process_id();
+
+	void ui_thread_initialize();
+	bool ui_thread_accessed();
+	Windows::Foundation::IAsyncAction^ ui_thread_run_async(Windows::UI::Core::DispatchedHandler^ task,
+		Windows::UI::Core::CoreDispatcherPriority priority = Windows::UI::Core::CoreDispatcherPriority::Normal);
+
+	template<typename L>
+	Windows::Foundation::IAsyncAction^ ui_thread_run_async(L task, Windows::UI::Core::CoreDispatcherPriority priority = Windows::UI::Core::CoreDispatcherPriority::Normal) {
+		return ui_thread_run_async(ref new Windows::UI::Core::DispatchedHandler(task), priority);
+	}
 }
