@@ -168,8 +168,8 @@ namespace WarGrey::SCADA {
 		Windows::Globalization::ApplicationLanguages::PrimaryLanguageOverride = "zh-CN";
 #endif
 
-		set_default_logging_level(level);
-		set_default_racket_receiver_host(remote_rsyslog_server);
+		WarGrey::SCADA::set_default_logging_level(level);
+		WarGrey::SCADA::set_default_racket_receiver_host(remote_rsyslog_server);
 
 
 		Windows::UI::Xaml::Application::Start(ref new Windows::UI::Xaml::ApplicationInitializationCallback(lazy_main));
