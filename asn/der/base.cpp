@@ -94,7 +94,6 @@ static inline void fill_integer_from_bytes(N* n, octets& pool, size_t start, siz
     }
 }
 
-// https://docs.microsoft.com/en-us/windows/win32/intl/code-page-identifiers
 static inline size_t utf8_string_span(const wchar_t* src, size_t length) {
     return WideCharToMultiByte(CP_UTF8, 0, src, int(length), nullptr, 0, NULL, NULL);
 }
@@ -243,11 +242,11 @@ size_t WarGrey::DTPM::asn_boolean_span(bool b) {
 }
 
 octets WarGrey::DTPM::asn_boolean_to_octets(bool b) {
-    uint8 pool[3];
+    octets bbool(3, '\0');
 
-    asn_boolean_into_octets(b, pool, 0);
+    asn_boolean_into_octets(b, (uint8*)bbool.c_str(), 0);
 
-    return octets(pool, sizeof(pool) / sizeof(uint8));
+    return bbool;
 }
 
 size_t WarGrey::DTPM::asn_boolean_into_octets(bool b, uint8* octets, size_t offset) {
@@ -308,7 +307,7 @@ size_t WarGrey::DTPM::asn_int64_into_octets(long long fixnum, uint8* octets, siz
 
     fill_fixnum_octets(octets + offset, fixnum, span, 0U);
 
-    return offset;
+    return offset + span;
 }
 
 long long WarGrey::DTPM::asn_octets_to_fixnum(octets& bfixnum, size_t* offset0) {
@@ -540,7 +539,7 @@ double WarGrey::DTPM::asn_octets_to_real(octets& breal, size_t* offset0) {
             case 0b00: E_end = E_start + 1; break;
             case 0b01: E_end = E_start + 2; break;
             case 0b11: E_end = E_start + 3; break;
-            default: E_start += 1; E_end = E_start + breal[E_start - 1];
+            default: E_start ++; E_end = E_start + breal[E_start - 1];
             }
 
             if (E_end < offset) {
@@ -610,7 +609,7 @@ size_t WarGrey::DTPM::asn_utf8_span(std::wstring& str) {
 
 octets WarGrey::DTPM::asn_utf8_to_octets(Platform::String^ str) {
     size_t payload = asn_utf8_span(str);
-    octets pool(1 + asn_length_span(payload) + payload, '\0');
+    octets pool(asn_span(payload), '\0');
 
     asn_utf8_into_octets(str, (uint8*)pool.c_str(), 0U);
 
@@ -619,7 +618,7 @@ octets WarGrey::DTPM::asn_utf8_to_octets(Platform::String^ str) {
 
 octets WarGrey::DTPM::asn_utf8_to_octets(std::wstring& str) {
     size_t payload = asn_utf8_span(str);
-    octets pool(1 + asn_length_span(payload) + payload, '\0');
+    octets pool(asn_span(payload), '\0');
 
     asn_utf8_into_octets(str, (uint8*)pool.c_str(), 0U);
 
@@ -628,22 +627,20 @@ octets WarGrey::DTPM::asn_utf8_to_octets(std::wstring& str) {
 
 size_t WarGrey::DTPM::asn_utf8_into_octets(Platform::String^ str, uint8* octets, size_t offset) {
     size_t size = asn_utf8_span(str);
-    size_t end = offset + size;
-
+    
     octets[offset++] = asn_primitive_identifier_octet(ASNPrimitive::UTF8_String);
     offset = asn_length_into_octets(size, octets, offset);
 
-    return utf8_string_into_octets(str->Data(), str->Length(), octets, offset, end);
+    return utf8_string_into_octets(str->Data(), str->Length(), octets, offset, offset + size);
 }
 
 size_t WarGrey::DTPM::asn_utf8_into_octets(std::wstring& str, uint8* octets, size_t offset) {
     size_t size = asn_utf8_span(str);
-    size_t end = offset + size;
-
+    
     octets[offset++] = asn_primitive_identifier_octet(ASNPrimitive::UTF8_String);
     offset = asn_length_into_octets(size, octets, offset);
 
-    return utf8_string_into_octets(str.c_str(), str.size(), octets, offset, end);
+    return utf8_string_into_octets(str.c_str(), str.size(), octets, offset, offset + size);
 }
 
 std::wstring WarGrey::DTPM::asn_octets_to_utf8(octets& butf8, size_t* offset0) {

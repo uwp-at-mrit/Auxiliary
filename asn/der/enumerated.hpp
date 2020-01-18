@@ -4,7 +4,7 @@
 #include "asn/der/identifier.hpp"
 
 namespace WarGrey::DTPM {
-#define define_asn_enum(E, e, ...) \
+#define define_asn_enum(e, E, ...) \
 private enum class E { __VA_ARGS__ }; \
 inline size_t asn_##e##_span(E e) { return asn_enum_span(e); } \
 inline WarGrey::DTPM::octets asn_##e##_to_octets(E e) { return asn_enum_to_octets(e); } \

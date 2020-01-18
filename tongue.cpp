@@ -108,9 +108,9 @@ int ITongue::unsafe_compare(ITongue* instance) {
 }
 
 int ITongue::existed_slot(unsigned int current, const unsigned int* indices, size_t size) {
-	size_t open = 0U;
-	size_t close = size - 1;
-	size_t slot = close / 2;
+	int open = 0U;
+	int close = int(size - 1);
+	int slot = close / 2;
 
 	while (open <= close) {
 		if (indices[slot] == current) {
@@ -124,7 +124,7 @@ int ITongue::existed_slot(unsigned int current, const unsigned int* indices, siz
 		slot = open + (close - open) / 2;
 	}
 
-	return (open > close) ? -1 : int(slot);
+	return (open > close) ? -1 : slot;
 }
 
 int ITongue::sibling_index(unsigned int self, int delta, const unsigned int* indices, size_t size) {
