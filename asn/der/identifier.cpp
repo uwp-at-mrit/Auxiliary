@@ -2,15 +2,22 @@
 
 using namespace WarGrey::DTPM;
 
-static uint8 identifiers[37];
+static uint8 primitive_identifiers[37];
+static uint8 constructed_identifiers[37];
 static bool initialized = false;
 
+/*************************************************************************************************/
 static void initialize_identifiers() {
     if (!initialized) {
-        size_t total = sizeof(identifiers) / sizeof(uint8);
+        size_t ptotal = sizeof(primitive_identifiers) / sizeof(uint8);
+        size_t ctotal = sizeof(constructed_identifiers) / sizeof(uint8);
 
-        for (size_t idx = 0; idx < total; idx++) {
-            identifiers[idx] = asn_identifier_octet((uint8)idx);
+        for (size_t idx = 0; idx < ptotal; idx++) {
+            primitive_identifiers[idx] = asn_identifier_octet((uint8)idx, false);
+        }
+
+        for (size_t idx = 0; idx < ctotal; idx++) {
+            constructed_identifiers[idx] = asn_identifier_octet((uint8)idx, true);
         }
 
         initialized = true;
@@ -51,7 +58,7 @@ bool WarGrey::DTPM::asn_identifier_constructed(uint8 octet) {
 }
 
 /*************************************************************************************************/
-uint8 WarGrey::DTPM::asn_primitive_identifier(ASNPrimitive type) {
+uint8 WarGrey::DTPM::asn_primitive_identifier_octet(ASNPrimitive type) {
     size_t idx = 0;
 
     initialize_identifiers();
@@ -66,5 +73,17 @@ uint8 WarGrey::DTPM::asn_primitive_identifier(ASNPrimitive type) {
     case ASNPrimitive::IA5_String:  idx = 0x16; break;
     }
 
-    return identifiers[idx];
+    return primitive_identifiers[idx];
+}
+
+uint8 WarGrey::DTPM::asn_constructed_identifier_octet(ASNConstructed type) {
+    size_t idx = 0;
+
+    initialize_identifiers();
+
+    switch (type) {
+    case ASNConstructed::Sequence:  idx = 0x10; break;
+    }
+
+    return constructed_identifiers[idx];
 }

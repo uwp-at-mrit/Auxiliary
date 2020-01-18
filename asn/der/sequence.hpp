@@ -17,7 +17,7 @@ namespace WarGrey::DTPM {
         void from_octets(WarGrey::DTPM::octets& octets, size_t* offset = nullptr);
 
     protected:
-        size_t span_ref(size_t idx);
+        virtual size_t span_ref(size_t idx) = 0;
 
     private:
         size_t count;

@@ -8,6 +8,10 @@ namespace WarGrey::DTPM {
         UTF8_String, IA5_String
     };
 
+    private enum class ASNConstructed {
+        Sequence
+    };
+
     private enum class ASN1TagClass { Universal, Application, ContextSpecific, Private };
 
     uint8 asn_identifier_octet(uint8 tag, bool constructed = false, WarGrey::DTPM::ASN1TagClass type = ASN1TagClass::Universal);
@@ -16,5 +20,6 @@ namespace WarGrey::DTPM {
     WarGrey::DTPM::ASN1TagClass asn_identifier_class(uint8 octet);
     bool asn_identifier_constructed(uint8 octet);
 
-    uint8 asn_primitive_identifier(WarGrey::DTPM::ASNPrimitive type);
+    uint8 asn_primitive_identifier_octet(WarGrey::DTPM::ASNPrimitive type);
+    uint8 asn_constructed_identifier_octet(WarGrey::DTPM::ASNConstructed type);
 }

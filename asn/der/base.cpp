@@ -9,6 +9,8 @@ using namespace WarGrey::SCADA;
 using namespace WarGrey::DTPM;
 
 /*************************************************************************************************/
+static const uint8 default_real_base = 2; // TODO: implememnt base 10 representation
+
 static inline size_t fill_ufixnum_octets(uint8* pool, unsigned long long n, size_t capacity, size_t payload) {
     do {
         payload++;
@@ -97,30 +99,14 @@ static inline size_t utf8_string_span(const wchar_t* src, size_t length) {
     return WideCharToMultiByte(CP_UTF8, 0, src, int(length), nullptr, 0, NULL, NULL);
 }
 
-static octets make_utf8_string(const wchar_t* src, size_t* size) {
-    uint8 upool[1024];
-    uint8* pool = upool;
-    size_t usize = sizeof(upool) / sizeof(uint8);
-    octets utf8;
+static size_t utf8_string_into_octets(const wchar_t* src, size_t size, uint8* octets, size_t offset, size_t end) {
+    int payload = WideCharToMultiByte(CP_UTF8, 0, src, int(size), (char*)(octets + offset), int(end - offset), NULL, NULL);
 
-    usize = WideCharToMultiByte(CP_UTF8, 0, src, int(*size), (char*)pool, int(usize), NULL, NULL);
-
-    if (usize > 0) {
-        utf8 = octets(pool, usize);
-        (*size) = usize;
-    } else if (GetLastError() == ERROR_INSUFFICIENT_BUFFER) {
-        usize = utf8_string_span(src, (*size));
-        pool = new uint8[usize];
-        usize = WideCharToMultiByte(CP_UTF8, 0, src, int(*size), (char*)pool, int(usize), NULL, NULL);
-        utf8 = octets(pool, usize);
-        (*size) = usize;
-
-        delete[] pool;
-    } else {
-        (*size) = 0;
+    if (payload > 0) {
+        offset += payload;
     }
 
-    return utf8;
+    return offset;
 }
 
 static std::wstring make_wide_string(const uint8* src, size_t size) {
@@ -147,6 +133,33 @@ static std::wstring make_wide_string(const uint8* src, size_t size) {
     return wide;
 }
 
+static uint8 make_real_infoctet(double real, uint8 base, size_t E_size, size_t binary_scaling_factor) {
+    uint8 infoctet = ((real > 0.0) ? 0b10000000 : 0b11000000);
+    
+    switch (base) {
+    case 8:  infoctet ^= 0b00010000U; break;
+    case 16: infoctet ^= 0b00100000U; break;
+    }
+
+    switch (binary_scaling_factor) {
+    case 0:  infoctet ^= 0b00000000; break;
+    case 1:  infoctet ^= 0b00000100; break;
+    case 2:  infoctet ^= 0b00001000; break;
+    default: infoctet ^= 0b00001100;
+    }
+
+    switch (E_size) {
+    case 2:  infoctet ^= 0b00000001U; break;
+    case 3:  infoctet ^= 0b00000010U; break;
+    }
+
+    if (E_size >= 4) {
+        infoctet ^= 0b00000011U;
+    }
+
+    return infoctet;
+}
+
 /*************************************************************************************************/
 size_t WarGrey::DTPM::asn_length_span(size_t length) {
     size_t span = 1;
@@ -169,6 +182,14 @@ octets WarGrey::DTPM::asn_length_to_octets(size_t length) {
     return octets(pool + (capacity - payload), payload);
 }
 
+size_t WarGrey::DTPM::asn_length_into_octets(size_t length, uint8* octets, size_t offset) {
+    size_t span = asn_length_span(length);
+
+    fill_length_octets(octets + offset, length, span);
+
+    return offset + span;
+}
+
 size_t WarGrey::DTPM::asn_octets_to_length(octets& blength, size_t* offset) {
     size_t idx = ((offset == nullptr) ? 0 : (*offset));
     size_t length = blength[idx];
@@ -182,7 +203,7 @@ size_t WarGrey::DTPM::asn_octets_to_length(octets& blength, size_t* offset) {
             (*offset) += (size + 1);
         }
     } else if (offset != nullptr) {
-(*offset) += 1;
+        (*offset) += 1;
     }
 
     return length;
@@ -190,7 +211,11 @@ size_t WarGrey::DTPM::asn_octets_to_length(octets& blength, size_t* offset) {
 
 /*************************************************************************************************/
 bool WarGrey::DTPM::asn_primitive_predicate(ASNPrimitive type, octets& content, size_t offset) {
-    return (asn_primitive_identifier(type) == content[offset]);
+    return (asn_primitive_identifier_octet(type) == content[offset]);
+}
+
+bool WarGrey::DTPM::asn_constructed_predicate(ASNConstructed type, octets& content, size_t offset) {
+    return (asn_constructed_identifier_octet(type) == content[offset]);
 }
 
 octets WarGrey::DTPM::asn_octets_box(uint8 tag, octets& content, size_t size) {
@@ -220,11 +245,19 @@ size_t WarGrey::DTPM::asn_boolean_span(bool b) {
 octets WarGrey::DTPM::asn_boolean_to_octets(bool b) {
     uint8 pool[3];
 
-    pool[0] = asn_primitive_identifier(ASNPrimitive::Boolean);
-    pool[1] = 0x01;
-    pool[2] = (b ? 0xFF : 0x00);
+    asn_boolean_into_octets(b, pool, 0);
 
     return octets(pool, sizeof(pool) / sizeof(uint8));
+}
+
+size_t WarGrey::DTPM::asn_boolean_into_octets(bool b, uint8* octets, size_t offset) {
+    size_t span = asn_boolean_span(b);
+
+    octets[offset++] = asn_primitive_identifier_octet(ASNPrimitive::Boolean);
+    octets[offset++] = (uint8)span;
+    octets[offset++] = (b ? 0xFF : 0x00);
+
+    return offset;
 }
 
 bool WarGrey::DTPM::asn_octets_to_boolean(octets& bnat, size_t* offset0) {
@@ -262,9 +295,20 @@ octets WarGrey::DTPM::asn_int64_to_octets(long long fixnum, ASNPrimitive id) {
     size_t payload = fill_fixnum_octets(pool, fixnum, capacity, 0U);
 
     pool[capacity - (++payload)] = (uint8)payload;
-    pool[capacity - (++payload)] = asn_primitive_identifier(id);
+    pool[capacity - (++payload)] = asn_primitive_identifier_octet(id);
 
     return octets(pool + (capacity - payload), payload);
+}
+
+size_t WarGrey::DTPM::asn_int64_into_octets(long long fixnum, uint8* octets, size_t offset, ASNPrimitive id) {
+    size_t span = asn_fixnum_span(fixnum);
+    
+    octets[offset++] = asn_primitive_identifier_octet(id);
+    octets[offset++] = (uint8)span;
+
+    fill_fixnum_octets(octets + offset, fixnum, span, 0U);
+
+    return offset;
 }
 
 long long WarGrey::DTPM::asn_octets_to_fixnum(octets& bfixnum, size_t* offset0) {
@@ -298,7 +342,23 @@ octets WarGrey::DTPM::asn_natural_to_octets(Natural& nat) {
         size += 1;
     }
 
-    return asn_octets_box(asn_primitive_identifier(ASNPrimitive::Integer), payload, size);
+    return asn_octets_box(asn_primitive_identifier_octet(ASNPrimitive::Integer), payload, size);
+}
+
+size_t WarGrey::DTPM::asn_natural_into_octets(Natural& nat, uint8* octets, size_t offset) {
+    size_t size = nat.length();
+    size_t span = asn_natural_span(nat);
+
+    octets[offset + 0] = asn_primitive_identifier_octet(ASNPrimitive::Integer);
+    offset = asn_length_into_octets(span, octets, offset + 1);
+
+    if (span > size) {
+        octets[offset++] = '\x00';
+    }
+
+    memcpy(octets + offset, &nat[0], size);
+
+    return offset + size;
 }
 
 Natural WarGrey::DTPM::asn_octets_to_natural(octets& bnat, size_t* offset0) {
@@ -318,10 +378,16 @@ size_t WarGrey::DTPM::asn_null_span(std::nullptr_t placeholder) {
 octets WarGrey::DTPM::asn_null_to_octets(std::nullptr_t placeholder) {
     uint8 pool[2];
 
-    pool[0] = asn_primitive_identifier(ASNPrimitive::Null);
-    pool[1] = 0x00;
+    asn_null_into_octets(placeholder, pool, 0);
 
     return octets(pool, sizeof(pool) / sizeof(uint8));
+}
+
+size_t WarGrey::DTPM::asn_null_into_octets(std::nullptr_t placeholder, uint8* octets, size_t offset) {
+    octets[offset++] = asn_primitive_identifier_octet(ASNPrimitive::Null);
+    octets[offset++] = 0x00;
+
+    return offset;
 }
 
 std::nullptr_t WarGrey::DTPM::asn_octets_to_null(octets& bnat, size_t* offset0) {
@@ -339,7 +405,6 @@ size_t WarGrey::DTPM::asn_real_span(double real) {
 
     if (flisfinite(real)) {
         // WARNING: 0.0 is +0.0, hence 1.0
-
         if (real == 0.0) {
             if (flsign(real) == 1.0) {
                 span = 0;
@@ -366,10 +431,7 @@ octets WarGrey::DTPM::asn_real_to_octets(double real) {
     uint8 pool[64];
     size_t capacity = sizeof(pool) / sizeof(uint8);
     size_t payload = 0U;
-    uint8 base = 2;
-
-    // TODO: implememnt base 10 representation
-
+    
     if (!flisfinite(real)) {
         payload = 1U;
         
@@ -387,37 +449,70 @@ octets WarGrey::DTPM::asn_real_to_octets(double real) {
             pool[capacity - payload] = 0x43;
         }
     } else {
-        uint8 infoctet = ((real > 0.0) ? 0b10000000 : 0b11000000);
         size_t E_size;
         long long E, N;
         
-        fill_real_binary(flabs(real), double(base), &E, &N);
+        fill_real_binary(flabs(real), double(default_real_base), &E, &N);
         E_size = fill_fixnum_octets(pool, N, capacity, payload);
         payload = fill_fixnum_octets(pool, E, capacity, E_size);
         E_size = payload - E_size;
 
-        switch (base) {
-        case 8:  infoctet ^= 0b00010000U; break;
-        case 16: infoctet ^= 0b00100000U; break;
-        }
-
-        switch (E_size) {
-        case 2:  infoctet ^= 0b00000001U; break;
-        case 3:  infoctet ^= 0b00000010U; break;
-        }
-
         if (E_size >= 4) {
             pool[capacity - (++payload)] = (uint8)E_size;
-            infoctet ^= 0b00000011U;
         }
 
-        pool[capacity - (++payload)] = (uint8)infoctet;
+        pool[capacity - (++payload)] = make_real_infoctet(real, default_real_base, E_size, 0);
     }
 
     pool[capacity - (++payload)] = (uint8)payload;
-    pool[capacity - (++payload)] = asn_primitive_identifier(ASNPrimitive::Real);
+    pool[capacity - (++payload)] = asn_primitive_identifier_octet(ASNPrimitive::Real);
 
     return octets(pool + (capacity - payload), payload);
+}
+
+size_t WarGrey::DTPM::asn_real_into_octets(double real, uint8* octets, size_t offset) {
+    octets[offset++] = asn_primitive_identifier_octet(ASNPrimitive::Real);
+
+    if (!flisfinite(real)) {
+        octets[offset++] = 1;
+
+        if (real > 0.0) {
+            octets[offset++] = 0x40;
+        } else if (real < 0.0) {
+            octets[offset++] = 0x41;
+        } else {
+            octets[offset++] = 0x42;
+        }
+    } else if (real == 0.0) {
+        // WARNING: 0.0 is +0.0, hence 1.0
+        if (flsign(real) == -1.0) {
+            octets[offset++] = 1U;
+            octets[offset++] = 0x43;
+        } else {
+            octets[offset++] = 0U;
+        }
+    } else {
+        size_t E_size, N_size;
+        long long E, N;
+
+        fill_real_binary(flabs(real), double(default_real_base), &E, &N);
+        E_size = asn_fixnum_span(E);
+        N_size = asn_fixnum_span(N);
+
+        offset = asn_length_into_octets(1 + ((E_size >= 4) ? 1 : 0) + E_size + N_size, octets, offset);
+        octets[offset++] = make_real_infoctet(real, default_real_base, E_size, 0);
+
+        if (E_size >= 4) {
+            octets[offset++] = (uint8)E_size;
+        }
+
+        offset += E_size;
+        fill_fixnum_octets(octets, E, offset, 0);
+        offset += N_size;
+        fill_fixnum_octets(octets, N, offset, 0);
+    }
+
+    return offset;
 }
 
 double WarGrey::DTPM::asn_octets_to_real(octets& breal, size_t* offset0) {
@@ -482,7 +577,17 @@ octets WarGrey::DTPM::asn_ia5_to_octets(std::string& str) {
     size_t size = str.length();
     octets payload((uint8*)str.c_str(), 0, size);
    
-    return asn_octets_box(asn_primitive_identifier(ASNPrimitive::IA5_String), payload, size);
+    return asn_octets_box(asn_primitive_identifier_octet(ASNPrimitive::IA5_String), payload, size);
+}
+
+size_t WarGrey::DTPM::asn_ia5_into_octets(std::string& str, uint8* octets, size_t offset) {
+    size_t size = str.length();
+
+    octets[offset++] = asn_primitive_identifier_octet(ASNPrimitive::IA5_String);
+    offset = asn_length_into_octets(size, octets, offset);
+    memcpy(octets + offset, (uint8*)str.c_str(), size);
+
+    return offset + size;
 }
 
 std::string WarGrey::DTPM::asn_octets_to_ia5(octets& bia5, size_t* offset0) {
@@ -504,17 +609,41 @@ size_t WarGrey::DTPM::asn_utf8_span(std::wstring& str) {
 }
 
 octets WarGrey::DTPM::asn_utf8_to_octets(Platform::String^ str) {
-    size_t size = str->Length();
-    octets payload = make_utf8_string(str->Data(), &size);
+    size_t payload = asn_utf8_span(str);
+    octets pool(1 + asn_length_span(payload) + payload, '\0');
 
-    return asn_octets_box(asn_primitive_identifier(ASNPrimitive::UTF8_String), payload, size);
+    asn_utf8_into_octets(str, (uint8*)pool.c_str(), 0U);
+
+    return pool;
 }
 
 octets WarGrey::DTPM::asn_utf8_to_octets(std::wstring& str) {
-    size_t size = str.size();
-    octets payload = make_utf8_string(str.c_str(), &size);
+    size_t payload = asn_utf8_span(str);
+    octets pool(1 + asn_length_span(payload) + payload, '\0');
 
-    return asn_octets_box(asn_primitive_identifier(ASNPrimitive::UTF8_String), payload, size);
+    asn_utf8_into_octets(str, (uint8*)pool.c_str(), 0U);
+
+    return pool;
+}
+
+size_t WarGrey::DTPM::asn_utf8_into_octets(Platform::String^ str, uint8* octets, size_t offset) {
+    size_t size = asn_utf8_span(str);
+    size_t end = offset + size;
+
+    octets[offset++] = asn_primitive_identifier_octet(ASNPrimitive::UTF8_String);
+    offset = asn_length_into_octets(size, octets, offset);
+
+    return utf8_string_into_octets(str->Data(), str->Length(), octets, offset, end);
+}
+
+size_t WarGrey::DTPM::asn_utf8_into_octets(std::wstring& str, uint8* octets, size_t offset) {
+    size_t size = asn_utf8_span(str);
+    size_t end = offset + size;
+
+    octets[offset++] = asn_primitive_identifier_octet(ASNPrimitive::UTF8_String);
+    offset = asn_length_into_octets(size, octets, offset);
+
+    return utf8_string_into_octets(str.c_str(), str.size(), octets, offset, end);
 }
 
 std::wstring WarGrey::DTPM::asn_octets_to_utf8(octets& butf8, size_t* offset0) {
