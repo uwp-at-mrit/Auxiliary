@@ -82,7 +82,7 @@ static void fill_real_binary(double real, double base, long long* E, long long* 
 }
 
 template<typename N>
-static inline void fill_integer_from_bytes(N* n, octets& pool, size_t start, size_t end, bool check_sign = false) {
+static inline void fill_integer_from_bytes(N* n, const uint8* pool, size_t start, size_t end, bool check_sign = false) {
     if (check_sign) {
         (*n) = ((pool[start] >= 0b10000000) ? -1 : 0);
     } else {
@@ -190,7 +190,7 @@ size_t WarGrey::DTPM::asn_length_into_octets(size_t length, uint8* octets, size_
     return offset + span;
 }
 
-size_t WarGrey::DTPM::asn_octets_to_length(octets& blength, size_t* offset) {
+size_t WarGrey::DTPM::asn_octets_to_length(const uint8* blength, size_t* offset) {
     size_t idx = ((offset == nullptr) ? 0 : (*offset));
     size_t length = blength[idx];
 
@@ -228,7 +228,7 @@ octets WarGrey::DTPM::asn_octets_box(uint8 tag, octets& content, size_t size) {
     return octets(content, 0, size).insert(0, pool + (capacity - payload), payload);
 }
 
-size_t WarGrey::DTPM::asn_octets_unbox(WarGrey::DTPM::octets& basn, size_t* offset) {
+size_t WarGrey::DTPM::asn_octets_unbox(const uint8* basn, size_t* offset) {
     size_t content_idx = ((offset == nullptr) ? 0 : (*offset)) + 1U;
     size_t size = asn_octets_to_length(basn, &content_idx);
 
@@ -260,7 +260,7 @@ size_t WarGrey::DTPM::asn_boolean_into_octets(bool b, uint8* octets, size_t offs
     return offset;
 }
 
-bool WarGrey::DTPM::asn_octets_to_boolean(octets& bnat, size_t* offset0) {
+bool WarGrey::DTPM::asn_octets_to_boolean(const uint8* bnat, size_t* offset0) {
     size_t offset = ((offset0 == nullptr) ? 0 : (*offset0));
     size_t size = asn_octets_unbox(bnat, &offset);
 
@@ -311,7 +311,7 @@ size_t WarGrey::DTPM::asn_int64_into_octets(long long fixnum, uint8* octets, siz
     return offset;
 }
 
-long long WarGrey::DTPM::asn_octets_to_fixnum(octets& bfixnum, size_t* offset0) {
+long long WarGrey::DTPM::asn_octets_to_fixnum(const uint8* bfixnum, size_t* offset0) {
     size_t offset = ((offset0 == nullptr) ? 0 : (*offset0));
     size_t size = asn_octets_unbox(bfixnum, &offset);
     long long integer = 0;
@@ -361,7 +361,7 @@ size_t WarGrey::DTPM::asn_natural_into_octets(Natural& nat, uint8* octets, size_
     return offset + size;
 }
 
-Natural WarGrey::DTPM::asn_octets_to_natural(octets& bnat, size_t* offset0) {
+Natural WarGrey::DTPM::asn_octets_to_natural(const uint8* bnat, size_t* offset0) {
     size_t offset = ((offset0 == nullptr) ? 0 : (*offset0));
     size_t size = asn_octets_unbox(bnat, &offset);
     Natural nat(bnat, offset - size, offset);
@@ -390,9 +390,9 @@ size_t WarGrey::DTPM::asn_null_into_octets(std::nullptr_t placeholder, uint8* oc
     return offset;
 }
 
-std::nullptr_t WarGrey::DTPM::asn_octets_to_null(octets& bnat, size_t* offset0) {
+std::nullptr_t WarGrey::DTPM::asn_octets_to_null(const uint8* bnull, size_t* offset0) {
     size_t offset = ((offset0 == nullptr) ? 0 : (*offset0));
-    size_t size = asn_octets_unbox(bnat, &offset);
+    size_t size = asn_octets_unbox(bnull, &offset);
 
     SET_BOX(offset0, offset);
 
@@ -515,7 +515,7 @@ size_t WarGrey::DTPM::asn_real_into_octets(double real, uint8* octets, size_t of
     return offset;
 }
 
-double WarGrey::DTPM::asn_octets_to_real(octets& breal, size_t* offset0) {
+double WarGrey::DTPM::asn_octets_to_real(const uint8* breal, size_t* offset0) {
     size_t offset = ((offset0 == nullptr) ? 0 : (*offset0));
     size_t size = asn_octets_unbox(breal, &offset);
     double real = flnan;
@@ -590,7 +590,7 @@ size_t WarGrey::DTPM::asn_ia5_into_octets(std::string& str, uint8* octets, size_
     return offset + size;
 }
 
-std::string WarGrey::DTPM::asn_octets_to_ia5(octets& bia5, size_t* offset0) {
+std::string WarGrey::DTPM::asn_octets_to_ia5(const uint8* bia5, size_t* offset0) {
     size_t offset = ((offset0 == nullptr) ? 0 : (*offset0));
     size_t size = asn_octets_unbox(bia5, &offset);
     Natural nat(bia5, offset - size, offset);
@@ -646,7 +646,7 @@ size_t WarGrey::DTPM::asn_utf8_into_octets(std::wstring& str, uint8* octets, siz
     return utf8_string_into_octets(str.c_str(), str.size(), octets, offset, end);
 }
 
-std::wstring WarGrey::DTPM::asn_octets_to_utf8(octets& butf8, size_t* offset0) {
+std::wstring WarGrey::DTPM::asn_octets_to_utf8(const uint8* butf8, size_t* offset0) {
     size_t offset = ((offset0 == nullptr) ? 0 : (*offset0));
     size_t size = asn_octets_unbox(butf8, &offset);
     
