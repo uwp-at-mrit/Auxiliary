@@ -71,9 +71,11 @@ namespace WarGrey::DTPM {
     std::wstring asn_octets_to_utf8(const uint8* butf8, size_t* offset = nullptr);
     inline std::wstring asn_octets_to_utf8(WarGrey::DTPM::octets& butf8, size_t* offset = nullptr) { return asn_octets_to_utf8(butf8.c_str(), offset); }
 
+    inline size_t asn_span(size_t payload_span) { return 1 + asn_length_span(payload_span) + payload_span; }
+
     template<typename Span, typename T>
-    inline size_t asn_span(Span span, T v) { size_t size = span(v); return 1 + asn_length_span(size) + size; }
+    inline size_t asn_span(Span span, T v) { return asn_span(span(v)); }
 
     template<class C>
-    inline size_t asn_span(C constructed) { return constructed->span(); }
+    inline size_t asn_span(C constructed) { return asn_span(constructed->span()); }
 }
