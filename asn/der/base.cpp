@@ -596,7 +596,7 @@ std::string WarGrey::DTPM::asn_octets_to_ia5(const uint8* bia5, size_t* offset0)
 
     SET_BOX(offset0, offset);
 
-    return std::string((char*)bia5.c_str(), offset - size, size);
+    return std::string((char*)bia5, offset - size, size);
 }
 
 size_t WarGrey::DTPM::asn_utf8_span(Platform::String^ str) {
@@ -649,5 +649,5 @@ std::wstring WarGrey::DTPM::asn_octets_to_utf8(const uint8* butf8, size_t* offse
     
     SET_BOX(offset0, offset);
 
-    return make_wide_string(butf8.c_str() + (offset - size), size);
+    return make_wide_string(butf8 + (offset - size), size);
 }

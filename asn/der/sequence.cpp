@@ -40,7 +40,7 @@ size_t IASNSequence::into_octets(uint8* octets, size_t offset) {
     return offset;
 }
 
-void IASNSequence::from_octets(WarGrey::DTPM::octets& basn, size_t* offset0) {
+void IASNSequence::from_octets(const uint8* basn, size_t* offset0) {
     size_t offset = ((offset0 == nullptr) ? 0 : (*offset0));
     size_t size = asn_octets_unbox(basn, &offset);
     size_t position = offset - size;
