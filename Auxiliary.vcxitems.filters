@@ -55,23 +55,14 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)crypto\blowfish\s_box.cpp">
       <Filter>crypto\blowfish</Filter>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)datum\natural.cpp">
-      <Filter>datum</Filter>
-    </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)crypto\enckey.cpp">
       <Filter>crypto</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)crypto\checksum.cpp">
       <Filter>crypto</Filter>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)asn\der\base.cpp">
-      <Filter>asn\der</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)asn\der\identifier.cpp">
-      <Filter>asn\der</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)asn\der\sequence.cpp">
-      <Filter>asn\der</Filter>
+    <ClCompile Include="$(MSBuildThisFileDirectory)datum\natural.cpp">
+      <Filter>datum</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -170,29 +161,14 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)crypto\blowfish\pi_box.hpp">
       <Filter>crypto\blowfish</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)datum\natural.hpp">
-      <Filter>datum</Filter>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)crypto\enckey.hpp">
       <Filter>crypto</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)crypto\checksum.hpp">
       <Filter>crypto</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)asn\der.hpp">
-      <Filter>asn</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)asn\der\base.hpp">
-      <Filter>asn\der</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)asn\der\enumerated.hpp">
-      <Filter>asn\der</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)asn\der\identifier.hpp">
-      <Filter>asn\der</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)asn\der\sequence.hpp">
-      <Filter>asn\der</Filter>
+    <ClInclude Include="$(MSBuildThisFileDirectory)datum\natural.hpp">
+      <Filter>datum</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -216,12 +192,6 @@
     </Filter>
     <Filter Include="crypto\blowfish">
       <UniqueIdentifier>{dd910365-ea06-43d2-a17e-7444de4a1452}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="asn">
-      <UniqueIdentifier>{bffe5ed7-a23d-4947-9131-fb1cfe52cc5c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="asn\der">
-      <UniqueIdentifier>{03a24b58-875b-4a7e-a5d2-5664def7260c}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

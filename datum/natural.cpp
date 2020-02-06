@@ -4,7 +4,7 @@
 #include "datum/fixnum.hpp"
 
 using namespace WarGrey::SCADA;
-using namespace WarGrey::DTPM;
+using namespace WarGrey::GYDM;
 
 /*************************************************************************************************/
 template<typename BYTE>

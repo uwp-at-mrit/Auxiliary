@@ -15,9 +15,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)application.hxx" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)asn\der\base.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)asn\der\identifier.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)asn\der\sequence.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)backtask.cxx" />
     <ClCompile Include="$(MSBuildThisFileDirectory)crypto\blowfish\cipher.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)crypto\blowfish\core.cpp" />
@@ -48,11 +45,6 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)win32.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="$(MSBuildThisFileDirectory)asn\der.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)asn\der\base.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)asn\der\enumerated.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)asn\der\identifier.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)asn\der\sequence.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)backtask.hxx" />
     <ClInclude Include="$(MSBuildThisFileDirectory)crypto\blowfish.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)crypto\blowfish\cipher.hpp" />

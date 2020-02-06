@@ -2,7 +2,7 @@
 
 #include "datum/bytes.hpp"
 
-namespace WarGrey::DTPM {
+namespace WarGrey::GYDM {
 	private enum class Fixnum { Uint16, Uint32, Uint64 };
 
 	private class Natural {
@@ -44,125 +44,125 @@ namespace WarGrey::DTPM {
 		}
 
 	public:
-		Natural(const WarGrey::DTPM::Natural& n);
-		Natural(WarGrey::DTPM::Natural&& n);
+		Natural(const WarGrey::GYDM::Natural& n);
+		Natural(WarGrey::GYDM::Natural&& n);
 
-		WarGrey::DTPM::Natural& operator=(unsigned long long n);
-		WarGrey::DTPM::Natural& operator=(const WarGrey::DTPM::Natural& n);
-		WarGrey::DTPM::Natural& operator=(WarGrey::DTPM::Natural&& n);
+		WarGrey::GYDM::Natural& operator=(unsigned long long n);
+		WarGrey::GYDM::Natural& operator=(const WarGrey::GYDM::Natural& n);
+		WarGrey::GYDM::Natural& operator=(WarGrey::GYDM::Natural&& n);
 
 	public: // NOTE: C++20 has operator<=>
 		int compare(unsigned long long rhs) const;
-		int compare(const WarGrey::DTPM::Natural& rhs) const;
+		int compare(const WarGrey::GYDM::Natural& rhs) const;
 
-		friend inline bool operator<(const WarGrey::DTPM::Natural& lhs, const WarGrey::DTPM::Natural& rhs) { return (lhs.compare(rhs) < 0); }
-		friend inline bool operator<(const WarGrey::DTPM::Natural& lhs, unsigned long long rhs) { return (lhs.compare(rhs) < 0); }
-		friend inline bool operator<(unsigned long long lhs, const WarGrey::DTPM::Natural& rhs) { return (rhs.compare(lhs) > 0); }
-		friend inline bool operator==(const WarGrey::DTPM::Natural& lhs, const WarGrey::DTPM::Natural& rhs) { return (lhs.compare(rhs) == 0); }
-		friend inline bool operator==(const WarGrey::DTPM::Natural& lhs, unsigned long long rhs) { return (lhs.compare(rhs) == 0); }
-		friend inline bool operator==(unsigned long long lhs, const WarGrey::DTPM::Natural& rhs) { return (rhs.compare(lhs) == 0); }
+		friend inline bool operator<(const WarGrey::GYDM::Natural& lhs, const WarGrey::GYDM::Natural& rhs) { return (lhs.compare(rhs) < 0); }
+		friend inline bool operator<(const WarGrey::GYDM::Natural& lhs, unsigned long long rhs) { return (lhs.compare(rhs) < 0); }
+		friend inline bool operator<(unsigned long long lhs, const WarGrey::GYDM::Natural& rhs) { return (rhs.compare(lhs) > 0); }
+		friend inline bool operator==(const WarGrey::GYDM::Natural& lhs, const WarGrey::GYDM::Natural& rhs) { return (lhs.compare(rhs) == 0); }
+		friend inline bool operator==(const WarGrey::GYDM::Natural& lhs, unsigned long long rhs) { return (lhs.compare(rhs) == 0); }
+		friend inline bool operator==(unsigned long long lhs, const WarGrey::GYDM::Natural& rhs) { return (rhs.compare(lhs) == 0); }
 
-		friend inline bool operator>(const WarGrey::DTPM::Natural& lhs, const WarGrey::DTPM::Natural& rhs) { return (lhs.compare(rhs) > 0); }
-		friend inline bool operator>(const WarGrey::DTPM::Natural& lhs, unsigned long long rhs) { return (lhs.compare(rhs) > 0); }
-		friend inline bool operator>(unsigned long long lhs, const WarGrey::DTPM::Natural& rhs) { return (rhs.compare(lhs) < 0); }
-		friend inline bool operator<=(const WarGrey::DTPM::Natural& lhs, const WarGrey::DTPM::Natural& rhs) { return (lhs.compare(rhs) <= 0); }
-		friend inline bool operator<=(const WarGrey::DTPM::Natural& lhs, unsigned long long rhs) { return (lhs.compare(rhs) <= 0); }
-		friend inline bool operator<=(unsigned long long lhs, const WarGrey::DTPM::Natural& rhs) { return (rhs.compare(lhs) >= 0); }
-		friend inline bool operator>=(const WarGrey::DTPM::Natural& lhs, const WarGrey::DTPM::Natural& rhs) { return (lhs.compare(rhs) >= 0); }
-		friend inline bool operator>=(const WarGrey::DTPM::Natural& lhs, unsigned long long rhs) { return (lhs.compare(rhs) >= 0); }
-		friend inline bool operator>=(unsigned long long lhs, const WarGrey::DTPM::Natural& rhs) { return (rhs.compare(lhs) <= 0); }
-		friend inline bool operator!=(const WarGrey::DTPM::Natural& lhs, const WarGrey::DTPM::Natural& rhs) { return (lhs.compare(rhs) != 0); }
-		friend inline bool operator!=(const WarGrey::DTPM::Natural& lhs, unsigned long long rhs) { return (lhs.compare(rhs) != 0); }
-		friend inline bool operator!=(unsigned long long lhs, const WarGrey::DTPM::Natural& rhs) { return (rhs.compare(lhs) != 0); }
+		friend inline bool operator>(const WarGrey::GYDM::Natural& lhs, const WarGrey::GYDM::Natural& rhs) { return (lhs.compare(rhs) > 0); }
+		friend inline bool operator>(const WarGrey::GYDM::Natural& lhs, unsigned long long rhs) { return (lhs.compare(rhs) > 0); }
+		friend inline bool operator>(unsigned long long lhs, const WarGrey::GYDM::Natural& rhs) { return (rhs.compare(lhs) < 0); }
+		friend inline bool operator<=(const WarGrey::GYDM::Natural& lhs, const WarGrey::GYDM::Natural& rhs) { return (lhs.compare(rhs) <= 0); }
+		friend inline bool operator<=(const WarGrey::GYDM::Natural& lhs, unsigned long long rhs) { return (lhs.compare(rhs) <= 0); }
+		friend inline bool operator<=(unsigned long long lhs, const WarGrey::GYDM::Natural& rhs) { return (rhs.compare(lhs) >= 0); }
+		friend inline bool operator>=(const WarGrey::GYDM::Natural& lhs, const WarGrey::GYDM::Natural& rhs) { return (lhs.compare(rhs) >= 0); }
+		friend inline bool operator>=(const WarGrey::GYDM::Natural& lhs, unsigned long long rhs) { return (lhs.compare(rhs) >= 0); }
+		friend inline bool operator>=(unsigned long long lhs, const WarGrey::GYDM::Natural& rhs) { return (rhs.compare(lhs) <= 0); }
+		friend inline bool operator!=(const WarGrey::GYDM::Natural& lhs, const WarGrey::GYDM::Natural& rhs) { return (lhs.compare(rhs) != 0); }
+		friend inline bool operator!=(const WarGrey::GYDM::Natural& lhs, unsigned long long rhs) { return (lhs.compare(rhs) != 0); }
+		friend inline bool operator!=(unsigned long long lhs, const WarGrey::GYDM::Natural& rhs) { return (rhs.compare(lhs) != 0); }
 
 	public:
-		WarGrey::DTPM::Natural& operator++();
-		inline WarGrey::DTPM::Natural operator++(int postfix) { Natural snapshot(*this); this->operator++(); return snapshot; }
+		WarGrey::GYDM::Natural& operator++();
+		inline WarGrey::GYDM::Natural operator++(int postfix) { Natural snapshot(*this); this->operator++(); return snapshot; }
 
-		WarGrey::DTPM::Natural& operator--();
-		inline WarGrey::DTPM::Natural operator--(int postfix) { Natural snapshot(*this); this->operator--(); return snapshot; }
+		WarGrey::GYDM::Natural& operator--();
+		inline WarGrey::GYDM::Natural operator--(int postfix) { Natural snapshot(*this); this->operator--(); return snapshot; }
 
-		WarGrey::DTPM::Natural& operator+=(unsigned long long rhs);
-		WarGrey::DTPM::Natural& operator+=(const WarGrey::DTPM::Natural& rhs);
+		WarGrey::GYDM::Natural& operator+=(unsigned long long rhs);
+		WarGrey::GYDM::Natural& operator+=(const WarGrey::GYDM::Natural& rhs);
 
-		WarGrey::DTPM::Natural& operator-=(unsigned long long rhs);
-		WarGrey::DTPM::Natural& operator-=(const WarGrey::DTPM::Natural& rhs);
+		WarGrey::GYDM::Natural& operator-=(unsigned long long rhs);
+		WarGrey::GYDM::Natural& operator-=(const WarGrey::GYDM::Natural& rhs);
 		
-		WarGrey::DTPM::Natural& operator*=(unsigned long long rhs);
-		WarGrey::DTPM::Natural& operator*=(const WarGrey::DTPM::Natural& rhs);
+		WarGrey::GYDM::Natural& operator*=(unsigned long long rhs);
+		WarGrey::GYDM::Natural& operator*=(const WarGrey::GYDM::Natural& rhs);
 
-		inline WarGrey::DTPM::Natural& operator/=(unsigned long long rhs) { return this->quotient_remainder(rhs, nullptr); }
-		inline WarGrey::DTPM::Natural& operator/=(const WarGrey::DTPM::Natural& rhs) { return this->quotient_remainder(rhs, nullptr); }
-		inline WarGrey::DTPM::Natural& operator%=(unsigned long long rhs) { return this->quotient_remainder(rhs, this); };
-		inline WarGrey::DTPM::Natural& operator%=(const WarGrey::DTPM::Natural& rhs) { return this->quotient_remainder(rhs, this); };
+		inline WarGrey::GYDM::Natural& operator/=(unsigned long long rhs) { return this->quotient_remainder(rhs, nullptr); }
+		inline WarGrey::GYDM::Natural& operator/=(const WarGrey::GYDM::Natural& rhs) { return this->quotient_remainder(rhs, nullptr); }
+		inline WarGrey::GYDM::Natural& operator%=(unsigned long long rhs) { return this->quotient_remainder(rhs, this); };
+		inline WarGrey::GYDM::Natural& operator%=(const WarGrey::GYDM::Natural& rhs) { return this->quotient_remainder(rhs, this); };
 
-		friend inline WarGrey::DTPM::Natural operator+(WarGrey::DTPM::Natural lhs, unsigned long long rhs) { return lhs += rhs; }
-		friend inline WarGrey::DTPM::Natural operator+(unsigned long long lhs, WarGrey::DTPM::Natural rhs) { return rhs += lhs; }
-		friend inline WarGrey::DTPM::Natural operator+(WarGrey::DTPM::Natural lhs, const WarGrey::DTPM::Natural& rhs) { return lhs += rhs; }
+		friend inline WarGrey::GYDM::Natural operator+(WarGrey::GYDM::Natural lhs, unsigned long long rhs) { return lhs += rhs; }
+		friend inline WarGrey::GYDM::Natural operator+(unsigned long long lhs, WarGrey::GYDM::Natural rhs) { return rhs += lhs; }
+		friend inline WarGrey::GYDM::Natural operator+(WarGrey::GYDM::Natural lhs, const WarGrey::GYDM::Natural& rhs) { return lhs += rhs; }
 
 		// NOTE: the compiler will cast the number into Natural when encountered `n - Natural`;
-		friend inline WarGrey::DTPM::Natural operator-(WarGrey::DTPM::Natural lhs, unsigned long long rhs) { return lhs -= rhs; }
-		friend inline WarGrey::DTPM::Natural operator-(WarGrey::DTPM::Natural lhs, const WarGrey::DTPM::Natural& rhs) { return lhs -= rhs; }
+		friend inline WarGrey::GYDM::Natural operator-(WarGrey::GYDM::Natural lhs, unsigned long long rhs) { return lhs -= rhs; }
+		friend inline WarGrey::GYDM::Natural operator-(WarGrey::GYDM::Natural lhs, const WarGrey::GYDM::Natural& rhs) { return lhs -= rhs; }
 
-		friend inline WarGrey::DTPM::Natural operator*(WarGrey::DTPM::Natural lhs, unsigned long long rhs) { return lhs *= rhs; }
-		friend inline WarGrey::DTPM::Natural operator*(unsigned long long lhs, WarGrey::DTPM::Natural rhs) { return rhs *= lhs; }
-		friend inline WarGrey::DTPM::Natural operator*(WarGrey::DTPM::Natural lhs, const WarGrey::DTPM::Natural& rhs) { return lhs *= rhs; }
+		friend inline WarGrey::GYDM::Natural operator*(WarGrey::GYDM::Natural lhs, unsigned long long rhs) { return lhs *= rhs; }
+		friend inline WarGrey::GYDM::Natural operator*(unsigned long long lhs, WarGrey::GYDM::Natural rhs) { return rhs *= lhs; }
+		friend inline WarGrey::GYDM::Natural operator*(WarGrey::GYDM::Natural lhs, const WarGrey::GYDM::Natural& rhs) { return lhs *= rhs; }
 
 		// NOTE: the compiler will cast the number into Natural when encountered `n / Natural` or `n % Natural`
-		friend inline WarGrey::DTPM::Natural operator/(WarGrey::DTPM::Natural lhs, unsigned long long rhs) { return lhs /= rhs; }
-		friend inline WarGrey::DTPM::Natural operator/(WarGrey::DTPM::Natural lhs, const WarGrey::DTPM::Natural& rhs) { return lhs /= rhs; }
-		friend inline WarGrey::DTPM::Natural operator%(WarGrey::DTPM::Natural lhs, unsigned long long rhs) { return lhs %= rhs; }
-		friend inline WarGrey::DTPM::Natural operator%(WarGrey::DTPM::Natural lhs, const WarGrey::DTPM::Natural& rhs) { return lhs %= rhs; }
+		friend inline WarGrey::GYDM::Natural operator/(WarGrey::GYDM::Natural lhs, unsigned long long rhs) { return lhs /= rhs; }
+		friend inline WarGrey::GYDM::Natural operator/(WarGrey::GYDM::Natural lhs, const WarGrey::GYDM::Natural& rhs) { return lhs /= rhs; }
+		friend inline WarGrey::GYDM::Natural operator%(WarGrey::GYDM::Natural lhs, unsigned long long rhs) { return lhs %= rhs; }
+		friend inline WarGrey::GYDM::Natural operator%(WarGrey::GYDM::Natural lhs, const WarGrey::GYDM::Natural& rhs) { return lhs %= rhs; }
 
 	public:
-		WarGrey::DTPM::Natural& expt(unsigned long long e);
-		WarGrey::DTPM::Natural& expt(const WarGrey::DTPM::Natural& e);
+		WarGrey::GYDM::Natural& expt(unsigned long long e);
+		WarGrey::GYDM::Natural& expt(const WarGrey::GYDM::Natural& e);
 
-		WarGrey::DTPM::Natural& modular_expt(unsigned long long b, unsigned long long n);
-		WarGrey::DTPM::Natural& modular_expt(unsigned long long b, const WarGrey::DTPM::Natural& n);
-		WarGrey::DTPM::Natural& modular_expt(const WarGrey::DTPM::Natural& b, unsigned long long n);
-		WarGrey::DTPM::Natural& modular_expt(const WarGrey::DTPM::Natural& b, const WarGrey::DTPM::Natural& n);
+		WarGrey::GYDM::Natural& modular_expt(unsigned long long b, unsigned long long n);
+		WarGrey::GYDM::Natural& modular_expt(unsigned long long b, const WarGrey::GYDM::Natural& n);
+		WarGrey::GYDM::Natural& modular_expt(const WarGrey::GYDM::Natural& b, unsigned long long n);
+		WarGrey::GYDM::Natural& modular_expt(const WarGrey::GYDM::Natural& b, const WarGrey::GYDM::Natural& n);
 
-		WarGrey::DTPM::Natural& quotient_remainder(unsigned long long divisor, Natural* remainder = nullptr);
-		WarGrey::DTPM::Natural& quotient_remainder(const WarGrey::DTPM::Natural& divisor, Natural* remainder = nullptr);
+		WarGrey::GYDM::Natural& quotient_remainder(unsigned long long divisor, Natural* remainder = nullptr);
+		WarGrey::GYDM::Natural& quotient_remainder(const WarGrey::GYDM::Natural& divisor, Natural* remainder = nullptr);
 
-		friend inline WarGrey::DTPM::Natural expt(WarGrey::DTPM::Natural b, unsigned long long e) { return b.expt(e); }
-		friend inline WarGrey::DTPM::Natural expt(unsigned long long b, WarGrey::DTPM::Natural e) { return Natural(b).expt(e); }
-		friend inline WarGrey::DTPM::Natural expt(WarGrey::DTPM::Natural b, const WarGrey::DTPM::Natural& e) { return b.expt(e); }
+		friend inline WarGrey::GYDM::Natural expt(WarGrey::GYDM::Natural b, unsigned long long e) { return b.expt(e); }
+		friend inline WarGrey::GYDM::Natural expt(unsigned long long b, WarGrey::GYDM::Natural e) { return Natural(b).expt(e); }
+		friend inline WarGrey::GYDM::Natural expt(WarGrey::GYDM::Natural b, const WarGrey::GYDM::Natural& e) { return b.expt(e); }
 
-		friend inline WarGrey::DTPM::Natural modular_expt(WarGrey::DTPM::Natural a, unsigned long long b, unsigned long long n) { return a.modular_expt(b, n); }
-		friend inline WarGrey::DTPM::Natural modular_expt(WarGrey::DTPM::Natural a, unsigned long long b, const WarGrey::DTPM::Natural& n) { return a.modular_expt(b, n); }
-		friend inline WarGrey::DTPM::Natural modular_expt(WarGrey::DTPM::Natural a, const WarGrey::DTPM::Natural& b, unsigned long long n) { return a.modular_expt(b, n); }
-		friend inline WarGrey::DTPM::Natural modular_expt(WarGrey::DTPM::Natural a, const WarGrey::DTPM::Natural& b, const WarGrey::DTPM::Natural& n) { return a.modular_expt(b, n); }
+		friend inline WarGrey::GYDM::Natural modular_expt(WarGrey::GYDM::Natural a, unsigned long long b, unsigned long long n) { return a.modular_expt(b, n); }
+		friend inline WarGrey::GYDM::Natural modular_expt(WarGrey::GYDM::Natural a, unsigned long long b, const WarGrey::GYDM::Natural& n) { return a.modular_expt(b, n); }
+		friend inline WarGrey::GYDM::Natural modular_expt(WarGrey::GYDM::Natural a, const WarGrey::GYDM::Natural& b, unsigned long long n) { return a.modular_expt(b, n); }
+		friend inline WarGrey::GYDM::Natural modular_expt(WarGrey::GYDM::Natural a, const WarGrey::GYDM::Natural& b, const WarGrey::GYDM::Natural& n) { return a.modular_expt(b, n); }
 
 	public:
-		WarGrey::DTPM::Natural operator~();
+		WarGrey::GYDM::Natural operator~();
 
-		WarGrey::DTPM::Natural& operator<<=(unsigned long long rhs);
-		WarGrey::DTPM::Natural& operator>>=(unsigned long long rhs);
+		WarGrey::GYDM::Natural& operator<<=(unsigned long long rhs);
+		WarGrey::GYDM::Natural& operator>>=(unsigned long long rhs);
 
-		WarGrey::DTPM::Natural& operator&=(unsigned long long rhs);
-		WarGrey::DTPM::Natural& operator&=(const WarGrey::DTPM::Natural& rhs);
-		WarGrey::DTPM::Natural& operator|=(unsigned long long rhs);
-		WarGrey::DTPM::Natural& operator|=(const WarGrey::DTPM::Natural& rhs);
-		WarGrey::DTPM::Natural& operator^=(unsigned long long rhs);
-		WarGrey::DTPM::Natural& operator^=(const WarGrey::DTPM::Natural& rhs);
+		WarGrey::GYDM::Natural& operator&=(unsigned long long rhs);
+		WarGrey::GYDM::Natural& operator&=(const WarGrey::GYDM::Natural& rhs);
+		WarGrey::GYDM::Natural& operator|=(unsigned long long rhs);
+		WarGrey::GYDM::Natural& operator|=(const WarGrey::GYDM::Natural& rhs);
+		WarGrey::GYDM::Natural& operator^=(unsigned long long rhs);
+		WarGrey::GYDM::Natural& operator^=(const WarGrey::GYDM::Natural& rhs);
 
-		friend inline WarGrey::DTPM::Natural operator<<(WarGrey::DTPM::Natural lhs, unsigned long long rhs) { return lhs <<= rhs; }
-		friend inline WarGrey::DTPM::Natural operator>>(WarGrey::DTPM::Natural lhs, unsigned long long rhs) { return lhs >>= rhs; }
+		friend inline WarGrey::GYDM::Natural operator<<(WarGrey::GYDM::Natural lhs, unsigned long long rhs) { return lhs <<= rhs; }
+		friend inline WarGrey::GYDM::Natural operator>>(WarGrey::GYDM::Natural lhs, unsigned long long rhs) { return lhs >>= rhs; }
 
-		friend inline WarGrey::DTPM::Natural operator&(WarGrey::DTPM::Natural lhs, unsigned long long rhs) { return lhs &= rhs; }
-		friend inline WarGrey::DTPM::Natural operator&(unsigned long long lhs, WarGrey::DTPM::Natural rhs) { return rhs &= lhs; }
-		friend inline WarGrey::DTPM::Natural operator&(WarGrey::DTPM::Natural lhs, const WarGrey::DTPM::Natural& rhs) { return lhs &= rhs; }
-		friend inline WarGrey::DTPM::Natural operator|(WarGrey::DTPM::Natural lhs, unsigned long long rhs) { return lhs |= rhs; }
-		friend inline WarGrey::DTPM::Natural operator|(unsigned long long lhs, WarGrey::DTPM::Natural rhs) { return rhs |= lhs; }
-		friend inline WarGrey::DTPM::Natural operator|(WarGrey::DTPM::Natural lhs, const WarGrey::DTPM::Natural& rhs) { return lhs |= rhs; }
-		friend inline WarGrey::DTPM::Natural operator^(WarGrey::DTPM::Natural lhs, unsigned long long rhs) { return lhs ^= rhs; }
-		friend inline WarGrey::DTPM::Natural operator^(unsigned long long lhs, WarGrey::DTPM::Natural rhs) { return rhs ^= lhs; }
-		friend inline WarGrey::DTPM::Natural operator^(WarGrey::DTPM::Natural lhs, const WarGrey::DTPM::Natural& rhs) { return lhs ^= rhs; }
+		friend inline WarGrey::GYDM::Natural operator&(WarGrey::GYDM::Natural lhs, unsigned long long rhs) { return lhs &= rhs; }
+		friend inline WarGrey::GYDM::Natural operator&(unsigned long long lhs, WarGrey::GYDM::Natural rhs) { return rhs &= lhs; }
+		friend inline WarGrey::GYDM::Natural operator&(WarGrey::GYDM::Natural lhs, const WarGrey::GYDM::Natural& rhs) { return lhs &= rhs; }
+		friend inline WarGrey::GYDM::Natural operator|(WarGrey::GYDM::Natural lhs, unsigned long long rhs) { return lhs |= rhs; }
+		friend inline WarGrey::GYDM::Natural operator|(unsigned long long lhs, WarGrey::GYDM::Natural rhs) { return rhs |= lhs; }
+		friend inline WarGrey::GYDM::Natural operator|(WarGrey::GYDM::Natural lhs, const WarGrey::GYDM::Natural& rhs) { return lhs |= rhs; }
+		friend inline WarGrey::GYDM::Natural operator^(WarGrey::GYDM::Natural lhs, unsigned long long rhs) { return lhs ^= rhs; }
+		friend inline WarGrey::GYDM::Natural operator^(unsigned long long lhs, WarGrey::GYDM::Natural rhs) { return rhs ^= lhs; }
+		friend inline WarGrey::GYDM::Natural operator^(WarGrey::GYDM::Natural lhs, const WarGrey::GYDM::Natural& rhs) { return lhs ^= rhs; }
 
 		bool is_bit_set(unsigned long long m);
-		WarGrey::DTPM::Natural bit_field(unsigned long long start, unsigned long long end);
+		WarGrey::GYDM::Natural bit_field(unsigned long long start, unsigned long long end);
 
 	public:
 		uint8& operator[] (int idx);
@@ -180,7 +180,7 @@ namespace WarGrey::DTPM {
 	public:
 		size_t length() const;
 		size_t integer_length() const;
-		size_t fixnum_count(WarGrey::DTPM::Fixnum type = Fixnum::Uint64) const;
+		size_t fixnum_count(WarGrey::GYDM::Fixnum type = Fixnum::Uint64) const;
 
 	public:
 		size_t expand(size_t size);
@@ -204,7 +204,7 @@ namespace WarGrey::DTPM {
 	private:
 		void add_digit(uint8 digit);
 		void times_digit(uint8 digit);
-		void divide_digit(uint8 digit, WarGrey::DTPM::Natural* remainder);
+		void divide_digit(uint8 digit, WarGrey::GYDM::Natural* remainder);
 		int compare_to_one() const;
 
 	private:
