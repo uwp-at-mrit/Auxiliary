@@ -2,10 +2,10 @@
 
 #include <list>
 
-#include "syslog.hpp"
-
 #include "datum/time.hpp"
 #include "datum/flonum.hpp"
+
+#include "syslog.hpp"
 
 namespace WarGrey::SCADA {
 	private enum class TCPMode { Root, User, Debug, _ };

@@ -5,40 +5,42 @@ using namespace WarGrey::SCADA;
 using namespace Windows::Foundation;
 using namespace Windows::UI::Xaml;
 
-private ref class TCPKiller {
-public:
-internal:
-	TCPKiller(ITCPConnection* master) : master(master) {
-		this->timer = ref new DispatcherTimer();
-		this->timer->Tick += ref new EventHandler<Platform::Object^>(this, &TCPKiller::check_timeout);
-	}
-
-public:
-	void set_timeout(long long ms) {
-		this->timeout = ms;
-
-		if (ms > 0) {
-			this->timer->Interval = make_timespan_from_milliseconds(ms);
-			this->timer->Start(); // starting or restarting
-			this->timer->Start(); // ensured restarting
+/*************************************************************************************************/
+namespace {
+	private ref class TCPKiller {
+	public:
+	internal:
+		TCPKiller(ITCPConnection* master) : master(master) {
+			this->timer = ref new DispatcherTimer();
+			this->timer->Tick += ref new EventHandler<Platform::Object^>(this, &TCPKiller::check_timeout);
 		}
-		else {
-			this->timer->Stop();
+
+	public:
+		void set_timeout(long long ms) {
+			this->timeout = ms;
+
+			if (ms > 0) {
+				this->timer->Interval = make_timespan_from_milliseconds(ms);
+				this->timer->Start(); // starting or restarting
+				this->timer->Start(); // ensured restarting
+			} else {
+				this->timer->Stop();
+			}
 		}
-	}
 
-public:
-	void check_timeout(Platform::Object^ whocares, Platform::Object^ useless) {
-		this->master->suicide_if_timeout(this->timeout);
-	}
+	public:
+		void check_timeout(Platform::Object^ whocares, Platform::Object^ useless) {
+			this->master->suicide_if_timeout(this->timeout);
+		}
 
-private:
-	Windows::UI::Xaml::DispatcherTimer^ timer;
-	long long timeout;
+	private:
+		Windows::UI::Xaml::DispatcherTimer^ timer;
+		long long timeout;
 
-private:
-	ITCPConnection* master;
-};
+	private:
+		ITCPConnection* master;
+	};
+}
 
 /*************************************************************************************************/
 ITCPConnection::~ITCPConnection() {

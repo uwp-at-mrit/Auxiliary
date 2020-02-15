@@ -111,7 +111,7 @@ Platform::String^ WarGrey::SCADA::gpstring(double position, char suffix, int pre
 		sec -= 60;
 	}
 
-	return make_wstring(L"%d°%02d'%02d\"%c", deg, min, sec, suffix);
+	return make_wstring(L"%dï¿½%02d'%02d\"%c", deg, min, sec, suffix);
 }
 
 /*************************************************************************************************/
@@ -164,6 +164,11 @@ bytes WarGrey::SCADA::hexnumber(unsigned long long n, size_t bytecount) {
 	}
 
 	return bs;
+}
+
+/**************************************************************************************************/
+long long WarGrey::SCADA::string_to_fixnum(Platform::String^ string) {
+	return _wtoi64(string->Data());
 }
 
 /**************************************************************************************************/

@@ -23,6 +23,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)hamburger.cxx" />
     <ClCompile Include="$(MSBuildThisFileDirectory)module.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)network\netexn.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)network\socket.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)network\stream.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)network\tcp.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)datum\path.cpp" />
@@ -56,6 +57,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)hamburger.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)module.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)network\netexn.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)network\socket.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)network\stream.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)network\tcp.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)datum\object.hpp" />
@@ -63,6 +65,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)datum\slot.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)datum\string.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)datum\class.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)network\udp.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)preference.hxx" />
     <ClInclude Include="$(MSBuildThisFileDirectory)syslog.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)syslog\logging.hpp" />

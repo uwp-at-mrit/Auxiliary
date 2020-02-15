@@ -71,6 +71,8 @@ std::string retval; { \
 	Platform::String^ make_wstring(char ch);
 	size_t wstrlen(const wchar_t* content);
 
+	long long string_to_fixnum(Platform::String^ string);
+
 	std::string make_nstring(const char* fmt, ...);
 	std::string make_nstring(const wchar_t* wbytes);
 	std::string make_nstring(Platform::String^ wstr);

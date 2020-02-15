@@ -11,22 +11,26 @@ using namespace Windows::Foundation;
 using namespace Windows::Networking::Sockets;
 using namespace Windows::Storage::Streams;
 
-// delegate only accepts C++/CX class
-private ref class GhostListener sealed {
-internal:
-	GhostListener(ISocketAcceptable* master) : master(master) {}
+/*************************************************************************************************/
+namespace {
+	// delegate only accepts C++/CX class
+	private ref class GhostListener sealed {
+	internal:
+		GhostListener(IStreamAcceptPort* master) : master(master) {}
 
-public:
-	void respond(StreamSocketListener^ listener, StreamSocketListenerConnectionReceivedEventArgs^ e) {
-		this->master->on_socket(e->Socket);
-	}
+	public:
+		void respond(StreamSocketListener^ listener, StreamSocketListenerConnectionReceivedEventArgs^ e) {
+			this->master->on_socket(e->Socket);
+		}
 
-private:
-	ISocketAcceptable* master;
-};
+	private:
+		IStreamAcceptPort* master;
+	};
+}
 
 static std::map<int, GhostListener^> ghosts;
 
+/*************************************************************************************************/
 StreamListener::StreamListener() {
 	this->entity = ref new StreamSocketListener();
 	
@@ -44,7 +48,7 @@ StreamListener::~StreamListener() {
 	}
 }
 
-void StreamListener::listen(ISocketAcceptable* master, Platform::String^ service) {
+void StreamListener::listen(IStreamAcceptPort* master, Platform::String^ service) {
 	auto delegate = ref new GhostListener(master);
 	auto uuid = this->entity->GetHashCode();
 
@@ -58,40 +62,6 @@ void StreamListener::listen(ISocketAcceptable* master, Platform::String^ service
 }
 
 /*************************************************************************************************/
-Platform::String^ WarGrey::SCADA::socket_remote_description(StreamSocket^ client) {
-	return client->Information->RemoteHostName->RawName + ":" + client->Information->RemotePort;
-}
-
-Platform::String^ WarGrey::SCADA::socket_local_description(StreamSocket^ client) {
-	return client->Information->LocalAddress->RawName + ":" + client->Information->LocalPort;
-}
-
-DataReader^ WarGrey::SCADA::make_socket_reader(StreamSocket^ socket) {
-	DataReader^ sktin = ref new DataReader(socket->InputStream);
-	
-	sktin->UnicodeEncoding = UnicodeEncoding::Utf8;
-	sktin->ByteOrder = ByteOrder::BigEndian;
-
-	return sktin;
-}
-
-DataReader^ WarGrey::SCADA::make_socket_available_reader(StreamSocket^ socket) {
-	DataReader^ sktin = make_socket_reader(socket);
-
-	sktin->InputStreamOptions = InputStreamOptions::Partial;
-
-	return sktin;
-}
-
-DataWriter^ WarGrey::SCADA::make_socket_writer(StreamSocket^ socket) {
-	DataWriter^ sktout = ref new DataWriter(socket->OutputStream);
-
-	sktout->UnicodeEncoding = UnicodeEncoding::Utf8;
-	sktout->ByteOrder = ByteOrder::BigEndian;
-
-	return sktout;
-}
-
 unsigned int WarGrey::SCADA::discard_dirty_bytes(DataReader^ din) {
 	unsigned int rest = din->UnconsumedBufferLength;
 

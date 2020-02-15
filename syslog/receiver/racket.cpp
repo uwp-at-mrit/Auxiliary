@@ -23,7 +23,7 @@ RacketReceiver::RacketReceiver(Platform::String^ server, unsigned short service,
 	: ISyslogReceiver(level, topic) {
 	auto logserver = ref new HostName(server);
 
-	this->client = client = ref new DatagramSocket();
+	this->client = ref new DatagramSocket();
 	create_task(this->client->ConnectAsync(logserver, service.ToString())).then([this](task<void> conn) {
 		try {
 			conn.get();
@@ -44,8 +44,11 @@ RacketReceiver::RacketReceiver(Platform::String^ server, unsigned short service,
 			};
 			this->section.unlock();
 		} catch (Platform::Exception^ e) {
-			// keep silent: No such host is known.
-			// It occurs when there is no network connection.
+			/** keep silent: No such host is known.
+			 * It occurs when
+			 *   1). there is no network connection
+			 *   2). target is not a unicast address
+			 */
 		}
 	});
 }

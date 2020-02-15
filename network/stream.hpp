@@ -1,18 +1,12 @@
 #pragma once
 
 namespace WarGrey::SCADA {
-	private class ISocketAcceptable abstract {
+	unsigned int discard_dirty_bytes(Windows::Storage::Streams::DataReader^ din);
+
+	private class IStreamAcceptPort abstract {
 	public:
 		virtual void on_socket(Windows::Networking::Sockets::StreamSocket^ socket) = 0;
 	};
-
-	Platform::String^ socket_remote_description(Windows::Networking::Sockets::StreamSocket^ socket);
-	Platform::String^ socket_local_description(Windows::Networking::Sockets::StreamSocket^ socket);
-
-	Windows::Storage::Streams::DataReader^ make_socket_reader(Windows::Networking::Sockets::StreamSocket^ socket);
-	Windows::Storage::Streams::DataReader^ make_socket_available_reader(Windows::Networking::Sockets::StreamSocket^ socket);
-	Windows::Storage::Streams::DataWriter^ make_socket_writer(Windows::Networking::Sockets::StreamSocket^ socket);
-	unsigned int discard_dirty_bytes(Windows::Storage::Streams::DataReader^ din);
 
 	private class StreamListener {
 	public:
@@ -21,7 +15,7 @@ namespace WarGrey::SCADA {
 		StreamListener();
 
 	public:
-		void listen(ISocketAcceptable* master, Platform::String^ service);
+		void listen(IStreamAcceptPort* master, Platform::String^ service);
 
 	private:
 		Windows::Networking::Sockets::StreamSocketListener^ entity;

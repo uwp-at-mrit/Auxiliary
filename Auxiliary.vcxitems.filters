@@ -46,6 +46,9 @@
       <Filter>datum</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)preference.cxx" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)network\socket.cpp">
+      <Filter>network</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)diagnostics.hxx" />
@@ -127,6 +130,12 @@
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)filesystem\msappx.hxx">
       <Filter>filesystem</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)network\socket.hpp">
+      <Filter>network</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)network\udp.hpp">
+      <Filter>network</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
