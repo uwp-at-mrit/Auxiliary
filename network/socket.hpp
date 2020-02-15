@@ -11,4 +11,5 @@ namespace WarGrey::SCADA {
 	Windows::Storage::Streams::DataWriter^ make_socket_writer(Windows::Networking::Sockets::StreamSocket^ socket);
 
 	void socket_reader_standardize(Windows::Storage::Streams::DataReader^ sktin);
+	void socket_writer_standardize(Windows::Storage::Streams::DataWriter^ sktout);
 }

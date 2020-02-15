@@ -41,8 +41,7 @@ DataReader^ WarGrey::SCADA::make_socket_available_reader(StreamSocket^ socket) {
 DataWriter^ WarGrey::SCADA::make_socket_writer(StreamSocket^ socket) {
 	DataWriter^ sktout = ref new DataWriter(socket->OutputStream);
 
-	sktout->UnicodeEncoding = UnicodeEncoding::Utf8;
-	sktout->ByteOrder = ByteOrder::BigEndian;
+	socket_writer_standardize(sktout);
 
 	return sktout;
 }
@@ -50,4 +49,9 @@ DataWriter^ WarGrey::SCADA::make_socket_writer(StreamSocket^ socket) {
 void WarGrey::SCADA::socket_reader_standardize(DataReader^ sktin) {
 	sktin->UnicodeEncoding = UnicodeEncoding::Utf8;
 	sktin->ByteOrder = ByteOrder::BigEndian;
+}
+
+void WarGrey::SCADA::socket_writer_standardize(DataWriter^ sktout) {
+	sktout->UnicodeEncoding = UnicodeEncoding::Utf8;
+	sktout->ByteOrder = ByteOrder::BigEndian;
 }
