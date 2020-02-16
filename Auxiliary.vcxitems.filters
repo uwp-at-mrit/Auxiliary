@@ -49,6 +49,9 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)network\socket.cpp">
       <Filter>network</Filter>
     </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)network\hostname.cpp">
+      <Filter>network</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)diagnostics.hxx" />
@@ -135,6 +138,9 @@
       <Filter>network</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)network\udp.hpp">
+      <Filter>network</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)network\hostname.hpp">
       <Filter>network</Filter>
     </ClInclude>
   </ItemGroup>

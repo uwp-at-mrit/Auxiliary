@@ -20,35 +20,35 @@ namespace WarGrey::GYDM {
 
 	private class IUDPStateListener {
 	public:
-		virtual void on_send_data(WarGrey::GYDM::IUDPDaemon* master, long long bytes, double span_ms, double timestamp_ms) {}
-		virtual void on_unbox_data(WarGrey::GYDM::IUDPDaemon* master, long long bytes, double span_ms, double timestamp_ms) {}
-		virtual void on_apply_data(WarGrey::GYDM::IUDPDaemon* master, long long bytes, double span_ms, double timestamp_ms) {}
+		virtual void on_send_message(WarGrey::GYDM::IUDPDaemon* master, long long bytes, double span_ms, double timestamp_ms) {}
+		virtual void on_unbox_message(WarGrey::GYDM::IUDPDaemon* master, long long bytes, double span_ms, double timestamp_ms) {}
+		virtual void on_apply_message(WarGrey::GYDM::IUDPDaemon* master, long long bytes, double span_ms, double timestamp_ms) {}
 	};
 
 	template<class UDPStateListener>
 	private class IUDPFeedBackDaemon abstract : public WarGrey::GYDM::IUDPDaemon {
 	public:
-		void notify_data_sent(long long bytes, double span_ms) {
+		void notify_message_sent(long long bytes, double span_ms) {
 			double timestamp = current_inexact_milliseconds();
 
 			for (auto it = this->listeners.begin(); it != this->listeners.end(); it++) {
-				(*it)->on_send_data(this, bytes, span_ms, timestamp);
+				(*it)->on_send_message(this, bytes, span_ms, timestamp);
 			}
 		}
 
-		void notify_data_unboxed(long long bytes, double span_ms) {
+		void notify_message_unboxed(long long bytes, double span_ms) {
 			double timestamp = current_inexact_milliseconds();
 
 			for (auto it = this->listeners.begin(); it != this->listeners.end(); it++) {
-				(*it)->on_unbox_data(this, bytes, span_ms, timestamp);
+				(*it)->on_unbox_message(this, bytes, span_ms, timestamp);
 			}
 		}
 
-		void notify_data_applied(long long bytes, double span_ms) {
+		void notify_message_applied(long long bytes, double span_ms) {
 			double timestamp = current_inexact_milliseconds();
 
 			for (auto it = this->listeners.begin(); it != this->listeners.end(); it++) {
-				(*it)->on_apply_data(this, bytes, span_ms, timestamp);
+				(*it)->on_apply_message(this, bytes, span_ms, timestamp);
 			}
 		}
 

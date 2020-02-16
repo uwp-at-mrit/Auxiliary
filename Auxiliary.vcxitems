@@ -22,6 +22,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)dirotation.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)hamburger.cxx" />
     <ClCompile Include="$(MSBuildThisFileDirectory)module.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)network\hostname.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)network\netexn.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)network\socket.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)network\stream.cpp" />
@@ -56,6 +57,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)filesystem\msappx.hxx" />
     <ClInclude Include="$(MSBuildThisFileDirectory)hamburger.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)module.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)network\hostname.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)network\netexn.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)network\socket.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)network\stream.hpp" />
