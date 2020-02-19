@@ -2,7 +2,7 @@
 
 namespace WarGrey::SCADA {
 	unsigned int discard_dirty_bytes(Windows::Storage::Streams::DataReader^ din);
-
+	
 	private class IStreamAcceptPort abstract {
 	public:
 		virtual void on_socket(Windows::Networking::Sockets::StreamSocket^ socket) = 0;

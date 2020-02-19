@@ -6,6 +6,25 @@ using namespace Windows::Networking::Sockets;
 using namespace Windows::Storage::Streams;
 
 /*************************************************************************************************/
+StreamSocket^ WarGrey::SCADA::make_stream_socket() {
+	auto socket = ref new StreamSocket();
+	auto control = socket->Control;
+
+	control->KeepAlive = false;
+	control->QualityOfService = SocketQualityOfService::LowLatency;
+
+	return socket;
+}
+
+DatagramSocket^ WarGrey::SCADA::make_datagram_socket() {
+	auto socket = ref new DatagramSocket();
+	auto control = socket->Control;
+
+	control->QualityOfService = SocketQualityOfService::LowLatency;
+
+	return socket;
+}
+
 Platform::String^ WarGrey::SCADA::socket_remote_description(StreamSocket^ client) {
 	return client->Information->RemoteHostName->RawName + ":" + client->Information->RemotePort;
 }

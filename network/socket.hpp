@@ -1,6 +1,9 @@
 #pragma once
 
 namespace WarGrey::SCADA {
+	Windows::Networking::Sockets::StreamSocket^ make_stream_socket();
+	Windows::Networking::Sockets::DatagramSocket^ make_datagram_socket();
+
 	Platform::String^ socket_remote_description(Windows::Networking::Sockets::StreamSocket^ socket);
 	Platform::String^ socket_remote_description(Windows::Networking::Sockets::DatagramSocket^ socket);
 	Platform::String^ socket_local_description(Windows::Networking::Sockets::StreamSocket^ socket);
