@@ -5,10 +5,8 @@
 namespace WarGrey::SCADA {
 #define READ_BYTES(mbin, dest_exp, count) \
     do { \
-        uint8* dest = (dest_exp); \
-        for (uint16 i = 0; i < count; i++) { \
-            dest[i] = mbin->ReadByte(); \
-        } \
+        auto dest = new Platform::ArrayReference<uint8>((dest_exp), (unsigned int)(count)); \
+        mbin->ReadBytes(reinterpret_cast<Platform::Array<uint8>^>(dest)); \
     } while(0)
 
 #define READ_WORDS(mbin, dest_exp, count) \
@@ -21,10 +19,8 @@ namespace WarGrey::SCADA {
 
 #define WRITE_BYTES(mbout, src_exp, count) \
     do { \
-        uint8* src = (src_exp); \
-        for (uint16 i = 0; i < count; i++) { \
-            mbout->WriteByte(src[i]); \
-        } \
+        auto src = new Platform::ArrayReference<uint8>((src_exp), (unsigned int)(count)); \
+        mbout->WriteBytes(reinterpret_cast<Platform::Array<uint8>^>(src)); \
     } while(0)
 
 #define WORD_HIGH_BYTE(data) (((data) >> 8) & 0xFF)
