@@ -19,13 +19,14 @@ namespace WarGrey::SCADA {
 
 	protected:
 		virtual void on_appdata(Windows::Foundation::Uri^ ms_appdata, FileType^ ftobject) = 0;
-
 		virtual void on_appdata_notify(Windows::Foundation::Uri^ ms_appdata, FileType^ ftobject) {}
-		
-		virtual void on_appdata_not_found(Windows::Foundation::Uri^ ms_appdata) {
+
+		virtual FileType^ on_appdata_not_found(Windows::Foundation::Uri^ ms_appdata) {
 			this->log_message(WarGrey::SCADA::Log::Error,
 				make_wstring(L"failed to load %s: file does not exist",
 					ms_appdata->ToString()->Data()));
+
+			return nullptr;
 		}
 
 	protected:
@@ -77,19 +78,25 @@ namespace WarGrey::SCADA {
 
 			IMsAppdata<FileType>::critical_sections[uuid].lock();
 			auto item = IMsAppdata<FileType>::databases.find(uuid);
+			auto watcher = IMsAppdata<FileType>::lists[uuid].find(this);
 
 			this->store_async(Windows::Storage::ApplicationData::Current->LocalFolder,
 				ms_appdata->Path, ftobject, file_type, 7 /* skip "/local/" */);
 
 			if (item == IMsAppdata<FileType>::databases.end()) {
 				IMsAppdata<FileType>::databases.insert(std::pair<int, bool>(uuid, true));
-				IMsAppdata<FileType>::lists[uuid].insert(std::pair<IMsAppdata<FileType>*, bool>(this, true));
 				IMsAppdata<FileType>::filesystem.insert(std::pair<int, FileType^>(uuid, ftobject));
+			}
+
+			if (watcher == IMsAppdata<FileType>::lists[uuid].end()) {
+				IMsAppdata<FileType>::lists[uuid].insert(std::pair<IMsAppdata<FileType>*, bool>(this, true));
 			}
 			
 			{ // do refreshing
 				IMsAppdata<FileType>::filesystem[uuid]->refresh(ftobject);
+
 				this->broadcast(ms_appdata, uuid, ftobject);
+				
 				this->log_message(WarGrey::SCADA::Log::Debug,
 					make_wstring(L"refreshed the %s: %s with reference count %d",
 						file_type->Data(), ms_appdata->ToString()->Data(),
@@ -147,10 +154,6 @@ namespace WarGrey::SCADA {
 						IMsAppdata<FileType>::filesystem[uuid] = ftobject;
 						IMsAppdata<FileType>::databases[uuid] = true;
 
-						this->log_message(WarGrey::SCADA::Log::Debug,
-							make_wstring(L"loaded the %s: %s",
-								file_type->Data(), ms_appdata->ToString()->Data()));
-
 						this->broadcast(ms_appdata, uuid, ftobject);
 
 						this->log_message(WarGrey::SCADA::Log::Debug,
@@ -158,17 +161,16 @@ namespace WarGrey::SCADA {
 								file_type->Data(), ms_appdata->ToString()->Data(),
 								IMsAppdata<FileType>::lists[uuid].size()));
 					} else {
-						this->on_appdata_not_found(ms_appdata);
-						IMsAppdata<FileType>::clear(uuid);
+						this->try_create(ms_appdata, uuid, file_type);
 					}
 				} catch (Platform::Exception^ e) {
-					IMsAppdata<FileType>::clear(uuid);
-
 					switch (e->HResult) {
 					case HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND): {
-						this->on_appdata_not_found(ms_appdata);
+						this->try_create(ms_appdata, uuid, file_type);
 					}; break;
 					default: {
+						IMsAppdata<FileType>::clear(uuid);
+
 						this->log_message(WarGrey::SCADA::Log::Error,
 							make_wstring(L"failed to load %s: %s",
 								ms_appdata->ToString()->Data(), e->Message->Data()));
@@ -176,6 +178,7 @@ namespace WarGrey::SCADA {
 					}
 				} catch (Concurrency::task_canceled&) {
 					IMsAppdata<FileType>::clear(uuid);
+
 					this->log_message(WarGrey::SCADA::Log::Debug,
 						make_wstring(L"cancelled loading %s", ms_appdata->ToString()->Data()));
 				} catch (std::exception& e) {
@@ -255,6 +258,18 @@ namespace WarGrey::SCADA {
 		void do_notify(Windows::Foundation::Uri^ ms_appdata, FileType^ ftobject) {
 			this->on_appdata(ms_appdata, ftobject);
 			this->on_appdata_notify(ms_appdata, ftobject);
+		}
+
+		void try_create(Windows::Foundation::Uri^ ms_appdata, int uuid, Platform::String^ file_type) {
+			FileType^ maybe_ftobject = this->on_appdata_not_found(ms_appdata);
+
+			if (maybe_ftobject != nullptr) {
+				IMsAppdata<FileType>::critical_sections[uuid].unlock();
+				this->store(ms_appdata, maybe_ftobject, file_type);
+				IMsAppdata<FileType>::critical_sections[uuid].lock();
+			} else {
+				IMsAppdata<FileType>::clear(uuid);
+			}
 		}
 
 	private:
