@@ -78,23 +78,25 @@ namespace WarGrey::SCADA {
 
 			IMsAppdata<FileType>::critical_sections[uuid].lock();
 			auto item = IMsAppdata<FileType>::databases.find(uuid);
-			auto watcher = IMsAppdata<FileType>::lists[uuid].find(this);
 
 			this->store_async(Windows::Storage::ApplicationData::Current->LocalFolder,
 				ms_appdata->Path, ftobject, file_type, 7 /* skip "/local/" */);
 
-			if ((item == IMsAppdata<FileType>::databases.end()) || (item->second == false)) {
+			if (item == IMsAppdata<FileType>::databases.end()) {
 				IMsAppdata<FileType>::databases.insert(std::pair<int, bool>(uuid, true));
-				IMsAppdata<FileType>::filesystem.insert(std::pair<int, FileType^>(uuid, ftobject));
+			} else {
+				IMsAppdata<FileType>::databases[uuid] = true;
 			}
 
-			if (watcher == IMsAppdata<FileType>::lists[uuid].end()) {
-				IMsAppdata<FileType>::lists[uuid].insert(std::pair<IMsAppdata<FileType>*, bool>(this, true));
+			if (IMsAppdata<FileType>::filesystem.find(uuid) == IMsAppdata<FileType>::filesystem.end()) {
+				IMsAppdata<FileType>::filesystem.insert(std::pair<int, FileType^>(uuid, ftobject));
+			} else {
+				IMsAppdata<FileType>::filesystem[uuid]->refresh(ftobject);
 			}
+
+			IMsAppdata<FileType>::lists[uuid][this] = true;
 			
 			{ // do refreshing
-				IMsAppdata<FileType>::filesystem[uuid]->refresh(ftobject);
-
 				this->broadcast(ms_appdata, uuid, ftobject);
 				
 				this->log_message(WarGrey::SCADA::Log::Debug,
@@ -275,15 +277,15 @@ namespace WarGrey::SCADA {
 	private:
 		Concurrency::cancellation_token_source shared_task;
 		
-	private:
-		static std::map<int, FileType^> filesystem;
+	private: // Stupid C++/CX, `FileType^` does not want to work with std::optional which employs `C union`
 		static std::map<int, bool> databases;
+		static std::map<int, FileType^> filesystem;
 		static std::map<int, std::map<IMsAppdata<FileType>*, bool>> lists;
 		static std::map<int, std::mutex> critical_sections;
 	};
 
-	template<class FileType> std::map<int, FileType^> IMsAppdata<FileType>::filesystem;
 	template<class FileType> std::map<int, bool> IMsAppdata<FileType>::databases;
+	template<class FileType> std::map<int, FileType^> IMsAppdata<FileType>::filesystem;
 	template<class FileType> std::map<int, std::map<IMsAppdata<FileType>*, bool>> IMsAppdata<FileType>::lists;
 	template<class FileType> std::map<int, std::mutex> IMsAppdata<FileType>::critical_sections;
 }
