@@ -83,7 +83,7 @@ namespace WarGrey::SCADA {
 			this->store_async(Windows::Storage::ApplicationData::Current->LocalFolder,
 				ms_appdata->Path, ftobject, file_type, 7 /* skip "/local/" */);
 
-			if (item == IMsAppdata<FileType>::databases.end()) {
+			if ((item == IMsAppdata<FileType>::databases.end()) || (item->second == false)) {
 				IMsAppdata<FileType>::databases.insert(std::pair<int, bool>(uuid, true));
 				IMsAppdata<FileType>::filesystem.insert(std::pair<int, FileType^>(uuid, ftobject));
 			}
