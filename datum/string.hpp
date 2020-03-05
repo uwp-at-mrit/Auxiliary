@@ -88,6 +88,7 @@ std::string retval; { \
 	long long scan_integer(const unsigned char* src, size_t* pos, size_t end, bool skip_trailing_space = true);
 	double scan_flonum(const unsigned char* src, size_t* pos, size_t end, bool skip_trailing_space = true);
 	void scan_bytes(const unsigned char* src, size_t* pos, size_t end, unsigned char* bs, size_t bs_start, size_t bs_end, bool terminating = true);
+	
 	size_t scan_skip_space(const unsigned char* src, size_t* pos, size_t end);
 	size_t scan_skip_newline(const unsigned char* src, size_t* pos, size_t end);
 	size_t scan_skip_this_line(const unsigned char* src, size_t* pos, size_t end);
