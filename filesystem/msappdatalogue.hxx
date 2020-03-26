@@ -25,15 +25,15 @@ namespace WarGrey::SCADA {
 		virtual void on_appdata_notify(Platform::String^ file, FileType^ ftobject, TypeName type) {}
 		
 		virtual void on_appdata_not_found(Platform::String^ file, TypeName type) {
-			this->log_message(WarGrey::SCADA::Log::Error, make_wstring(L"failed to load %s: file does not exist", file->Data()));
+			this->log_message(WarGrey::GYDM::Log::Error, make_wstring(L"failed to load %s: file does not exist", file->Data()));
 		}
 
 		virtual void on_appdatadir_not_found(Platform::String^ dir) {
-			this->log_message(WarGrey::SCADA::Log::Error, make_wstring(L"failed to changed to folder %s: folder does not exist", dir->Data()));
+			this->log_message(WarGrey::GYDM::Log::Error, make_wstring(L"failed to changed to folder %s: folder does not exist", dir->Data()));
 		}
 
 	protected:
-		virtual void log_message(WarGrey::SCADA::Log level, Platform::String^ message) {
+		virtual void log_message(WarGrey::GYDM::Log level, Platform::String^ message) {
 			syslog(level, message);
 		}
 
@@ -85,15 +85,15 @@ namespace WarGrey::SCADA {
 								this->on_appdatadir_not_found(subdir);
 							}; break;
 							default: {
-								this->log_message(WarGrey::SCADA::Log::Error,
+								this->log_message(WarGrey::GYDM::Log::Error,
 									make_wstring(L"failed to changed to folder %s: %s",
 										path->Data(), e->Message->Data()));
 							}
 							}
 						} catch (Concurrency::task_canceled&) {
-							this->log_message(WarGrey::SCADA::Log::Debug, make_wstring(L"cancelled traversing %s", path->Data()));
+							this->log_message(WarGrey::GYDM::Log::Debug, make_wstring(L"cancelled traversing %s", path->Data()));
 						} catch (std::exception& e) {
-							this->log_message(WarGrey::SCADA::Log::Debug, make_wstring(L"cd: unexcepted exception: %s", e.what()));
+							this->log_message(WarGrey::GYDM::Log::Debug, make_wstring(L"cd: unexcepted exception: %s", e.what()));
 						}
 					});
 				}
@@ -109,7 +109,7 @@ namespace WarGrey::SCADA {
 			get_file.then([=](Concurrency::task<Windows::Storage::StorageFile^> sfile) {
 				Windows::Storage::StorageFile^ file = sfile.get(); // Stupid Microsoft: `sfile.get()` seems lost itself if the file does not exist.
 
-				this->log_message(Log::Debug, make_wstring(L"loading %s", file->Path->Data()));
+				this->log_message(WarGrey::GYDM::Log::Debug, make_wstring(L"loading %s", file->Path->Data()));
 
 				return Concurrency::create_task(this->read(file->Path, filetype), token);
 			}).then([=](Concurrency::task<FileType^> doc) {
@@ -117,7 +117,7 @@ namespace WarGrey::SCADA {
 					FileType^ ftobject = doc.get();
 
 					if (ftobject != nullptr) {
-						this->log_message(Log::Debug, make_wstring(L"loaded %s", filename->ToString()->Data()));
+						this->log_message(WarGrey::GYDM::Log::Debug, make_wstring(L"loaded %s", filename->ToString()->Data()));
 
 						this->on_appdata(filename, ftobject, filetype);
 						this->on_appdata_notify(filename, ftobject, filetype);
@@ -130,16 +130,16 @@ namespace WarGrey::SCADA {
 						this->on_appdata_not_found(filename, filetype);
 					}; break;
 					default: {
-						this->log_message(WarGrey::SCADA::Log::Error,
+						this->log_message(WarGrey::GYDM::Log::Error,
 							make_wstring(L"failed to load %s: %s",
 								filename->ToString()->Data(), e->Message->Data()));
 					}
 					}
 				} catch (Concurrency::task_canceled&) {
-					this->log_message(WarGrey::SCADA::Log::Debug,
+					this->log_message(WarGrey::GYDM::Log::Debug,
 						make_wstring(L"cancelled loading %s", filename->ToString()->Data()));
 				} catch (std::exception& e) {
-					this->log_message(WarGrey::SCADA::Log::Debug,
+					this->log_message(WarGrey::GYDM::Log::Debug,
 						make_wstring(L"load: unexcepted exception: %s", e.what()));
 				}
 			});
@@ -179,13 +179,13 @@ namespace WarGrey::SCADA {
 					maybe_exn.get();
 					this->on_appdatadir_listed(this->relative_folder_name(root->Path));
 				} catch (Platform::Exception ^ e) {
-					this->log_message(WarGrey::SCADA::Log::Error,
+					this->log_message(WarGrey::GYDM::Log::Error,
 						make_wstring(L"failed to list folder %s: %s",
 							root->Path->Data(), e->Message->Data()));
 				} catch (Concurrency::task_canceled&) {
-					this->log_message(WarGrey::SCADA::Log::Debug, make_wstring(L"cancelled traversing %s", root->Path->Data()));
+					this->log_message(WarGrey::GYDM::Log::Debug, make_wstring(L"cancelled traversing %s", root->Path->Data()));
 				} catch (std::exception & e) {
-					this->log_message(WarGrey::SCADA::Log::Debug, make_wstring(L"list_items: unexcepted exception: %s", e.what()));
+					this->log_message(WarGrey::GYDM::Log::Debug, make_wstring(L"list_items: unexcepted exception: %s", e.what()));
 				}
 			});
 		}

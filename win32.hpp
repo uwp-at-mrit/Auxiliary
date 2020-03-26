@@ -11,9 +11,9 @@ namespace WarGrey::SCADA {
     typedef void(*_fun__void)();
     typedef void(*_fun_destructor)(void*);
 
-    HMODULE win32_load_foreign_library(Platform::String^ dllname, WarGrey::SCADA::Syslog* logger = nullptr);
-    bool win32_unload_foreign_library(HMODULE m, WarGrey::SCADA::Syslog* logger = nullptr);
-    FARPROC win32_fetch_foreign_object(HMODULE m, LPCSTR name, WarGrey::SCADA::Syslog* logger = nullptr);
+    HMODULE win32_load_foreign_library(Platform::String^ dllname, WarGrey::GYDM::Syslog* logger = nullptr);
+    bool win32_unload_foreign_library(HMODULE m, WarGrey::GYDM::Syslog* logger = nullptr);
+    FARPROC win32_fetch_foreign_object(HMODULE m, LPCSTR name, WarGrey::GYDM::Syslog* logger = nullptr);
 
     Platform::String^ win32_last_strerror();
 }

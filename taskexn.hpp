@@ -17,10 +17,10 @@ namespace WarGrey::SCADA {
 
 	/************************************************************************************************/
 	void task_fatal();
-	void task_fatal(WarGrey::SCADA::Syslog* logger, Platform::String^ message);
-	void task_fatal(WarGrey::SCADA::Syslog* logger, const wchar_t *fmt, ...);
+	void task_fatal(WarGrey::GYDM::Syslog* logger, Platform::String^ message);
+	void task_fatal(WarGrey::GYDM::Syslog* logger, const wchar_t *fmt, ...);
 
 	void task_discard();
-	void task_discard(WarGrey::SCADA::Syslog* logger, Platform::String^ message);
-	void task_discard(WarGrey::SCADA::Syslog* logger, const wchar_t *fmt, ...);
+	void task_discard(WarGrey::GYDM::Syslog* logger, Platform::String^ message);
+	void task_discard(WarGrey::GYDM::Syslog* logger, const wchar_t *fmt, ...);
 }

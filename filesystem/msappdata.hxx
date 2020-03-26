@@ -22,7 +22,7 @@ namespace WarGrey::SCADA {
 		virtual void on_appdata_notify(Windows::Foundation::Uri^ ms_appdata, FileType^ ftobject) {}
 
 		virtual FileType^ on_appdata_not_found(Windows::Foundation::Uri^ ms_appdata) {
-			this->log_message(WarGrey::SCADA::Log::Error,
+			this->log_message(WarGrey::GYDM::Log::Error,
 				make_wstring(L"failed to load %s: file does not exist",
 					ms_appdata->ToString()->Data()));
 
@@ -30,7 +30,7 @@ namespace WarGrey::SCADA {
 		}
 
 	protected:
-		virtual void log_message(WarGrey::SCADA::Log level, Platform::String^ message) {
+		virtual void log_message(WarGrey::GYDM::Log level, Platform::String^ message) {
 			syslog(level, message);
 		}
 
@@ -61,12 +61,12 @@ namespace WarGrey::SCADA {
 			} else if (item->second == true) {
 				this->do_notify(ms_appdata, IMsAppdata<FileType>::filesystem[uuid]);
 
-				this->log_message(WarGrey::SCADA::Log::Debug, 
+				this->log_message(WarGrey::GYDM::Log::Debug,
 					make_wstring(L"reused the %s: %s with reference count %d",
 						file_type->Data(), ms_appdata->ToString()->Data(),
 						IMsAppdata<FileType>::lists[uuid].size()));
 			} else {
-				this->log_message(WarGrey::SCADA::Log::Debug,
+				this->log_message(WarGrey::GYDM::Log::Debug,
 					make_wstring(L"waiting for the %s: %s",
 						file_type->Data(), ms_appdata->ToString()->Data()));
 			}
@@ -99,7 +99,7 @@ namespace WarGrey::SCADA {
 			{ // do refreshing
 				this->broadcast(ms_appdata, uuid, ftobject);
 				
-				this->log_message(WarGrey::SCADA::Log::Debug,
+				this->log_message(WarGrey::GYDM::Log::Debug,
 					make_wstring(L"refreshed the %s: %s with reference count %d",
 						file_type->Data(), ms_appdata->ToString()->Data(),
 						IMsAppdata<FileType>::lists[uuid].size()));
@@ -141,7 +141,7 @@ namespace WarGrey::SCADA {
 			get_file.then([=](Concurrency::task<Windows::Storage::StorageFile^> sfile) {
 				Windows::Storage::StorageFile^ file = sfile.get(); // Stupid Microsoft: `sfile.get()` seems lost itself if the file does not exist.
 
-				this->log_message(WarGrey::SCADA::Log::Debug,
+				this->log_message(WarGrey::GYDM::Log::Debug,
 					make_wstring(L"loading the %s: %s",
 						file_type->Data(), ms_appdata->ToString()->Data()));
 
@@ -158,7 +158,7 @@ namespace WarGrey::SCADA {
 
 						this->broadcast(ms_appdata, uuid, ftobject);
 
-						this->log_message(WarGrey::SCADA::Log::Debug,
+						this->log_message(WarGrey::GYDM::Log::Debug,
 							make_wstring(L"loaded the %s: %s with reference count %d",
 								file_type->Data(), ms_appdata->ToString()->Data(),
 								IMsAppdata<FileType>::lists[uuid].size()));
@@ -173,7 +173,7 @@ namespace WarGrey::SCADA {
 					default: {
 						IMsAppdata<FileType>::clear(uuid);
 
-						this->log_message(WarGrey::SCADA::Log::Error,
+						this->log_message(WarGrey::GYDM::Log::Error,
 							make_wstring(L"failed to load %s: %s",
 								ms_appdata->ToString()->Data(), e->Message->Data()));
 					}
@@ -181,11 +181,11 @@ namespace WarGrey::SCADA {
 				} catch (Concurrency::task_canceled&) {
 					IMsAppdata<FileType>::clear(uuid);
 
-					this->log_message(WarGrey::SCADA::Log::Debug,
+					this->log_message(WarGrey::GYDM::Log::Debug,
 						make_wstring(L"cancelled loading %s", ms_appdata->ToString()->Data()));
 				} catch (std::exception& e) {
 					IMsAppdata<FileType>::clear(uuid);
-					this->log_message(WarGrey::SCADA::Log::Debug,
+					this->log_message(WarGrey::GYDM::Log::Debug,
 						make_wstring(L"unexcepted exception: %s", e.what()));
 				}
 
@@ -212,11 +212,11 @@ namespace WarGrey::SCADA {
 						try {
 							maybe_exn.get();
 						} catch (Platform::Exception^ e) {
-							this->log_message(WarGrey::SCADA::Log::Error, make_wstring(L"failed to save %s: %s", ms_appdata->Data(), e->Message->Data()));
+							this->log_message(WarGrey::GYDM::Log::Error, make_wstring(L"failed to save %s: %s", ms_appdata->Data(), e->Message->Data()));
 						} catch (Concurrency::task_canceled&) {
-							this->log_message(WarGrey::SCADA::Log::Debug, make_wstring(L"cancelled saving %s", ms_appdata->Data()));
+							this->log_message(WarGrey::GYDM::Log::Debug, make_wstring(L"cancelled saving %s", ms_appdata->Data()));
 						} catch (std::exception& e) {
-							this->log_message(WarGrey::SCADA::Log::Debug, make_wstring(L"store: unexcepted exception: %s", e.what()));
+							this->log_message(WarGrey::GYDM::Log::Debug, make_wstring(L"store: unexcepted exception: %s", e.what()));
 						}
 					});
 				}
@@ -226,14 +226,14 @@ namespace WarGrey::SCADA {
 				Concurrency::create_task(this->write(ftobject, rootdir->Path + "\\" + subdir), token).then([=](Concurrency::task<bool> saved) {
 					try {
 						if (saved.get()) {
-							this->log_message(WarGrey::SCADA::Log::Debug, make_wstring(L"saved the %s: %s", file_type->Data(), ms_appdata->Data()));
+							this->log_message(WarGrey::GYDM::Log::Debug, make_wstring(L"saved the %s: %s", file_type->Data(), ms_appdata->Data()));
 						}
 					} catch (Platform::Exception^ e) {
-						this->log_message(WarGrey::SCADA::Log::Error, make_wstring(L"failed to save %s: %s", ms_appdata->Data(), e->Message->Data()));
+						this->log_message(WarGrey::GYDM::Log::Error, make_wstring(L"failed to save %s: %s", ms_appdata->Data(), e->Message->Data()));
 					} catch (Concurrency::task_canceled&) {
-						this->log_message(WarGrey::SCADA::Log::Debug, make_wstring(L"cancelled saving %s", ms_appdata->Data()));
+						this->log_message(WarGrey::GYDM::Log::Debug, make_wstring(L"cancelled saving %s", ms_appdata->Data()));
 					} catch (std::exception& e) {
-						this->log_message(WarGrey::SCADA::Log::Debug, make_wstring(L"unexcepted exception: %s", e.what()));
+						this->log_message(WarGrey::GYDM::Log::Debug, make_wstring(L"unexcepted exception: %s", e.what()));
 					}
 				});
 			}

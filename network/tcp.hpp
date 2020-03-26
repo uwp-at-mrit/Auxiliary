@@ -21,7 +21,7 @@ namespace WarGrey::SCADA {
 		virtual Platform::String^ device_description() = 0;
 
 	public:
-		virtual Syslog* get_logger() = 0;
+		virtual WarGrey::GYDM::Syslog* get_logger() = 0;
 		virtual void shake_hands() = 0;
 		virtual bool connected() = 0;
 		virtual void suicide() = 0;

@@ -7,19 +7,9 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)dirotation.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)hamburger.cxx" />
     <ClCompile Include="$(MSBuildThisFileDirectory)module.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)syslog.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)system.cxx" />
     <ClCompile Include="$(MSBuildThisFileDirectory)tongue.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)win32.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)syslog\logging.cpp">
-      <Filter>syslog</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)syslog\receiver\vstudio.cpp">
-      <Filter>syslog\receiver</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)syslog\receiver\racket.cpp">
-      <Filter>syslog\receiver</Filter>
-    </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)network\stream.cpp">
       <Filter>network</Filter>
     </ClCompile>
@@ -58,19 +48,9 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)dirotation.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)hamburger.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)module.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)syslog.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)system.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)tongue.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)win32.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)syslog\logging.hpp">
-      <Filter>syslog</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)syslog\receiver\vstudio.hpp">
-      <Filter>syslog\receiver</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)syslog\receiver\racket.hpp">
-      <Filter>syslog\receiver</Filter>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)taskexn.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)network\stream.hpp">
       <Filter>network</Filter>
@@ -145,12 +125,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <Filter Include="syslog">
-      <UniqueIdentifier>{d8c3203b-a753-4893-966e-9f3f2c530828}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="syslog\receiver">
-      <UniqueIdentifier>{3cfbefa3-b6af-4522-9267-d7d381d57dd8}</UniqueIdentifier>
-    </Filter>
     <Filter Include="network">
       <UniqueIdentifier>{392465bd-38bf-40ea-98d4-29bd893354b3}</UniqueIdentifier>
     </Filter>

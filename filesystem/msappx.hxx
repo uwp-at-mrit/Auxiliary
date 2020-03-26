@@ -23,13 +23,13 @@ namespace WarGrey::SCADA {
 		virtual void on_appx_notify(Windows::Foundation::Uri^ ms_appx, FileType^ ftobject, Hint hint) {}
 		
 		virtual void on_appx_not_found(Windows::Foundation::Uri^ ms_appx, Hint hint) {
-			this->log_message(WarGrey::SCADA::Log::Error,
+			this->log_message(WarGrey::GYDM::Log::Error,
 				make_wstring(L"failed to load %s: file does not exist",
 					ms_appx->ToString()->Data()));
 		}
 
 	protected:
-		virtual void log_message(WarGrey::SCADA::Log level, Platform::String^ message) {
+		virtual void log_message(WarGrey::GYDM::Log level, Platform::String^ message) {
 			syslog(level, message);
 		}
 
@@ -52,13 +52,13 @@ namespace WarGrey::SCADA {
 				reference->second += 1;
 				this->do_notify(ms_appx, IMsAppx<FileType, Hint>::filesystem[uuid], hint);
 
-				this->log_message(WarGrey::SCADA::Log::Debug, 
+				this->log_message(WarGrey::GYDM::Log::Debug, 
 					make_wstring(L"reused the %s: %s with reference count %d",
 						file_type->Data(), ms_appx->ToString()->Data(),
 						IMsAppx<FileType, Hint>::refcounts[uuid]));
 			} else {
 				IMsAppx<FileType, Hint>::queues[uuid].push(this);
-				this->log_message(WarGrey::SCADA::Log::Debug,
+				this->log_message(WarGrey::GYDM::Log::Debug,
 					make_wstring(L"waiting for the %s: %s",
 						file_type->Data(), ms_appx->ToString()->Data()));
 			}
@@ -92,7 +92,7 @@ namespace WarGrey::SCADA {
 					Windows::Storage::StorageOpenOptions::AllowOnlyReaders),
 					token);
 			}).then([=](Concurrency::task<Windows::Storage::Streams::IRandomAccessStream^> stream) {
-				this->log_message(WarGrey::SCADA::Log::Debug,
+				this->log_message(WarGrey::GYDM::Log::Debug,
 					make_wstring(L"found the %s: %s",
 						file_type->Data(), ms_appx->ToString()->Data()));
 
@@ -114,7 +114,7 @@ namespace WarGrey::SCADA {
 						q.pop();
 					}
 
-					this->log_message(WarGrey::SCADA::Log::Debug,
+					this->log_message(WarGrey::GYDM::Log::Debug,
 						make_wstring(L"loaded the %s: %s with reference count %d",
 							file_type->Data(), ms_appx->ToString()->Data(),
 							IMsAppx<FileType, Hint>::refcounts[uuid]));
@@ -128,18 +128,18 @@ namespace WarGrey::SCADA {
 						this->on_appx_not_found(ms_appx, hint);
 					}; break;
 					default: {
-						this->log_message(WarGrey::SCADA::Log::Error,
+						this->log_message(WarGrey::GYDM::Log::Error,
 							make_wstring(L"failed to load %s: %s",
 								ms_appx->ToString()->Data(), e->Message->Data()));
 					}
 					}
 				} catch (Concurrency::task_canceled&) {
 					IMsAppx<FileType, Hint>::clear(uuid);
-					this->log_message(WarGrey::SCADA::Log::Debug,
+					this->log_message(WarGrey::GYDM::Log::Debug,
 						make_wstring(L"cancelled loading %s", ms_appx->ToString()->Data()));
 				} catch (std::exception& e) {
 					IMsAppx<FileType, Hint>::clear(uuid);
-					this->log_message(WarGrey::SCADA::Log::Debug,
+					this->log_message(WarGrey::GYDM::Log::Debug,
 						make_wstring(L"unexcepted exception: %s", e.what()));
 				}
 

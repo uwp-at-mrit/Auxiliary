@@ -3,6 +3,7 @@
 #include "datum/string.hpp"
 
 using namespace WarGrey::SCADA;
+using namespace WarGrey::GYDM;
 
 /*************************************************************************************************/
 void WarGrey::SCADA::task_fatal() {

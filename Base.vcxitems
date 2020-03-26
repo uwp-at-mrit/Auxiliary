@@ -30,10 +30,6 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)datum\path.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)datum\string.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)preference.cxx" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)syslog.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)syslog\logging.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)syslog\receiver\racket.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)syslog\receiver\vstudio.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)system.cxx" />
     <ClCompile Include="$(MSBuildThisFileDirectory)taskexn.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)datum\time.cpp" />
@@ -69,10 +65,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)datum\class.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)network\udp.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)preference.hxx" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)syslog.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)syslog\logging.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)syslog\receiver\racket.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)syslog\receiver\vstudio.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)system.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)taskexn.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)datum\time.hpp" />

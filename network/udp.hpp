@@ -15,7 +15,7 @@ namespace WarGrey::GYDM {
 		virtual Platform::String^ daemon_description() = 0;
 
 	public:
-		virtual WarGrey::SCADA::Syslog* get_logger() = 0;
+		virtual WarGrey::GYDM::Syslog* get_logger() = 0;
 	};
 
 	private class IUDPStateListener {

@@ -4,9 +4,11 @@
 #include "datum/string.hpp"
 
 using namespace WarGrey::SCADA;
+using namespace WarGrey::GYDM;
 
 using namespace Windows::Foundation;
 
+/*************************************************************************************************/
 HMODULE WarGrey::SCADA::win32_load_foreign_library(Platform::String^ dllname, Syslog* logger) {
 	HMODULE m = nullptr;
 	Platform::String^ bslash = L"\\";
