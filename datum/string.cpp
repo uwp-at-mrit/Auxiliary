@@ -55,7 +55,7 @@ Platform::String^ WarGrey::SCADA::make_wstring(std::string& bytes) {
 }
 
 Platform::String^ WarGrey::SCADA::make_wstring(std::wstring& bytes) {
-	return ref new Platform::String(bytes.c_str(), bytes.size());
+	return ref new Platform::String(bytes.c_str(), static_cast<unsigned int>(bytes.size()));
 }
 
 Platform::String^ WarGrey::SCADA::make_wstring(char ch) {
