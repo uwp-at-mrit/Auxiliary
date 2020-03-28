@@ -222,7 +222,7 @@ long long WarGrey::SCADA::seconds_add_years(long long s, long long count) {
 Platform::String^ WarGrey::SCADA::make_timestamp_utc(long long utc_s, bool locale) {
 	wchar_t timestamp[32];
 
-	wtime(timestamp, utc_s, L"%F %T", locale);
+	wtime(timestamp, utc_s, L"%FT%T", locale);
 
 	return ref new Platform::String(timestamp);
 }

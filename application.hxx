@@ -154,7 +154,7 @@ namespace WarGrey::SCADA {
 	};
 
 	template<class UniversalWindowsScreen>
-	int launch_universal_windows_application(WarGrey::GYDM::Log level, Platform::String^ remote_syslog_group, Platform::String^ lang = nullptr) {
+	int launch_universal_windows_application(WarGrey::GYDM::Log level, Platform::String^ rsyslog_host, unsigned short rsyslog_port, Platform::String^ lang = nullptr) {
 		auto lazy_main = [](Windows::UI::Xaml::ApplicationInitializationCallbackParams^ p) {
 			ref new WarGrey::SCADA::UniversalWindowsApplication<UniversalWindowsScreen>();
 		};
@@ -169,7 +169,7 @@ namespace WarGrey::SCADA {
 #endif
 
 		WarGrey::GYDM::set_default_logging_level(level);
-		WarGrey::GYDM::set_default_rsyslog_multicast_group(remote_syslog_group);
+		WarGrey::GYDM::set_default_rsyslog_target(rsyslog_host, rsyslog_port);
 
 
 		Windows::UI::Xaml::Application::Start(ref new Windows::UI::Xaml::ApplicationInitializationCallback(lazy_main));
